@@ -4,7 +4,18 @@ A Storm Management-inspired agency site: minimal, editorial, image-first. Biling
 
 ## Visual direction
 
-Mirrors the Storm reference: near-white background, black text, tiny uppercase letter-spaced navigation, no rounded corners, no shadows. Full-bleed portrait grids where the image is the entire interface — names appear small beneath each portrait. Generous whitespace, restrained hover (subtle image swap / fade only).
+Storm's discipline — full-bleed portrait grids, tiny uppercase letter-spaced nav, sharp corners, no shadows, generous whitespace — but warmed with color instead of Storm's pure black-on-white.
+
+From your mood board:
+
+- **Morandi palette as the base.** Soft muted blue-greys (#D6DDD9, #BFCCD4, #9FB5C3, #8A9DA8, #6D7B86) on a warm off-white paper ground, with deep slate as the text color rather than pure black. Calm, editorial, distinctly not Storm.
+- **Gradient as an accent, not a background.** The pastel mesh gradient (mint → yellow → coral) appears in restrained places only: the division/board title bands, the language-toggle active state, hover wash over a portrait, and the Get Scouted call to action. Never behind body text.
+- **Halftone dot texture** used as a section divider and behind the About / Contact headers — a fine dot field fading edge to edge, giving the print-magazine feel while keeping the grids clean.
+- **Type**: a light-weight geometric sans for names and nav; Traditional Chinese set in a matching Noto Sans TC weight so both languages sit at the same visual density.
+- Motion stays restrained: slow fades and image swaps, no bouncing or heavy animation.
+
+All of this lives as design tokens, so the accent gradient and palette can be re-tuned globally without touching page code.
+
 
 ## Pages
 
