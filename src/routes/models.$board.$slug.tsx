@@ -47,7 +47,7 @@ export const Route = createFileRoute("/models/$board/$slug")({
   ),
 });
 
-function Stat({ label, value }: { label: string; value?: string }) {
+function Stat({ label, value }: { label: string; value?: string | undefined }) {
   if (!value) return null;
   return (
     <div className="border-t border-border py-2.5">

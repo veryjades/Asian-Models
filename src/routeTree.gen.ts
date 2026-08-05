@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ModelsBoardIndexRouteImport } from './routes/models.$board.index'
+import { Route as ModelsBoardSlugRouteImport } from './routes/models.$board.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ModelsBoardIndexRoute = ModelsBoardIndexRouteImport.update({
+  id: '/models/$board/',
+  path: '/models/$board/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ModelsBoardSlugRoute = ModelsBoardSlugRouteImport.update({
+  id: '/models/$board/$slug',
+  path: '/models/$board/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/models/$board/$slug': typeof ModelsBoardSlugRoute
+  '/models/$board/': typeof ModelsBoardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/models/$board/$slug': typeof ModelsBoardSlugRoute
+  '/models/$board': typeof ModelsBoardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/models/$board/$slug': typeof ModelsBoardSlugRoute
+  '/models/$board/': typeof ModelsBoardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/models/$board/$slug' | '/models/$board/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/models/$board/$slug' | '/models/$board'
+  id: '__root__' | '/' | '/models/$board/$slug' | '/models/$board/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ModelsBoardSlugRoute: typeof ModelsBoardSlugRoute
+  ModelsBoardIndexRoute: typeof ModelsBoardIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +68,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/models/$board/': {
+      id: '/models/$board/'
+      path: '/models/$board'
+      fullPath: '/models/$board/'
+      preLoaderRoute: typeof ModelsBoardIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/models/$board/$slug': {
+      id: '/models/$board/$slug'
+      path: '/models/$board/$slug'
+      fullPath: '/models/$board/$slug'
+      preLoaderRoute: typeof ModelsBoardSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ModelsBoardSlugRoute: ModelsBoardSlugRoute,
+  ModelsBoardIndexRoute: ModelsBoardIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
