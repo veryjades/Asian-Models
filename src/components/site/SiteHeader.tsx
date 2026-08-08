@@ -2,15 +2,18 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 
-const navItems = [
-  { to: "/models/women", key: "nav.women" },
-  { to: "/models/men", key: "nav.men" },
-  { to: "/models/new-faces", key: "nav.newFaces" },
-  { to: "/models/talent", key: "nav.talent" },
+type NavItem = { to: string; params?: Record<string, string>; key: string };
+
+const navItems: NavItem[] = [
+  { to: "/models/$board", params: { board: "women" }, key: "nav.women" },
+  { to: "/models/$board", params: { board: "men" }, key: "nav.men" },
+  { to: "/models/$board", params: { board: "new-faces" }, key: "nav.newFaces" },
+  { to: "/models/$board", params: { board: "talent" }, key: "nav.talent" },
   { to: "/news", key: "nav.news" },
   { to: "/about", key: "nav.about" },
   { to: "/contact", key: "nav.contact" },
-] as const;
+];
+
 
 function LangToggle() {
   const { lang, setLang } = useI18n();
