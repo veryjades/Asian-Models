@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { contentRepository } from "@/lib/content/repository";
-import { heroImage } from "@/lib/content/seed";
+import { HeroCarousel } from "@/components/site/HeroCarousel";
+import { AskAssistant } from "@/components/site/AskAssistant";
 import { boards } from "@/lib/content/types";
 import { useI18n } from "@/lib/i18n";
 
@@ -44,22 +45,15 @@ function Index() {
 
   return (
     <div>
-      <section className="relative">
-        <img
-          src={heroImage}
-          alt="Two models in muted blue-grey coats in a bright minimal room"
-          width={1920}
-          height={1024}
-          className="h-[62vh] w-full object-cover md:h-[78vh]"
-        />
-        <div className="absolute inset-x-0 bottom-0 px-5 pb-8 md:px-10 md:pb-12">
-          <h1 className="max-w-3xl text-3xl font-light leading-tight text-foreground md:text-5xl">
-            {t("home.tagline")}
-          </h1>
-          <p className="mt-4 max-w-xl text-sm text-muted-foreground md:text-base">
-            {t("home.intro")}
-          </p>
-        </div>
+      <HeroCarousel />
+
+      <section className="mx-auto max-w-[1600px] px-5 pt-12 md:px-10">
+        <h1 className="max-w-3xl text-3xl font-light leading-tight md:text-5xl">
+          {t("home.tagline")}
+        </h1>
+        <p className="mt-4 max-w-xl text-sm text-muted-foreground md:text-base">
+          {t("home.intro")}
+        </p>
       </section>
 
       <section className="mx-auto max-w-[1600px] px-5 py-14 md:px-10">
@@ -147,6 +141,8 @@ function Index() {
           ))}
         </ul>
       </section>
+
+      <AskAssistant />
     </div>
   );
 }
