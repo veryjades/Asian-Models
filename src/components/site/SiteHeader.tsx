@@ -2,15 +2,18 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 
-const navItems = [
-  { to: "/models/women", key: "nav.women" },
-  { to: "/models/men", key: "nav.men" },
-  { to: "/models/new-faces", key: "nav.newFaces" },
-  { to: "/models/talent", key: "nav.talent" },
+type NavItem = { to: string; params?: Record<string, string>; key: string };
+
+const navItems: NavItem[] = [
+  { to: "/models/$board", params: { board: "women" }, key: "nav.women" },
+  { to: "/models/$board", params: { board: "men" }, key: "nav.men" },
+  { to: "/models/$board", params: { board: "new-faces" }, key: "nav.newFaces" },
+  { to: "/models/$board", params: { board: "talent" }, key: "nav.talent" },
   { to: "/news", key: "nav.news" },
   { to: "/about", key: "nav.about" },
   { to: "/contact", key: "nav.contact" },
-] as const;
+];
+
 
 function LangToggle() {
   const { lang, setLang } = useI18n();
@@ -59,8 +62,9 @@ export function SiteHeader() {
         <nav className="hidden items-center gap-7 lg:flex">
           {navItems.map((item) => (
             <Link
-              key={item.to}
-              to={item.to}
+              key={item.key}
+              to={item.to as never}
+              params={item.params as never}
               className="label-xs text-muted-foreground transition-colors hover:text-foreground"
               activeProps={{ className: "label-xs text-foreground" }}
             >
@@ -92,8 +96,8 @@ export function SiteHeader() {
         <nav className="border-t border-border bg-background px-5 py-4 lg:hidden">
           <ul className="flex flex-col gap-4">
             {navItems.map((item) => (
-              <li key={item.to}>
-                <Link to={item.to} className="label-sm text-foreground">
+              <li key={item.key}>
+                <Link to={item.to as never} params={item.params as never} className="label-sm text-foreground">
                   {t(item.key)}
                 </Link>
               </li>

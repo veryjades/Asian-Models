@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useI18n } from "@/lib/i18n";
+import { ContactForm } from "@/components/site/ContactForm";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -59,6 +60,12 @@ function ContactPage() {
             </a>
           </div>
         </div>
+
+        <section className="mt-14 border-t border-border pt-10">
+          <h2 className="text-2xl font-light md:text-3xl">{t("contactForm.title")}</h2>
+          <p className="mt-3 max-w-xl text-sm text-muted-foreground">{t("contactForm.intro")}</p>
+          <ContactForm />
+        </section>
 
         <ul className="mt-14 grid gap-px bg-border md:grid-cols-2 xl:grid-cols-4">
           {desks.map((desk) => (
