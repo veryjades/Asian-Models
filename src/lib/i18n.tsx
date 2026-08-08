@@ -95,8 +95,45 @@ const dict: Dict = {
   },
   "scout.required": { en: "Please complete the required fields.", zh: "請填寫必填欄位。" },
 
+  "hero.label": { en: "Agency highlights", zh: "本期焦點" },
+  "hero.goTo": { en: "Go to slide", zh: "前往第" },
+
+  "contactForm.title": { en: "Send an enquiry", zh: "來信洽詢" },
+  "contactForm.intro": {
+    en: "Tell us what you need and the nearest desk will reply within one working day.",
+    zh: "請說明您的需求，最近的辦公室將於一個工作天內回覆。",
+  },
+  "contactForm.type": { en: "Enquiry type", zh: "洽詢類型" },
+  "contactForm.name": { en: "Your name", zh: "您的姓名" },
+  "contactForm.company": { en: "Company / brand", zh: "公司／品牌" },
+  "contactForm.email": { en: "Email", zh: "電子信箱" },
+  "contactForm.phone": { en: "Phone", zh: "電話" },
+  "contactForm.subject": { en: "Subject", zh: "主旨" },
+  "contactForm.budget": { en: "Dates or budget", zh: "檔期或預算" },
+  "contactForm.message": { en: "Message", zh: "訊息內容" },
+  "contactForm.submit": { en: "Send enquiry", zh: "送出洽詢" },
+  "contactForm.sending": { en: "Sending…", zh: "傳送中…" },
+  "contactForm.thanks": {
+    en: "Thank you. Your enquiry has been received — we will be in touch shortly.",
+    zh: "感謝您，我們已收到您的洽詢，將盡快與您聯繫。",
+  },
+
+  "assistant.cta": { en: "Any questions? I can help", zh: "有任何問題？我可以協助" },
+  "assistant.close": { en: "Close", zh: "關閉" },
+  "assistant.title": { en: "Front desk", zh: "線上客服" },
+  "assistant.intro": {
+    en: "Ask about booking, applying, our boards or our offices.",
+    zh: "可詢問工作洽詢、模特應徵、分類或據點等問題。",
+  },
+  "assistant.placeholder": { en: "Type your question", zh: "輸入您的問題" },
+  "assistant.send": { en: "Ask", zh: "詢問" },
+  "assistant.fallback": {
+    en: "I am not sure about that one. The contact page reaches a real person at every desk.",
+    zh: "這題我不太確定。您可以透過聯絡頁面直接與各據點的同事聯繫。",
+  },
+
   "footer.rights": { en: "All rights reserved.", zh: "版權所有。" },
-};
+
 
 type I18nValue = {
   lang: Lang;
