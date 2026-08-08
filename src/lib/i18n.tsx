@@ -133,6 +133,9 @@ const dict: Dict = {
   },
 
   "footer.rights": { en: "All rights reserved.", zh: "版權所有。" },
+};
+
+
 
 
 type I18nValue = {
