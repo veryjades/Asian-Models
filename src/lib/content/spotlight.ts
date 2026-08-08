@@ -21,8 +21,9 @@ export type SpotlightSlide = {
   titleZh: string;
   captionEn: string;
   captionZh: string;
-  /** Internal route, e.g. "/news/tokyo-showroom" */
-  href: string;
+  /** Route pattern + params, e.g. "/news/$slug" with { slug } */
+  to: string;
+  params?: Record<string, string>;
   /** Optional external link (social post, press clip) */
   externalHref?: string;
 };
@@ -44,7 +45,7 @@ export const spotlightSlides: SpotlightSlide[] = [
     titleZh: "九月展間・台北",
     captionEn: "Three days with casting directors and stylists for the autumn calendar.",
     captionZh: "為期三天，接待秋季檔期的選角與造型團隊。",
-    href: "/news",
+    to: "/news",
   },
   {
     id: "spring-board-update",
@@ -54,7 +55,8 @@ export const spotlightSlides: SpotlightSlide[] = [
     titleZh: "春季分類更新",
     captionEn: "Four new signings join the Women and New Faces boards.",
     captionZh: "四位新簽約模特兒加入女模與新面孔分類。",
-    href: "/news/spring-board-update",
+    to: "/news/$slug",
+    params: { slug: "spring-board-update" },
   },
   {
     id: "vogue-clip",
@@ -64,7 +66,8 @@ export const spotlightSlides: SpotlightSlide[] = [
     titleZh: "台北時裝季後台影片",
     captionEn: "A two-minute cut from the runway backstage.",
     captionZh: "伸展台後台的兩分鐘剪輯。",
-    href: "/news/tokyo-showroom",
+    to: "/news/$slug",
+    params: { slug: "tokyo-showroom" },
   },
   {
     id: "new-face-mei",
@@ -74,7 +77,8 @@ export const spotlightSlides: SpotlightSlide[] = [
     titleZh: "新面孔：發掘於台南",
     captionEn: "The latest addition to the New Faces board.",
     captionZh: "新面孔分類最新加入的成員。",
-    href: "/models/new-faces",
+    to: "/models/$board",
+    params: { board: "new-faces" },
   },
   {
     id: "ig-post",
@@ -84,7 +88,7 @@ export const spotlightSlides: SpotlightSlide[] = [
     titleZh: "來自我們的 Instagram",
     captionEn: "Polaroids from this week's studio day.",
     captionZh: "本週攝影棚日的拍立得。",
-    href: "/news",
+    to: "/news",
     externalHref: "https://instagram.com",
   },
   {
@@ -95,7 +99,8 @@ export const spotlightSlides: SpotlightSlide[] = [
     titleZh: "東京展間・澀谷",
     captionEn: "Fourteen models across two boards met the autumn buyers.",
     captionZh: "十四位模特兒、兩個分類，與秋季客戶會面。",
-    href: "/news/tokyo-showroom",
+    to: "/news/$slug",
+    params: { slug: "tokyo-showroom" },
   },
   {
     id: "scouting-feature",
@@ -105,7 +110,8 @@ export const spotlightSlides: SpotlightSlide[] = [
     titleZh: "關於亞洲的星探工作",
     captionEn: "Why we look outside the capitals.",
     captionZh: "為什麼我們走出首都城市。",
-    href: "/news/on-scouting-in-asia",
+    to: "/news/$slug",
+    params: { slug: "on-scouting-in-asia" },
   },
 ];
 
