@@ -11,7 +11,7 @@ export type QuickBookingRequest = {
   contactName: string;
   phone: string;
   email: string;
-  note?: string;
+  note?: string | undefined;
   createdAt: string;
 };
 
