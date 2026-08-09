@@ -7,6 +7,8 @@ import m4 from "@/assets/model-04.jpg";
 import m5 from "@/assets/model-05.jpg";
 import m6 from "@/assets/model-06.jpg";
 import m7 from "@/assets/model-07.jpg";
+import m8 from "@/assets/model-08.jpg";
+import m9 from "@/assets/model-09.jpg";
 import hero from "@/assets/hero.jpg";
 
 export const heroImage = hero;
@@ -197,7 +199,58 @@ export const seedModels: Model[] = [
     gallery: [m7, m1],
     digitals: [m7],
   },
+  {
+    slug: "ryu-hae-sung",
+    name: "Ryu Hae-Sung",
+    nameZh: "柳海成",
+    board: "new-faces",
+    featured: false,
+    city: "Busan",
+    cityZh: "釜山",
+    bioEn:
+      "Scouted in Busan at eighteen and signed in April. Clean, unworked features and a natural ease in tailoring — first tests already circulating with Seoul casting.",
+    bioZh:
+      "十八歲於釜山被發掘，四月簽約。五官乾淨未經雕琢，穿著西服自然從容，首次試拍已在首爾選角圈流傳。",
+    stats: {
+      height: "183 cm",
+      waist: "74 cm",
+      shoes: "EU 42",
+      hair: "Black",
+      hairZh: "黑色",
+      eyes: "Dark brown",
+      eyesZh: "深棕",
+    },
+    portrait: m8,
+    gallery: [m8, m4],
+    digitals: [m8],
+  },
+  {
+    slug: "ravi-tanaka",
+    name: "Ravi Tanaka",
+    nameZh: "田中拉維",
+    board: "talent",
+    featured: false,
+    city: "Kuala Lumpur",
+    cityZh: "吉隆坡",
+    bioEn:
+      "Actor and television presenter working across Malaysia, Singapore and Japan. Represented for drama, commercial and hosting work, in English, Malay and Japanese.",
+    bioZh:
+      "演員與電視主持人，工作橫跨馬來西亞、新加坡與日本。代理戲劇、商業廣告及主持工作，能以英語、馬來語與日語進行。",
+    stats: {
+      height: "181 cm",
+      waist: "80 cm",
+      shoes: "EU 43",
+      hair: "Black",
+      hairZh: "黑色",
+      eyes: "Dark brown",
+      eyesZh: "深棕",
+    },
+    portrait: m9,
+    gallery: [m9, m6],
+    digitals: [m9],
+  },
 ];
+
 
 export const seedNews: NewsPost[] = [
   {
