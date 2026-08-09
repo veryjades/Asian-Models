@@ -49,11 +49,27 @@ export function AskAssistant() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="label-xs fixed bottom-5 right-5 z-50 border border-foreground bg-background px-4 py-3 text-foreground shadow-none transition-colors hover:bg-foreground hover:text-background"
+        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full border border-foreground bg-background text-foreground transition-colors hover:bg-foreground hover:text-background"
         aria-expanded={open}
+        aria-label={open ? t("assistant.close") : t("assistant.open")}
+        title={t("assistant.cta")}
       >
-        {open ? t("assistant.close") : t("assistant.cta")}
+        {open ? (
+          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+          </svg>
+        ) : (
+          <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.4">
+            <rect x="4" y="7.5" width="16" height="11" rx="3.5" />
+            <path d="M12 3.5v4" strokeLinecap="round" />
+            <circle cx="12" cy="3" r="1.1" fill="currentColor" stroke="none" />
+            <circle cx="9.5" cy="12.5" r="1.1" fill="currentColor" stroke="none" />
+            <circle cx="14.5" cy="12.5" r="1.1" fill="currentColor" stroke="none" />
+            <path d="M9.5 15.8h5" strokeLinecap="round" />
+          </svg>
+        )}
       </button>
+
 
       {open && (
         <div className="fixed bottom-20 right-5 z-50 flex max-h-[70vh] w-[min(24rem,calc(100vw-2.5rem))] flex-col border border-border bg-background">
