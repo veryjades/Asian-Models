@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useI18n } from "@/lib/i18n";
+import { Logo } from "@/components/site/Logo";
 
 export function SiteFooter() {
   const { t } = useI18n();
@@ -8,7 +9,7 @@ export function SiteFooter() {
       <div className="halftone-up h-16 w-full opacity-40" aria-hidden="true" />
       <div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-5 pb-10 md:flex-row md:items-end md:justify-between md:px-10">
         <div>
-          <p className="label-sm tracking-[0.3em]">ASIAN&nbsp;STARS</p>
+          <Logo />
           <p className="mt-3 max-w-sm text-sm text-muted-foreground">
             Taipei · Tokyo · Seoul · Singapore
           </p>
