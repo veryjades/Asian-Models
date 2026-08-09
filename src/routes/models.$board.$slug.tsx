@@ -106,8 +106,8 @@ function ModelPage() {
           </dl>
           <div className="mt-8 border-t border-border pt-4">
             <p className="label-xs text-muted-foreground">{t("model.booking")}</p>
-            <a href="mailto:bookings@asianstars.agency" className="mt-2 block text-sm underline">
-              bookings@asianstars.agency
+            <a href="mailto:bookings@jjmodelagency.com" className="mt-2 block text-sm underline">
+              bookings@jjmodelagency.com
             </a>
           </div>
         </aside>
