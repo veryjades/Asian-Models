@@ -57,12 +57,12 @@ export function QuickBooking({ className = "" }: { className?: string }) {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-foreground/30 p-4 sm:items-center">
+        <div className="fixed inset-0 z-[60] flex items-end justify-center overflow-y-auto bg-foreground/30 p-4 sm:items-center">
           <div
             role="dialog"
             aria-modal="true"
             aria-label={t("booking.title")}
-            className="w-full max-w-md border border-border bg-background"
+            className="my-auto max-h-[90vh] w-full max-w-md overflow-y-auto border border-border bg-background"
           >
             <div className="gradient-accent h-1 w-full" aria-hidden="true" />
             <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
