@@ -5,13 +5,13 @@ import { ContactForm } from "@/components/site/ContactForm";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — Asian Stars Agency" },
+      { title: "Contact — J&J Model Agency" },
       {
         name: "description",
         content:
-          "Booking, press and general enquiries for Asian Stars Agency. Desks in Taipei, Tokyo, Seoul and Singapore.",
+          "Booking, press and general enquiries for J&J Model Agency. Desks in Taipei, Tokyo, Seoul and Singapore.",
       },
-      { property: "og:title", content: "Contact — Asian Stars Agency" },
+      { property: "og:title", content: "Contact — J&J Model Agency" },
       {
         property: "og:description",
         content: "Booking, press and general enquiries. Desks in Taipei, Tokyo, Seoul and Singapore.",

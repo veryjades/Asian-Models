@@ -12,16 +12,16 @@ export const Route = createFileRoute("/news/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(newsQuery),
   head: () => ({
     meta: [
-      { title: "News — Asian Stars Agency" },
+      { title: "News — J&J Model Agency" },
       {
         name: "description",
         content:
-          "Board updates, showrooms and notes on scouting from Asian Stars Agency across Taipei, Tokyo, Seoul and Singapore.",
+          "Board updates, showrooms and notes on scouting from J&J Model Agency across Taipei, Tokyo, Seoul and Singapore.",
       },
-      { property: "og:title", content: "News — Asian Stars Agency" },
+      { property: "og:title", content: "News — J&J Model Agency" },
       {
         property: "og:description",
-        content: "Board updates, showrooms and notes on scouting from Asian Stars Agency.",
+        content: "Board updates, showrooms and notes on scouting from J&J Model Agency.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "/news" },

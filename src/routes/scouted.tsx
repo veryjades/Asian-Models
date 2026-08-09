@@ -5,16 +5,16 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/scouted")({
   head: () => ({
     meta: [
-      { title: "Get Scouted — Asian Stars Agency" },
+      { title: "Get Scouted — J&J Model Agency" },
       {
         name: "description",
         content:
-          "Apply to Asian Stars Agency. Send daylight, unretouched photographs and your measurements — we review every application.",
+          "Apply to J&J Model Agency. Send daylight, unretouched photographs and your measurements — we review every application.",
       },
-      { property: "og:title", content: "Get Scouted — Asian Stars Agency" },
+      { property: "og:title", content: "Get Scouted — J&J Model Agency" },
       {
         property: "og:description",
-        content: "Apply to Asian Stars Agency. We review every application.",
+        content: "Apply to J&J Model Agency. We review every application.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "/scouted" },
