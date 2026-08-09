@@ -24,15 +24,15 @@ export const Route = createFileRoute("/models/$board/")({
     const label = board?.labelEn ?? "Models";
     return {
       meta: [
-        { title: `${label} — Asian Stars Agency` },
+        { title: `${label} — J&J Model Agency` },
         {
           name: "description",
-          content: `The ${label} board at Asian Stars Agency. Portraits, statistics and portfolios for booking across Taipei, Tokyo, Seoul and Singapore.`,
+          content: `The ${label} board at J&J Model Agency. Portraits, statistics and portfolios for booking across Taipei, Tokyo, Seoul and Singapore.`,
         },
-        { property: "og:title", content: `${label} — Asian Stars Agency` },
+        { property: "og:title", content: `${label} — J&J Model Agency` },
         {
           property: "og:description",
-          content: `The ${label} board at Asian Stars Agency.`,
+          content: `The ${label} board at J&J Model Agency.`,
         },
         { property: "og:type", content: "website" },
         { property: "og:url", content: `/models/${params.board}` },

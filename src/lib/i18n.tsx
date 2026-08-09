@@ -119,8 +119,9 @@ const dict: Dict = {
   },
 
   "assistant.cta": { en: "Any questions? I can help", zh: "有任何問題？我可以協助" },
+  "assistant.open": { en: "Open J Agent", zh: "開啟 J Agent" },
   "assistant.close": { en: "Close", zh: "關閉" },
-  "assistant.title": { en: "Front desk", zh: "線上客服" },
+  "assistant.title": { en: "J Agent", zh: "J Agent 線上客服" },
   "assistant.intro": {
     en: "Ask about booking, applying, our boards or our offices.",
     zh: "可詢問工作洽詢、模特應徵、分類或據點等問題。",
@@ -130,6 +131,23 @@ const dict: Dict = {
   "assistant.fallback": {
     en: "I am not sure about that one. The contact page reaches a real person at every desk.",
     zh: "這題我不太確定。您可以透過聯絡頁面直接與各據點的同事聯繫。",
+  },
+
+  "booking.cta": { en: "Quick booking", zh: "快速預約" },
+  "booking.title": { en: "Quick booking request", zh: "快速預約需求" },
+  "booking.intro": {
+    en: "Leave a contact and we will call you back — full brief not required.",
+    zh: "留下聯絡方式，我們會盡快回電，暫不需完整需求說明。",
+  },
+  "booking.contact": { en: "Contact person", zh: "聯絡人" },
+  "booking.phone": { en: "Phone", zh: "電話" },
+  "booking.email": { en: "Email", zh: "電子信箱" },
+  "booking.note": { en: "Note (optional)", zh: "備註（選填）" },
+  "booking.submit": { en: "Send request", zh: "送出需求" },
+  "booking.sending": { en: "Sending…", zh: "傳送中…" },
+  "booking.thanks": {
+    en: "Received. A booker will contact you shortly.",
+    zh: "已收到，經紀人將盡快與您聯繫。",
   },
 
   "footer.rights": { en: "All rights reserved.", zh: "版權所有。" },

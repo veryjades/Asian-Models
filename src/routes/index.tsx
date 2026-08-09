@@ -18,13 +18,13 @@ export const Route = createFileRoute("/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(homeQuery),
   head: () => ({
     meta: [
-      { title: "Asian Stars Agency — Model Management for Asia" },
+      { title: "J&J Model Agency — Model Management for Asia" },
       {
         name: "description",
         content:
           "A bilingual model management house representing faces across Taipei, Tokyo, Seoul and Singapore for editorial, campaign and runway.",
       },
-      { property: "og:title", content: "Asian Stars Agency — Model Management for Asia" },
+      { property: "og:title", content: "J&J Model Agency — Model Management for Asia" },
       {
         property: "og:description",
         content:

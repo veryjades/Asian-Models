@@ -20,9 +20,9 @@ export const Route = createFileRoute("/news/$slug")({
   },
   head: ({ params, loaderData }) => {
     if (!loaderData) {
-      return { meta: [{ title: "Unavailable — Asian Stars Agency" }, { name: "robots", content: "noindex" }] };
+      return { meta: [{ title: "Unavailable — J&J Model Agency" }, { name: "robots", content: "noindex" }] };
     }
-    const title = `${loaderData.title} — Asian Stars Agency`;
+    const title = `${loaderData.title} — J&J Model Agency`;
     return {
       meta: [
         { title },
@@ -41,7 +41,7 @@ export const Route = createFileRoute("/news/$slug")({
             "@type": "Article",
             headline: loaderData.title,
             datePublished: loaderData.date,
-            publisher: { "@type": "Organization", name: "Asian Stars Agency" },
+            publisher: { "@type": "Organization", name: "J&J Model Agency" },
           }),
         },
       ],

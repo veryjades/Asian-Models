@@ -4,13 +4,13 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About — Asian Stars Agency" },
+      { title: "About — J&J Model Agency" },
       {
         name: "description",
         content:
-          "Asian Stars Agency is a model management house built around Asian faces, with desks in Taipei, Tokyo, Seoul and Singapore.",
+          "J&J Model Agency is a model management house built around Asian faces, with desks in Taipei, Tokyo, Seoul and Singapore.",
       },
-      { property: "og:title", content: "About — Asian Stars Agency" },
+      { property: "og:title", content: "About — J&J Model Agency" },
       {
         property: "og:description",
         content: "A model management house built around Asian faces, with four desks across the region.",
@@ -43,7 +43,7 @@ function AboutPage() {
             {lang === "zh" ? (
               <>
                 <p>
-                  Asian Stars 是一間圍繞亞洲面孔而生的模特兒經紀公司。我們相信亞洲的臉不需要被翻譯成別人的審美，也能站在國際舞台上。
+                  J&J 是一間圍繞亞洲面孔而生的模特兒經紀公司。我們相信亞洲的臉不需要被翻譯成別人的審美，也能站在國際舞台上。
                 </p>
                 <p>
                   我們的規模刻意維持精簡：每位模特兒都由同一組人負責發掘、培養與安排工作，從第一次試拍到國際檔期皆然。
@@ -55,7 +55,7 @@ function AboutPage() {
             ) : (
               <>
                 <p>
-                  Asian Stars is a model management house built around Asian faces. We believe a
+                  J&J is a model management house built around Asian faces. We believe a
                   face from this region does not need to be translated into someone else's idea of
                   beauty to stand on an international stage.
                 </p>

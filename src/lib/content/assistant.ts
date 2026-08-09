@@ -35,9 +35,9 @@ export const assistantAnswers: AssistantAnswer[] = [
     questionEn: "How do I book a model?",
     questionZh: "我要如何預約模特兒？",
     answerEn:
-      "Use the contact form and choose “Booking / job enquiry”, or email bookings@asianstars.agency with dates, usage and budget. The nearest desk replies within one working day.",
+      "Use the contact form and choose “Booking / job enquiry”, or email bookings@jjmodelagency.com with dates, usage and budget. The nearest desk replies within one working day.",
     answerZh:
-      "請於聯絡表單選擇「工作洽詢」，或來信 bookings@asianstars.agency，並附上檔期、使用範圍與預算。最近的辦公室將於一個工作天內回覆。",
+      "請於聯絡表單選擇「工作洽詢」，或來信 bookings@jjmodelagency.com，並附上檔期、使用範圍與預算。最近的辦公室將於一個工作天內回覆。",
     link: { to: "/contact", labelEn: "Contact", labelZh: "聯絡我們" },
   },
   {
@@ -67,9 +67,9 @@ export const assistantAnswers: AssistantAnswer[] = [
     questionEn: "I'm from the press.",
     questionZh: "我是媒體。",
     answerEn:
-      "Press requests go to press@asianstars.agency, or select “Press & media” on the contact form. Recent announcements are on the News page.",
+      "Press requests go to press@jjmodelagency.com, or select “Press & media” on the contact form. Recent announcements are on the News page.",
     answerZh:
-      "媒體需求請寄 press@asianstars.agency，或於聯絡表單選擇「媒體採訪」。最新公告請見消息頁面。",
+      "媒體需求請寄 press@jjmodelagency.com，或於聯絡表單選擇「媒體採訪」。最新公告請見消息頁面。",
     link: { to: "/news", labelEn: "News", labelZh: "最新消息" },
   },
   {

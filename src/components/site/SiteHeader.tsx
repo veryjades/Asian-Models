@@ -1,6 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
+import { Logo } from "@/components/site/Logo";
+import { QuickBooking } from "@/components/site/QuickBooking";
 
 type NavItem = { to: string; params?: Record<string, string>; key: string };
 
@@ -55,8 +57,8 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-[1600px] items-center justify-between px-5 py-4 md:px-10">
-        <Link to="/" className="label-sm tracking-[0.3em] text-foreground">
-          ASIAN&nbsp;STARS
+        <Link to="/" className="text-foreground" aria-label="J&J Model Agency">
+          <Logo />
         </Link>
 
         <nav className="hidden items-center gap-7 lg:flex">
@@ -74,6 +76,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <QuickBooking className="hidden md:inline-block" />
           <Link
             to="/scouted"
             className="label-xs hidden border border-foreground px-3 py-2 text-foreground transition-colors hover:bg-foreground hover:text-background md:inline-block"
@@ -106,6 +109,9 @@ export function SiteHeader() {
               <Link to="/scouted" className="label-sm text-foreground">
                 {t("nav.scouted")}
               </Link>
+            </li>
+            <li>
+              <QuickBooking />
             </li>
           </ul>
         </nav>
