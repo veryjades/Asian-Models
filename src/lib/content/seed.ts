@@ -7,6 +7,8 @@ import m4 from "@/assets/model-04.jpg";
 import m5 from "@/assets/model-05.jpg";
 import m6 from "@/assets/model-06.jpg";
 import m7 from "@/assets/model-07.jpg";
+import m8 from "@/assets/model-08.jpg";
+import m9 from "@/assets/model-09.jpg";
 import hero from "@/assets/hero.jpg";
 
 export const heroImage = hero;
