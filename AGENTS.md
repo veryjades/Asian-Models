@@ -26,5 +26,6 @@ implementing, reviewing, or changing task state, read these files in order:
 - When a decision is missing or blocked, add a concise entry to the **Decision blockers** table in `TASKS.md` (context, options, impact, proposed owner). Continue with unrelated in-scope work; do not ask the end user to relay a question between agents.
 - Keep `TASKS.md` current when work starts, completes, becomes blocked, or changes owner. Include verification evidence where applicable.
 - Use a focused `feature/<short-name>` branch for every change. Do not commit directly to `main`; open a pull request for review and merge only after its required checks pass.
+- In this checkout, `origin` (`veryjades/Asian-Models`) is the project-control remote. The `lovable` remote points to a separate repository; do not push to it unless the task explicitly asks for a Lovable sync.
 - Preserve the Lovable history rule above: never force-push, rebase, amend, or otherwise rewrite published history.
 - Keep changes narrow. Do not implement product features while performing governance, audit, or baseline work unless the active task explicitly authorizes them.
