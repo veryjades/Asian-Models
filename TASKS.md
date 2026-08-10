@@ -13,7 +13,7 @@
 | P0-004 | Record lint baseline and bound failures. | Codex | Complete | None | Initial lint had 46 Prettier errors in 17 existing files and no non-Prettier errors. Applied the repository Prettier configuration to those files. `npm run lint` now exits 0 with 9 existing React-refresh warnings and 0 errors. |
 | P0-005 | Record production build baseline. | Codex | Complete | P0-004 | `npm run build` completed successfully on 2026-08-10 after the baseline formatting changes; it emitted non-fatal Vite/Nitro warnings. |
 | P0-006 | Establish automated-test baseline. | Codex | Complete | None | No test files, test runner dependency, or `test` script exists. Minimum recommended future strategy: first add unit tests for pure content/repository/i18n behavior, then add route/workflow integration tests only when their Phase 1 acceptance criteria exist. No framework was added. |
-| P0-007 | Open the control-protocol draft pull request. | Codex | Blocked | B-003 | Branch `feature/baseline` was pushed, but GitHub rejected draft PR creation with account-suspension error 403. Retry after account access is restored. |
+| P0-007 | Open the control-protocol draft pull request. | Codex | Complete | B-003 | Draft PR [#2](https://github.com/veryjades/Asian-Models/pull/2) is open from `feature/baseline` to `main` with the Phase 0 verification evidence. |
 
 ## Decision blockers
 
@@ -21,7 +21,7 @@
 | --- | --- | --- | --- | --- | --- |
 | B-001 | This environment has no Bun executable even though the repository's canonical workflow is Bun. | Install Bun 1.x for local/CI execution; do not switch the repository to npm. | This checkout cannot locally reproduce the canonical install command until Bun is installed. | Repository owner / environment maintainer | Resolved by D-006; environment follow-up |
 | B-002 | There is no automated test command or runner. | Baseline absence and minimum strategy have been documented in P0-006; select/implement a framework only when a later phase authorizes it. | Future regression confidence, not the current Phase 0 baseline gate. | Tech lead / product owner | Resolved for Phase 0 |
-| B-003 | GitHub API returned `403` stating that the `veryjades` account is suspended when opening a draft PR. | Restore account access, then create the PR from `feature/baseline`; or have an authorized maintainer open the PR. | The branch is pushed, but the required review/merge path cannot start. | Repository owner / GitHub Support | Open |
+| B-003 | GitHub PR creation initially returned 403 through the connector. | CLI fallback created draft PR [#2](https://github.com/veryjades/Asian-Models/pull/2). | Required review/merge path is now available. | Repository owner / reviewer | Resolved |
 
 ## Update protocol
 

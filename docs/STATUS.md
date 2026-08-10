@@ -1,8 +1,8 @@
 # Asian Stars Agency — Status
 
 **Current phase:** Phase 0 — Baseline engineering audit  
-**Current task:** Complete Phase 0 evidence and restore the required pull-request path; do not advance to Phase 1.
-**Last heartbeat:** 2026-08-10 22:41:20 +08:00
+**Current task:** Hold at Phase 0 for PR review/merge; do not advance to Phase 1.
+**Last heartbeat:** 2026-08-10 22:44:11 +08:00
 
 ## Completed items
 
@@ -12,6 +12,7 @@
 - `npm run build` completes successfully; Vite/Nitro warnings are non-fatal.
 - Test baseline inspected: no test files, runner, or `test` script exists. The minimum recommended future approach is unit coverage for pure content/repository/i18n behavior before route/workflow integration tests.
 - Package manager resolved: Bun 1.x is canonical; setup is `bun install --frozen-lockfile`, with a pinned Bun version required in CI. npm was used only because Bun is unavailable in this environment.
+- Draft PR [#2](https://github.com/veryjades/Asian-Models/pull/2) is open from `feature/baseline` to `main` with the Phase 0 closure evidence.
 
 ## In-progress items
 
@@ -19,13 +20,12 @@
 
 ## Blockers
 
-- **B-001:** The canonical Bun workflow is documented and approved, but Bun is unavailable in this local environment; install Bun 1.x for reproducible local/CI execution.
-- **B-003:** The `feature/baseline` branch is pushed, but GitHub rejected draft PR creation with account-suspension error 403.
+- No repository-control blockers remain. The current environment still lacks Bun, so a Bun 1.x installation is required before using the canonical frozen-install workflow locally.
 
 ## Phase 0 readiness
 
-**READY TO CLOSE: NO — pending the required draft PR.** All repository baseline checks and the package-manager decision are complete. B-001 is resolved as a repository decision; installing Bun remains an environment follow-up. B-003 is the only remaining repository-control blocker.
+**READY TO CLOSE: YES.** All Phase 0 tasks are complete, the Bun decision is approved, and draft PR [#2](https://github.com/veryjades/Asian-Models/pull/2) provides the required review path. Keep the project at Phase 0 until the PR is reviewed/merged; do not begin Phase 1 work in this task.
 
 ## Next action
 
-Install the documented Bun 1.x workflow in the execution environment, then keep the branch ready for review. Open the required draft PR from `feature/baseline` to `main` if GitHub permits it.
+Review and merge PR [#2](https://github.com/veryjades/Asian-Models/pull/2). After merge, a separate approved task may decide whether and when to start Phase 1.
