@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useI18n } from "@/lib/i18n";
+import { VideoUploadField } from "@/components/site/VideoUploadField";
 
 export const Route = createFileRoute("/scouted")({
   head: () => ({
@@ -97,6 +98,8 @@ function ScoutedPage() {
                 {t("scout.photosHint")}
               </span>
             </label>
+
+            <VideoUploadField className="md:col-span-2" name="video" />
 
             <label className="block md:col-span-2">
               <span className="label-xs text-muted-foreground">{t("scout.message")}</span>

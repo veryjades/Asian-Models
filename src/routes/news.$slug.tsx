@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { contentRepository } from "@/lib/content/repository";
 import { useI18n } from "@/lib/i18n";
+import { VideoGallery } from "@/components/site/VideoGallery";
 
 const postQuery = (slug: string) =>
   queryOptions({
@@ -88,6 +89,7 @@ function NewsPost() {
           </p>
         ))}
       </div>
+      <VideoGallery title={t("video.media")} videos={post.videos} />
     </article>
   );
 }
