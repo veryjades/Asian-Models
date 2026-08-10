@@ -51,7 +51,7 @@ Phase 1 architecture work is in progress. No existing UI, form, Auth flow, Stora
 | ID | Task | Owner | Status | Dependency | Evidence / next action |
 | --- | --- | --- | --- | --- | --- |
 | UX-001 | Record the fictional, licensed/AI-first mock asset policy and future CMS replacement path. | Codex | Complete | D-009 | `docs/MOCK_ASSET_GUIDE.md` defines source policy, review checks, prompts, provenance metadata, dimensions, and replacement workflow. |
-| UX-002 | Add a presentation component that accepts asset-level aspect ratio, focal position, fit, and responsive source metadata. | Codex | In progress | UX-001 | `AgencyImage` is being applied to hero, portrait cards, full-body profile, and gallery surfaces; lint/build and visual review remain. |
+| UX-002 | Add a presentation component that accepts asset-level aspect ratio, focal position, fit, and responsive source metadata. | Codex | Complete | UX-001 | `AgencyImage` is applied to hero, portrait cards, full-body profile, and gallery surfaces. `bun run lint` passes with 0 errors; `bun run build` passes. Asset-specific visual validation remains UX-004. |
 | UX-003 | Generate and review fictional premium-fashion mock assets. | Codex | Blocked | Available image-generation capability or approved CLI fallback | The current session has no built-in image generator. Do not substitute unlicensed stock or old assets; obtain explicit approval for the OpenAI-key CLI fallback before generating assets. |
 | UX-004 | Deploy the resulting branch to an isolated Preview and complete desktop/mobile experience review. | Codex | Blocked | UX-002, UX-003 | Create Preview only after reviewed asset examples are committed; validate no head/feet crop, interactions, and CTA routing. |
 

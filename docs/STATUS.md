@@ -4,7 +4,7 @@
 **Status:** IN_PROGRESS
 **Current phase:** Phase 1 — Architecture Foundation
 **Current task:** Establish the fictional, premium mock-asset pipeline and safe image-presentation boundary; no real talent data or backend/UI wiring.
-**Last heartbeat:** 2026-08-11 00:15:00 +08:00
+**Last heartbeat:** 2026-08-11 00:30:00 +08:00
 **Completion date:** 2026-08-10
 
 ## Completed items
@@ -21,7 +21,8 @@
 ## In-progress items
 
 - Foundation review and migration validation are pending. No Phase 1 UI or product work is in progress.
-- The authorised D-008/D-009 mock-asset experience iteration documents source/licensing requirements and is adding a reusable safe-presentation component.
+- The authorised D-008/D-009 mock-asset experience iteration documents source/licensing requirements and now includes a reusable safe-presentation component.
+- Draft PR [#5](https://github.com/veryjades/Asian-Models/pull/5) contains the mock-asset guide and image-presentation foundation; it targets `feature/phase-1-foundation` and remains unmerged.
 
 ## Blockers
 
