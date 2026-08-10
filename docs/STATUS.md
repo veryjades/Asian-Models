@@ -3,8 +3,8 @@
 **Phase:** Phase 1 — Architecture Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 1 — Architecture Foundation
-**Current task:** Deploy and review the first 18-asset fictional Golden Mock Set; no real talent data or backend/UI wiring.
-**Last heartbeat:** 2026-08-11 03:00:00 +08:00
+**Current task:** Await product review of the isolated Preview containing the first 18-asset fictional Golden Mock Set; no real talent data or backend/UI wiring.
+**Last heartbeat:** 2026-08-11 02:42:38 +08:00
 **Completion date:** 2026-08-10
 
 ## Completed items
@@ -24,11 +24,12 @@
 - The authorised D-008/D-009 mock-asset experience iteration documents source/licensing requirements and now includes a reusable safe-presentation component.
 - Draft PR [#5](https://github.com/veryjades/Asian-Models/pull/5) contains the mock-asset guide and image-presentation foundation; it targets `feature/phase-1-foundation` and remains unmerged.
 - The Golden Mock Asset Set is complete: 18 reviewed fictional adult assets for three desktop heroes, five Women/Men portrait/full-body pairs, two New Faces digitals, and three portfolio scenes. See `docs/GOLDEN_MOCK_ASSET_SET.md`.
+- Isolated Preview review passed for desktop and a 390px viewport: three hero CTAs route to their intended boards; desktop arrows change slides; the Women board and Aya Mori profile load their mapped fictional media. Preview: `https://asian-models-gxon1hn2t-asian-models.vercel.app`.
 
 ## Blockers
 
 - A local Supabase database is not running, and no cloud Supabase project has been linked. The initial migration is therefore un-applied; this is intentional until local Docker or a project approval is available.
-- No mock-asset blocker remains. Final visual acceptance is pending the isolated Preview review.
+- No deployment blocker remains. Product acceptance is pending review of the isolated Preview. Two legacy Women cards and legacy News imagery remain outside this intentionally limited 18-asset round.
 
 ## Phase 0 readiness
 
@@ -43,4 +44,4 @@
 
 ## Next action
 
-Deploy `feature/mock-assets` to an isolated Preview and review the updated hero, model boards, and profile galleries at desktop and 390px mobile. Do not merge PR #5 without review.
+Review the isolated Preview with product stakeholders. Confirm whether the next narrow iteration should replace the remaining legacy Women/News samples or refine mobile-specific hero art direction. Do not merge PR #5 without review.

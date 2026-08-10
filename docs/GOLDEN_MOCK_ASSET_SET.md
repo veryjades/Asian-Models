@@ -1,8 +1,8 @@
 # Golden Mock Asset Set — Round 1
 
-**Status:** approved fictional prototype media  
-**Generated:** 2026-08-11  
-**Count:** 18 assets  
+**Status:** approved fictional prototype media
+**Generated:** 2026-08-11
+**Count:** 18 assets
 **Source:** OpenAI GPT Image via the approved CLI fallback; all people are fictional adults and not real signed talent.
 
 ## Quality gate
