@@ -1,6 +1,6 @@
 # Asian Stars Agency — Development Plan
 
-**Current phase:** Phase 0 — Baseline engineering audit  
+**Current phase:** Phase 1 — Architecture Foundation
 **Phase owner:** Codex implementation agent  
 **Control rule:** A phase can advance only after its completion conditions are evidenced in `TASKS.md` and the next phase's prerequisites are met.
 
@@ -9,8 +9,8 @@
 | Phase | Scope | Completion conditions | Do not start before this phase |
 | --- | --- | --- | --- |
 | 0 | Baseline engineering audit | Dependency/tooling path documented; build and lint status captured; test coverage/absence captured; actionable baseline defects are tracked. | Supabase, AI, Messenger/Facebook, admin features, production data migration. |
-| 1 | Product and domain design | User journeys, content/domain inventory, data ownership, and acceptance criteria approved; architecture notes created as needed. | Production schema, auth implementation, external integrations. |
-| 2 | Application foundation | Approved Supabase project/config strategy, initial schema/migrations, Auth setup, Storage boundaries, and Admin/Editor/Viewer authorization design are verified. | End-user product features that depend on unfinished permissions or schema. |
+| 1 | Architecture foundation | ADR, Supabase configuration, migration history, typed client/adapter boundary, and RLS plan are reviewed; no existing UI is connected. | Cloud migration apply, Auth flows, Storage buckets, role provisioning, AI, Messenger, Admin UI, or new product workflows. |
+| 2 | Application foundation | Apply the approved schema to a linked project; configure Auth, Storage boundaries, and Admin/Editor/Viewer enforcement after their detailed plans are approved. | End-user product features that depend on unfinished permissions or schema. |
 | 3 | Public experience and content migration | Public routes, content model, media handling, accessibility, and migration plan meet agreed acceptance criteria. | AI-assisted flows, Facebook webhooks, admin operations beyond the approved foundation. |
 | 4 | Enquiry and operational workflows | Booking/contact/application workflows persist safely, notify correctly, and have audit/error handling. | AI automation and webhook processing. |
 | 5 | Admin operations | Admin/Editor/Viewer interfaces enforce the approved authorization model and support agreed content/lead operations. | New roles or unapproved permission expansion. |
@@ -36,6 +36,22 @@
 - Adding Azure OpenAI or any AI-provider SDK, API key, prompt flow, or assistant feature.
 - Adding Facebook/Messenger OAuth, webhooks, tokens, event processors, or Meta configuration.
 - Building admin screens or RBAC enforcement.
+
+## Phase 1 gate — current work
+
+### Completion conditions
+
+- ADR-001 records the approved platform, database, Auth, role, Storage, and future-AI boundaries.
+- Supabase configuration, `.env.example`, typed client, and adapter boundary are present without secrets or UI wiring.
+- The initial migration creates the approved data foundation and enables RLS on every exposed table.
+- The RLS policy plan defines the intended audiences before any browser grants or policies are implemented.
+- Lint and build pass; cloud/local migration application is tracked separately until a Supabase project or local database is available.
+
+### Explicitly prohibited while Phase 1 is active
+
+- Connecting existing UI forms or routes to Supabase.
+- Creating a Supabase cloud project, applying migrations to it, or committing any secret.
+- Implementing model login, Messenger webhooks, AI workflows, automatic casting, pricing, Admin UI, or production role provisioning.
 
 ## Control documents
 
