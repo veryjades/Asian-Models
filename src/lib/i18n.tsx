@@ -150,6 +150,25 @@ const dict: Dict = {
     zh: "已收到，經紀人將盡快與您聯繫。",
   },
 
+  "footer.follow": { en: "Follow", zh: "追蹤我們" },
+
+  "video.showreel": { en: "Showreel", zh: "動態作品" },
+  "video.media": { en: "Media", zh: "影音" },
+  "video.play": { en: "Play video", zh: "播放影片" },
+  "video.attach": { en: "Video (optional)", zh: "影片（選填）" },
+  "video.tabFile": { en: "Upload file", zh: "上傳檔案" },
+  "video.tabLink": { en: "YouTube link", zh: "YouTube 連結" },
+  "video.fileHint": {
+    en: "A short walking or talking clip, filmed in daylight.",
+    zh: "日光下拍攝的走路或說話短片。",
+  },
+  "video.linkHint": {
+    en: "Paste any YouTube URL — watch, share or Shorts.",
+    zh: "貼上任何 YouTube 連結，watch、分享或 Shorts 皆可。",
+  },
+  "video.badLink": { en: "That does not look like a YouTube link.", zh: "這似乎不是 YouTube 連結。" },
+  "video.tooLarge": { en: "That file is too large.", zh: "檔案容量過大。" },
+
   "footer.rights": { en: "All rights reserved.", zh: "版權所有。" },
 };
 

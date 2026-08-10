@@ -4,6 +4,9 @@ import m3 from "@/assets/model-03.jpg";
 import m4 from "@/assets/model-04.jpg";
 import m5 from "@/assets/model-05.jpg";
 import m6 from "@/assets/model-06.jpg";
+import m10 from "@/assets/model-10.jpg";
+import m12 from "@/assets/model-12.jpg";
+import m13 from "@/assets/model-13.jpg";
 import hero from "@/assets/hero.jpg";
 
 /**
@@ -26,6 +29,8 @@ export type SpotlightSlide = {
   params?: Record<string, string>;
   /** Optional external link (social post, press clip) */
   externalHref?: string;
+  /** Optional clip behind the slide — uploaded file URL or YouTube id. */
+  video?: { source: "file" | "youtube"; src: string };
 };
 
 export const spotlightLabels: Record<SpotlightKind, { en: string; zh: string }> = {
@@ -89,7 +94,7 @@ export const spotlightSlides: SpotlightSlide[] = [
     captionEn: "Polaroids from this week's studio day.",
     captionZh: "本週攝影棚日的拍立得。",
     to: "/news",
-    externalHref: "https://instagram.com",
+    externalHref: "https://www.instagram.com/jjmodelagency",
   },
   {
     id: "tokyo-showroom",
@@ -101,6 +106,51 @@ export const spotlightSlides: SpotlightSlide[] = [
     captionZh: "十四位模特兒、兩個分類，與秋季客戶會面。",
     to: "/news/$slug",
     params: { slug: "tokyo-showroom" },
+  },
+  {
+    id: "inclusive-casting",
+    kind: "event",
+    image: m10,
+    titleEn: "Open casting: every face, every age",
+    titleZh: "公開選角：不分面孔、不分年齡",
+    captionEn:
+      "Our Taipei open call is unrestricted by ethnicity, age or size — walk in with daylight photographs.",
+    captionZh: "台北公開徵選不限族裔、年齡或尺碼，帶著日光照片即可到場。",
+    to: "/scouted",
+  },
+  {
+    id: "global-board",
+    kind: "new-face",
+    image: m12,
+    titleEn: "A board that looks like the region",
+    titleZh: "如同這片區域一樣多元的分類",
+    captionEn: "Filipino-Spanish, Nigerian, South Asian and East Asian talent, booked side by side.",
+    captionZh: "菲西混血、奈及利亞、南亞與東亞面孔並肩合作。",
+    to: "/models/$board",
+    params: { board: "men" },
+  },
+  {
+    id: "classic-division",
+    kind: "media",
+    image: m13,
+    titleEn: "Classic division film",
+    titleZh: "經典分類影片",
+    captionEn: "A short film with our silver-haired talent for a skincare campaign.",
+    captionZh: "與銀髮模特兒合作的保養品廣告短片。",
+    to: "/models/$board/$slug",
+    params: { board: "talent", slug: "margit-lindqvist" },
+    video: { source: "youtube", src: "aqz-KE-bpKQ" },
+  },
+  {
+    id: "fb-post",
+    kind: "social",
+    image: m12,
+    titleEn: "From our Facebook page",
+    titleZh: "來自我們的 Facebook 專頁",
+    captionEn: "Casting calls and backstage updates, posted weekly.",
+    captionZh: "每週更新的選角資訊與後台花絮。",
+    to: "/news",
+    externalHref: "https://www.facebook.com/jjmodelagency",
   },
   {
     id: "scouting-feature",

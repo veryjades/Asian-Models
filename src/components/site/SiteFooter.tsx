@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useI18n } from "@/lib/i18n";
 import { Logo } from "@/components/site/Logo";
+import { SocialLinks } from "@/components/site/SocialLinks";
 
 export function SiteFooter() {
   const { t } = useI18n();
@@ -13,6 +14,7 @@ export function SiteFooter() {
           <p className="mt-3 max-w-sm text-sm text-muted-foreground">
             Taipei · Tokyo · Seoul · Singapore
           </p>
+          <SocialLinks className="mt-5" />
         </div>
         <div className="flex flex-wrap gap-6">
           <Link to="/about" className="label-xs text-muted-foreground hover:text-foreground">

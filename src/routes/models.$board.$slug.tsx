@@ -3,6 +3,7 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { contentRepository } from "@/lib/content/repository";
 import { boards, type BoardId, type Model } from "@/lib/content/types";
 import { useI18n } from "@/lib/i18n";
+import { VideoGallery } from "@/components/site/VideoGallery";
 
 const modelQuery = (board: BoardId, slug: string) =>
   queryOptions({
@@ -115,6 +116,7 @@ function ModelPage() {
 
       <Gallery title={t("model.portfolio")} images={model.gallery} model={model} />
       <Gallery title={t("model.digitals")} images={model.digitals} model={model} />
+      <VideoGallery title={t("video.showreel")} videos={model.videos} />
     </article>
   );
 }

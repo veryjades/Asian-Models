@@ -9,6 +9,10 @@ import m6 from "@/assets/model-06.jpg";
 import m7 from "@/assets/model-07.jpg";
 import m8 from "@/assets/model-08.jpg";
 import m9 from "@/assets/model-09.jpg";
+import m10 from "@/assets/model-10.jpg";
+import m11 from "@/assets/model-11.jpg";
+import m12 from "@/assets/model-12.jpg";
+import m13 from "@/assets/model-13.jpg";
 import hero from "@/assets/hero.jpg";
 
 export const heroImage = hero;
@@ -249,6 +253,130 @@ export const seedModels: Model[] = [
     gallery: [m9, m6],
     digitals: [m9],
   },
+  {
+    slug: "amara-okonkwo",
+    name: "Amara Okonkwo",
+    nameZh: "阿瑪拉・奧孔科沃",
+    board: "women",
+    featured: true,
+    city: "Lagos / Taipei",
+    cityZh: "拉哥斯／台北",
+    bioEn:
+      "Lagos-born and now based in Taipei, Amara moves between West African and East Asian markets. Runway, beauty and campaign, with a strong motion reel.",
+    bioZh:
+      "生於拉哥斯，現居台北，工作橫跨西非與東亞市場。專長伸展台、美妝與廣告，動態表現尤佳。",
+    stats: {
+      height: "179 cm",
+      bust: "83 cm",
+      waist: "61 cm",
+      hips: "89 cm",
+      shoes: "EU 40",
+      hair: "Black, natural",
+      hairZh: "黑色自然捲",
+      eyes: "Dark brown",
+      eyesZh: "深棕",
+    },
+    portrait: m10,
+    gallery: [m10, m3, m1],
+    digitals: [m10],
+    videos: [
+      {
+        id: "amara-reel",
+        source: "youtube",
+        src: "aqz-KE-bpKQ",
+        titleEn: "Showreel — spring campaign",
+        titleZh: "動態作品集 — 春季廣告",
+      },
+    ],
+  },
+  {
+    slug: "priya-raghunathan",
+    name: "Priya Raghunathan",
+    nameZh: "普里雅・拉古納坦",
+    board: "women",
+    featured: false,
+    city: "Mumbai / Singapore",
+    cityZh: "孟買／新加坡",
+    bioEn:
+      "Working across South and Southeast Asia, Priya is a regular face for jewellery, couture and hair campaigns in Mumbai, Singapore and Dubai.",
+    bioZh:
+      "工作範圍涵蓋南亞與東南亞，經常出現於孟買、新加坡與杜拜的珠寶、高級訂製服與髮妝廣告。",
+    stats: {
+      height: "176 cm",
+      bust: "82 cm",
+      waist: "60 cm",
+      hips: "88 cm",
+      shoes: "EU 39",
+      hair: "Black",
+      hairZh: "黑色",
+      eyes: "Dark brown",
+      eyesZh: "深棕",
+    },
+    portrait: m11,
+    gallery: [m11, m5, m3],
+    digitals: [m11],
+  },
+  {
+    slug: "noah-castellanos",
+    name: "Noah Castellanos",
+    nameZh: "諾亞・卡斯特拉諾斯",
+    board: "men",
+    featured: true,
+    city: "Manila / Tokyo",
+    cityZh: "馬尼拉／東京",
+    bioEn:
+      "Filipino-Spanish, raised in Manila and now shooting mostly out of Tokyo. Tailoring, sportswear and commercial film.",
+    bioZh:
+      "菲律賓與西班牙混血，於馬尼拉成長，目前主要以東京為工作據點。專長西服、運動服飾與商業影片。",
+    stats: {
+      height: "185 cm",
+      waist: "77 cm",
+      shoes: "EU 43",
+      hair: "Dark brown, curly",
+      hairZh: "深棕捲髮",
+      eyes: "Green",
+      eyesZh: "綠色",
+    },
+    portrait: m12,
+    gallery: [m12, m4, m6],
+    digitals: [m12],
+    videos: [
+      {
+        id: "noah-motion",
+        source: "youtube",
+        src: "aqz-KE-bpKQ",
+        titleEn: "Motion test — Tokyo studio",
+        titleZh: "動態試拍 — 東京攝影棚",
+      },
+    ],
+  },
+  {
+    slug: "margit-lindqvist",
+    name: "Margit Lindqvist",
+    nameZh: "瑪吉特・林德奎斯特",
+    board: "talent",
+    featured: true,
+    city: "Stockholm / Taipei",
+    cityZh: "斯德哥爾摩／台北",
+    bioEn:
+      "Sixty-four and still working. Margit represents our classic division — luxury, skincare and lifestyle campaigns that want a real face and a real history.",
+    bioZh:
+      "六十四歲，仍在線上。瑪吉特代表我們的經典分類，適合追求真實面孔與歲月質地的精品、保養與生活風格廣告。",
+    stats: {
+      height: "172 cm",
+      bust: "88 cm",
+      waist: "68 cm",
+      hips: "94 cm",
+      shoes: "EU 39",
+      hair: "Silver",
+      hairZh: "銀白",
+      eyes: "Blue",
+      eyesZh: "藍色",
+    },
+    portrait: m13,
+    gallery: [m13, m7],
+    digitals: [m13],
+  },
 ];
 
 
@@ -270,6 +398,15 @@ export const seedNews: NewsPost[] = [
       "生活照與完整作品集可另行索取，工作邀約請聯繫台北辦公室。",
     ],
     cover: m5,
+    videos: [
+      {
+        id: "spring-board-clip",
+        source: "youtube",
+        src: "aqz-KE-bpKQ",
+        titleEn: "Meet the new signings",
+        titleZh: "認識新簽約模特兒",
+      },
+    ],
   },
   {
     slug: "tokyo-showroom",
