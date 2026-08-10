@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { contentRepository } from "@/lib/content/repository";
 import { HeroCarousel } from "@/components/site/HeroCarousel";
+import { AgencyImage } from "@/components/site/AgencyImage";
 import { AskAssistant } from "@/components/site/AskAssistant";
 import { boards } from "@/lib/content/types";
 import { useI18n } from "@/lib/i18n";
@@ -93,14 +94,15 @@ function Index() {
                 params={{ board: model.board, slug: model.slug }}
                 className="portrait-hover group block"
               >
-                <div className="relative overflow-hidden bg-muted">
-                  <img
+                <div className="relative">
+                  <AgencyImage
                     src={model.portrait}
                     alt={model.name}
                     loading="lazy"
                     width={768}
                     height={1024}
-                    className="aspect-[3/4] w-full object-cover"
+                    aspectRatio="3 / 4"
+                    fit="contain"
                   />
                   <div className="gradient-accent-soft pointer-events-none absolute inset-0 opacity-0 mix-blend-multiply transition-opacity duration-500 group-hover:opacity-100" />
                 </div>

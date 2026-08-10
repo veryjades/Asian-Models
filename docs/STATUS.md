@@ -1,10 +1,10 @@
 # Asian Stars Agency — Status
 
-**Phase:** Phase 1 — Architecture Foundation
+**Phase:** Phase 1 — Architecture Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 1 — Architecture Foundation
-**Current task:** Supabase foundation is ready for Luna review; no UI or product integration has started.
-**Last heartbeat:** 2026-08-10 23:14:08 +08:00
+**Current task:** Establish the fictional, premium mock-asset pipeline and safe image-presentation boundary; no real talent data or backend/UI wiring.
+**Last heartbeat:** 2026-08-11 00:15:00 +08:00
 **Completion date:** 2026-08-10
 
 ## Completed items
@@ -21,10 +21,12 @@
 ## In-progress items
 
 - Foundation review and migration validation are pending. No Phase 1 UI or product work is in progress.
+- The authorised D-008/D-009 mock-asset experience iteration documents source/licensing requirements and is adding a reusable safe-presentation component.
 
 ## Blockers
 
 - A local Supabase database is not running, and no cloud Supabase project has been linked. The initial migration is therefore un-applied; this is intentional until local Docker or a project approval is available.
+- The session has no built-in image-generation capability. High-quality fictional assets must not be substituted with unlicensed stock or the existing low-confidence mock images; explicit approval is needed to use the key-based CLI fallback.
 
 ## Phase 0 readiness
 
@@ -39,4 +41,4 @@
 
 ## Next action
 
-Luna reviews the Phase 1 foundation PR. After approval, use a local Supabase stack or approved project connection to apply and validate the migration; do not connect existing UI yet.
+After the approved image-generation path is available, generate and review three art-directed hero assets and their mobile compositions, commit them with provenance metadata, then deploy this branch to an isolated Preview for desktop/mobile UX review.

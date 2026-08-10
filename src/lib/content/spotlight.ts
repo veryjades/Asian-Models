@@ -20,6 +20,9 @@ export type SpotlightSlide = {
   id: string;
   kind: SpotlightKind;
   image: string;
+  /** Image presentation travels with the content and will map to future CMS metadata. */
+  imageFit: "contain" | "cover";
+  objectPosition: string;
   titleEn: string;
   titleZh: string;
   captionEn: string;
@@ -46,6 +49,8 @@ export const spotlightSlides: SpotlightSlide[] = [
     id: "showroom-sept",
     kind: "event",
     image: hero,
+    imageFit: "cover",
+    objectPosition: "50% 50%",
     titleEn: "September showroom, Taipei",
     titleZh: "九月展間・台北",
     captionEn: "Three days with casting directors and stylists for the autumn calendar.",
@@ -56,6 +61,8 @@ export const spotlightSlides: SpotlightSlide[] = [
     id: "spring-board-update",
     kind: "news",
     image: m5,
+    imageFit: "contain",
+    objectPosition: "50% 50%",
     titleEn: "Spring board update",
     titleZh: "春季分類更新",
     captionEn: "Four new signings join the Women and New Faces boards.",
@@ -67,6 +74,8 @@ export const spotlightSlides: SpotlightSlide[] = [
     id: "vogue-clip",
     kind: "media",
     image: m3,
+    imageFit: "contain",
+    objectPosition: "50% 50%",
     titleEn: "Backstage film, Taipei season",
     titleZh: "台北時裝季後台影片",
     captionEn: "A two-minute cut from the runway backstage.",
@@ -78,6 +87,8 @@ export const spotlightSlides: SpotlightSlide[] = [
     id: "new-face-mei",
     kind: "new-face",
     image: m4,
+    imageFit: "contain",
+    objectPosition: "50% 50%",
     titleEn: "New face: scouted in Tainan",
     titleZh: "新面孔：發掘於台南",
     captionEn: "The latest addition to the New Faces board.",
@@ -89,6 +100,8 @@ export const spotlightSlides: SpotlightSlide[] = [
     id: "ig-post",
     kind: "social",
     image: m6,
+    imageFit: "contain",
+    objectPosition: "50% 50%",
     titleEn: "From our Instagram",
     titleZh: "來自我們的 Instagram",
     captionEn: "Polaroids from this week's studio day.",
@@ -100,6 +113,8 @@ export const spotlightSlides: SpotlightSlide[] = [
     id: "tokyo-showroom",
     kind: "event",
     image: m2,
+    imageFit: "contain",
+    objectPosition: "50% 50%",
     titleEn: "Tokyo showroom, Shibuya",
     titleZh: "東京展間・澀谷",
     captionEn: "Fourteen models across two boards met the autumn buyers.",
@@ -111,6 +126,8 @@ export const spotlightSlides: SpotlightSlide[] = [
     id: "inclusive-casting",
     kind: "event",
     image: m10,
+    imageFit: "contain",
+    objectPosition: "50% 50%",
     titleEn: "Open casting: every face, every age",
     titleZh: "公開選角：不分面孔、不分年齡",
     captionEn:
@@ -122,6 +139,8 @@ export const spotlightSlides: SpotlightSlide[] = [
     id: "global-board",
     kind: "new-face",
     image: m12,
+    imageFit: "contain",
+    objectPosition: "50% 50%",
     titleEn: "A board that looks like the region",
     titleZh: "如同這片區域一樣多元的分類",
     captionEn:
@@ -134,6 +153,8 @@ export const spotlightSlides: SpotlightSlide[] = [
     id: "classic-division",
     kind: "media",
     image: m13,
+    imageFit: "contain",
+    objectPosition: "50% 50%",
     titleEn: "Classic division film",
     titleZh: "經典分類影片",
     captionEn: "A short film with our silver-haired talent for a skincare campaign.",
@@ -146,6 +167,8 @@ export const spotlightSlides: SpotlightSlide[] = [
     id: "fb-post",
     kind: "social",
     image: m12,
+    imageFit: "contain",
+    objectPosition: "50% 50%",
     titleEn: "From our Facebook page",
     titleZh: "來自我們的 Facebook 專頁",
     captionEn: "Casting calls and backstage updates, posted weekly.",
@@ -157,6 +180,8 @@ export const spotlightSlides: SpotlightSlide[] = [
     id: "scouting-feature",
     kind: "media",
     image: m1,
+    imageFit: "contain",
+    objectPosition: "50% 50%",
     titleEn: "On scouting in Asia",
     titleZh: "關於亞洲的星探工作",
     captionEn: "Why we look outside the capitals.",

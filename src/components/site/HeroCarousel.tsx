@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n";
+import { AgencyImage } from "@/components/site/AgencyImage";
 import {
   shuffle,
   spotlightLabels,
@@ -16,12 +17,14 @@ function SlideBody({ slide }: { slide: SpotlightSlide }) {
 
   return (
     <>
-      <img
+      <AgencyImage
         src={slide.image}
         alt={pick(slide.titleEn, slide.titleZh)}
         width={1920}
         height={1024}
-        className="h-[62vh] w-full object-cover md:h-[78vh]"
+        containerClassName="h-[62vh] md:h-[78vh]"
+        fit={slide.imageFit}
+        objectPosition={slide.objectPosition}
       />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-background/85 via-background/30 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 px-5 pb-10 md:px-10 md:pb-14">

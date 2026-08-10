@@ -31,3 +31,5 @@ implementing, reviewing, or changing task state, read these files in order:
 - In this checkout, `origin` (`veryjades/Asian-Models`) is the project-control remote. The `lovable` remote points to a separate repository; do not push to it unless the task explicitly asks for a Lovable sync.
 - Preserve the Lovable history rule above: never force-push, rebase, amend, or otherwise rewrite published history.
 - Keep changes narrow. Do not implement product features while performing governance, audit, or baseline work unless the active task explicitly authorizes them.
+- For an authorised public-experience iteration, start the task record with: (1) the user-experience problem, (2) the assumption, (3) the smallest verifiable change, (4) the Preview validation method, and (5) the next observation. Prefer a short build → Preview → feedback loop over expanding a speculative specification.
+- A Preview deployment is an evaluation surface, not a runtime dependency. Keep the application cloud-agnostic, preserve replaceable repository/adapter boundaries, avoid new dependencies unless justified, and retain feature-branch plus PR review.

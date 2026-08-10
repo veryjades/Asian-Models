@@ -53,6 +53,16 @@
 - Creating a Supabase cloud project, applying migrations to it, or committing any secret.
 - Implementing model login, Messenger webhooks, AI workflows, automatic casting, pricing, Admin UI, or production role provisioning.
 
+### Authorised experience-validation exception
+
+Under D-008 and D-009, a focused public mock-asset/presentation iteration may
+run on an isolated feature branch while Phase 1 foundation review remains open.
+It may add fictional, rights-safe media documentation, presentation metadata,
+and reusable image rendering components, then validate them on a Preview
+deployment. It must not wire UI to Supabase, alter the data architecture, add
+an AI product runtime, provision cloud resources, or expand into unrelated
+public-feature work.
+
 ## Control documents
 
 - Decisions: `DECISIONS.md`

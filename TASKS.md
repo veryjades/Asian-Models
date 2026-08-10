@@ -45,3 +45,20 @@ All Phase 0 tasks below are complete. PR #2 merged into `main` as `875f9eb`.
 | P1-005 | Apply and validate the migration against a local or linked Supabase project. | Codex | Blocked | Local Docker or approved Supabase project | `supabase migration list --local` cannot connect to local Postgres; do not link or apply to a cloud project without approval. |
 
 Phase 1 architecture work is in progress. No existing UI, form, Auth flow, Storage bucket, AI, Messenger, Admin, or other product feature is included in this branch.
+
+## Experience-validation iteration — Mock assets
+
+| ID | Task | Owner | Status | Dependency | Evidence / next action |
+| --- | --- | --- | --- | --- | --- |
+| UX-001 | Record the fictional, licensed/AI-first mock asset policy and future CMS replacement path. | Codex | Complete | D-009 | `docs/MOCK_ASSET_GUIDE.md` defines source policy, review checks, prompts, provenance metadata, dimensions, and replacement workflow. |
+| UX-002 | Add a presentation component that accepts asset-level aspect ratio, focal position, fit, and responsive source metadata. | Codex | In progress | UX-001 | `AgencyImage` is being applied to hero, portrait cards, full-body profile, and gallery surfaces; lint/build and visual review remain. |
+| UX-003 | Generate and review fictional premium-fashion mock assets. | Codex | Blocked | Available image-generation capability or approved CLI fallback | The current session has no built-in image generator. Do not substitute unlicensed stock or old assets; obtain explicit approval for the OpenAI-key CLI fallback before generating assets. |
+| UX-004 | Deploy the resulting branch to an isolated Preview and complete desktop/mobile experience review. | Codex | Blocked | UX-002, UX-003 | Create Preview only after reviewed asset examples are committed; validate no head/feet crop, interactions, and CTA routing. |
+
+### UX-002 iteration card
+
+1. **User-experience problem:** current prototype imagery can read as a placeholder and wide hero framing can crop a model's head or feet.
+2. **Assumption:** asset-level presentation metadata and a safe rendering boundary prevent pages from silently imposing an unsafe crop.
+3. **Smallest verifiable change:** one reusable `AgencyImage` component plus opt-in use on hero, portrait-card, full-body, and portfolio surfaces.
+4. **Preview validation:** inspect the homepage, board, and model profile at desktop and 390px; verify intended focal areas and no crop imposed by page CSS.
+5. **Next observation:** determine which generated asset composition requires a separate mobile source rather than a focal-point adjustment.

@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { AgencyImage } from "@/components/site/AgencyImage";
 import type { Model } from "@/lib/content/types";
 import { useI18n } from "@/lib/i18n";
 
@@ -18,14 +19,15 @@ export function ModelGrid({ models }: { models: Model[] }) {
             params={{ board: model.board, slug: model.slug }}
             className="portrait-hover group block"
           >
-            <div className="relative overflow-hidden bg-muted">
-              <img
+            <div className="relative">
+              <AgencyImage
                 src={model.portrait}
                 alt={`${model.name} — ${model.city}`}
                 loading="lazy"
                 width={768}
                 height={1024}
-                className="aspect-[3/4] w-full object-cover"
+                aspectRatio="3 / 4"
+                fit="contain"
               />
               <div className="gradient-accent-soft pointer-events-none absolute inset-0 opacity-0 mix-blend-multiply transition-opacity duration-500 group-hover:opacity-100" />
             </div>

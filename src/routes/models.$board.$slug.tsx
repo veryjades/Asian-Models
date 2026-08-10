@@ -4,6 +4,7 @@ import { contentRepository } from "@/lib/content/repository";
 import { boards, type BoardId, type Model } from "@/lib/content/types";
 import { useI18n } from "@/lib/i18n";
 import { VideoGallery } from "@/components/site/VideoGallery";
+import { AgencyImage } from "@/components/site/AgencyImage";
 
 const modelQuery = (board: BoardId, slug: string) =>
   queryOptions({
@@ -84,12 +85,12 @@ function ModelPage() {
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_280px]">
         <div>
-          <img
+          <AgencyImage
             src={model.portrait}
             alt={model.name}
             width={768}
             height={1024}
-            className="w-full object-cover"
+            fit="contain"
           />
           <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             {pick(model.bioEn, model.bioZh)}
@@ -131,13 +132,14 @@ function Gallery({ title, images, model }: { title: string; images: string[]; mo
       <ul className="grid grid-cols-2 gap-px bg-border md:grid-cols-3">
         {images.map((src, i) => (
           <li key={`${title}-${i}`} className="bg-background">
-            <img
+            <AgencyImage
               src={src}
               alt={`${model.name} — ${title} ${i + 1}`}
               loading="lazy"
               width={768}
               height={1024}
-              className="aspect-[3/4] w-full object-cover"
+              aspectRatio="3 / 4"
+              fit="contain"
             />
           </li>
         ))}
