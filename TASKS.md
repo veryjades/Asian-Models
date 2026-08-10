@@ -3,7 +3,11 @@
 **Current phase:** Phase 0 — Baseline engineering audit  
 **Last updated:** 2026-08-10
 
-## Active tasks
+## Phase 0 — COMPLETE
+
+All Phase 0 tasks below are complete. PR #2 is open for review; merging it is a review workflow step, not Phase 1 implementation.
+
+## Phase 0 tasks
 
 | ID | Task | Owner | Status | Dependencies | Evidence / next action |
 | --- | --- | --- | --- | --- | --- |
@@ -29,3 +33,13 @@
 - Use `Blocked` only when the work cannot proceed without an approved decision or external change; create a corresponding decision blocker.
 - Do not remove completed tasks or blockers; preserve history and add a new row if the work is reopened.
 - The agent should resolve ordinary technical questions from the repository and current decisions. Only decision blockers require a recorded escalation.
+
+## Phase 1 — Planned tasks (not started)
+
+| ID | Planned task | Owner | Status | Dependency | Next step |
+| --- | --- | --- | --- | --- | --- |
+| P1-001 | Confirm product/domain scope, user journeys, content inventory, and acceptance criteria. | Unassigned | Planned | PR #2 reviewed/merged | Obtain approved product/domain brief. |
+| P1-002 | Document data ownership and the boundary between public content and future application data. | Unassigned | Planned | P1-001 | Add an architecture note under `docs/architecture/` if needed. |
+| P1-003 | Prepare the Phase 1 exit gate and implementation backlog. | Unassigned | Planned | P1-001, P1-002 | Record approved scope and dependencies before any Phase 2 work. |
+
+No Phase 1 task is in progress, and no Phase 1 feature implementation is included in this branch.

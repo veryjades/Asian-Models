@@ -1,8 +1,11 @@
 # Asian Stars Agency — Status
 
-**Current phase:** Phase 0 — Baseline engineering audit  
-**Current task:** Hold at Phase 0 for PR review/merge; do not advance to Phase 1.
-**Last heartbeat:** 2026-08-10 22:44:11 +08:00
+**Phase:** Phase 0 Complete
+**Status:** READY_FOR_PHASE_1
+**Current phase:** Phase 0 — Baseline engineering audit (complete)
+**Current task:** Await PR #2 review/merge; no Phase 1 implementation has started.
+**Last heartbeat:** 2026-08-10 22:47:42 +08:00
+**Completion date:** 2026-08-10
 
 ## Completed items
 
@@ -25,6 +28,13 @@
 ## Phase 0 readiness
 
 **READY TO CLOSE: YES.** All Phase 0 tasks are complete, the Bun decision is approved, and draft PR [#2](https://github.com/veryjades/Asian-Models/pull/2) provides the required review path. Keep the project at Phase 0 until the PR is reviewed/merged; do not begin Phase 1 work in this task.
+
+## Phase 1 prerequisites
+
+- PR #2 must be reviewed and merged through the normal branch protection path.
+- Product/domain scope, user journeys, content ownership, and acceptance criteria must be approved and recorded before implementation.
+- A Phase 1 architecture note must be created under `docs/architecture/` if the approved design requires one.
+- Supabase, AI, Messenger/Facebook webhook, Admin, and backend implementation remain prohibited until their planned phases.
 
 ## Next action
 
