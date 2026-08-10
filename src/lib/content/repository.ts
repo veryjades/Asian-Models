@@ -9,8 +9,7 @@ import { seedModels, seedNews } from "./seed";
  * `supabaseRepository` in this folder implementing the same interface and
  * change the single export at the bottom of this file. Nothing else changes.
  */
-const sortModels = (list: Model[]) =>
-  [...list].sort((a, b) => a.name.localeCompare(b.name));
+const sortModels = (list: Model[]) => [...list].sort((a, b) => a.name.localeCompare(b.name));
 
 export const seedRepository: ContentRepository = {
   async listBoards() {

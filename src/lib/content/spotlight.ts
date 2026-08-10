@@ -124,7 +124,8 @@ export const spotlightSlides: SpotlightSlide[] = [
     image: m12,
     titleEn: "A board that looks like the region",
     titleZh: "如同這片區域一樣多元的分類",
-    captionEn: "Filipino-Spanish, Nigerian, South Asian and East Asian talent, booked side by side.",
+    captionEn:
+      "Filipino-Spanish, Nigerian, South Asian and East Asian talent, booked side by side.",
     captionZh: "菲西混血、奈及利亞、南亞與東亞面孔並肩合作。",
     to: "/models/$board",
     params: { board: "men" },
@@ -176,4 +177,3 @@ export function shuffle<T>(items: T[]): T[] {
   }
   return out;
 }
-

@@ -48,7 +48,11 @@ function NewsIndex() {
       <ul className="mt-10 grid gap-12 md:grid-cols-2 xl:grid-cols-3">
         {data.map((post) => (
           <li key={post.slug}>
-            <Link to="/news/$slug" params={{ slug: post.slug }} className="portrait-hover group block">
+            <Link
+              to="/news/$slug"
+              params={{ slug: post.slug }}
+              className="portrait-hover group block"
+            >
               <img
                 src={post.cover}
                 alt={pick(post.titleEn, post.titleZh)}

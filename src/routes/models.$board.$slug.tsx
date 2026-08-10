@@ -23,7 +23,9 @@ export const Route = createFileRoute("/models/$board/$slug")({
   },
   head: ({ params, loaderData }) => {
     if (!loaderData) {
-      return { meta: [{ title: "Unavailable — J&J Model Agency" }, { name: "robots", content: "noindex" }] };
+      return {
+        meta: [{ title: "Unavailable — J&J Model Agency" }, { name: "robots", content: "noindex" }],
+      };
     }
     const title = `${loaderData.name} — J&J Model Agency`;
     const description = `${loaderData.name}, represented by J&J Model Agency in ${loaderData.city}. Portfolio, digitals and statistics.`;

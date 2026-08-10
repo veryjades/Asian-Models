@@ -55,11 +55,23 @@ export function AskAssistant() {
         title={t("assistant.cta")}
       >
         {open ? (
-          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg
+            viewBox="0 0 24 24"
+            className="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
             <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
           </svg>
         ) : (
-          <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.4">
+          <svg
+            viewBox="0 0 24 24"
+            className="h-6 w-6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.4"
+          >
             <rect x="4" y="7.5" width="16" height="11" rx="3.5" />
             <path d="M12 3.5v4" strokeLinecap="round" />
             <circle cx="12" cy="3" r="1.1" fill="currentColor" stroke="none" />
@@ -69,7 +81,6 @@ export function AskAssistant() {
           </svg>
         )}
       </button>
-
 
       {open && (
         <div className="fixed bottom-20 right-5 z-50 flex max-h-[70vh] w-[min(24rem,calc(100vw-2.5rem))] flex-col border border-border bg-background">

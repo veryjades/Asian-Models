@@ -29,10 +29,19 @@ export function QuickBooking({ className = "" }: { className?: string }) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const request: QuickBookingRequest = {
-      contactName: String(form.get("contactName") ?? "").trim().slice(0, 100),
-      phone: String(form.get("phone") ?? "").trim().slice(0, 40),
-      email: String(form.get("email") ?? "").trim().slice(0, 200),
-      note: String(form.get("note") ?? "").trim().slice(0, 500) || undefined,
+      contactName: String(form.get("contactName") ?? "")
+        .trim()
+        .slice(0, 100),
+      phone: String(form.get("phone") ?? "")
+        .trim()
+        .slice(0, 40),
+      email: String(form.get("email") ?? "")
+        .trim()
+        .slice(0, 200),
+      note:
+        String(form.get("note") ?? "")
+          .trim()
+          .slice(0, 500) || undefined,
       createdAt: new Date().toISOString(),
     };
     if (!request.contactName || !request.phone || !request.email) return;
