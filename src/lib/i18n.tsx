@@ -166,14 +166,14 @@ const dict: Dict = {
     en: "Paste any YouTube URL — watch, share or Shorts.",
     zh: "貼上任何 YouTube 連結，watch、分享或 Shorts 皆可。",
   },
-  "video.badLink": { en: "That does not look like a YouTube link.", zh: "這似乎不是 YouTube 連結。" },
+  "video.badLink": {
+    en: "That does not look like a YouTube link.",
+    zh: "這似乎不是 YouTube 連結。",
+  },
   "video.tooLarge": { en: "That file is too large.", zh: "檔案容量過大。" },
 
   "footer.rights": { en: "All rights reserved.", zh: "版權所有。" },
 };
-
-
-
 
 type I18nValue = {
   lang: Lang;

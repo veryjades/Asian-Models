@@ -64,7 +64,13 @@ function VideoItem({ video }: { video: VideoMedia }) {
   );
 }
 
-export function VideoGallery({ title, videos }: { title?: string | undefined; videos?: VideoMedia[] | undefined }) {
+export function VideoGallery({
+  title,
+  videos,
+}: {
+  title?: string | undefined;
+  videos?: VideoMedia[] | undefined;
+}) {
   const { t } = useI18n();
   if (!videos || videos.length === 0) return null;
   return (

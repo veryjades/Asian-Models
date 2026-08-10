@@ -14,7 +14,8 @@ export const Route = createFileRoute("/contact")({
       { property: "og:title", content: "Contact — J&J Model Agency" },
       {
         property: "og:description",
-        content: "Booking, press and general enquiries. Desks in Taipei, Tokyo, Seoul and Singapore.",
+        content:
+          "Booking, press and general enquiries. Desks in Taipei, Tokyo, Seoul and Singapore.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "/contact" },

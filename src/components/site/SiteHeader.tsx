@@ -16,7 +16,6 @@ const navItems: NavItem[] = [
   { to: "/contact", key: "nav.contact" },
 ];
 
-
 function LangToggle() {
   const { lang, setLang } = useI18n();
   return (
@@ -26,7 +25,9 @@ function LangToggle() {
         onClick={() => setLang("en")}
         aria-pressed={lang === "en"}
         className={`label-xs px-2.5 py-1.5 transition-colors ${
-          lang === "en" ? "gradient-accent text-foreground" : "text-muted-foreground hover:text-foreground"
+          lang === "en"
+            ? "gradient-accent text-foreground"
+            : "text-muted-foreground hover:text-foreground"
         }`}
       >
         EN
@@ -36,7 +37,9 @@ function LangToggle() {
         onClick={() => setLang("zh")}
         aria-pressed={lang === "zh"}
         className={`label-xs px-2.5 py-1.5 transition-colors ${
-          lang === "zh" ? "gradient-accent text-foreground" : "text-muted-foreground hover:text-foreground"
+          lang === "zh"
+            ? "gradient-accent text-foreground"
+            : "text-muted-foreground hover:text-foreground"
         }`}
       >
         繁中
@@ -100,7 +103,11 @@ export function SiteHeader() {
           <ul className="flex flex-col gap-4">
             {navItems.map((item) => (
               <li key={item.key}>
-                <Link to={item.to as never} params={item.params as never} className="label-sm text-foreground">
+                <Link
+                  to={item.to as never}
+                  params={item.params as never}
+                  className="label-sm text-foreground"
+                >
                   {t(item.key)}
                 </Link>
               </li>

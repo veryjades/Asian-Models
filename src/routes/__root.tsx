@@ -15,7 +15,6 @@ import { I18nProvider } from "@/lib/i18n";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 
-
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -145,4 +144,3 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-

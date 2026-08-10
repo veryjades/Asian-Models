@@ -116,7 +116,11 @@ function Index() {
         <ul className="mt-6 grid gap-10 md:grid-cols-3">
           {data.news.map((post) => (
             <li key={post.slug}>
-              <Link to="/news/$slug" params={{ slug: post.slug }} className="portrait-hover group block">
+              <Link
+                to="/news/$slug"
+                params={{ slug: post.slug }}
+                className="portrait-hover group block"
+              >
                 <img
                   src={post.cover}
                   alt={pick(post.titleEn, post.titleZh)}

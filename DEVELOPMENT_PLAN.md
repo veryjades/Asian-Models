@@ -26,6 +26,7 @@
 - Record the package manager/toolchain available to the agent and any mismatch with the repository lockfile.
 - Run and record `lint` and `build` results using a reproducible command path.
 - Record whether automated tests exist, how they would run, or explicitly record their absence.
+- Record the recommended minimum test strategy without introducing a test framework unless it is separately approved.
 - Turn every failure into a bounded task with an owner and next action.
 - Make no application feature, data-platform, AI, Messenger, or admin implementation changes.
 
@@ -42,3 +43,4 @@
 - Current work and blockers: `TASKS.md`
 - Architecture notes: `docs/architecture/`
 - Agent operating rules: `AGENTS.md`
+- Latest heartbeat: `docs/STATUS.md`

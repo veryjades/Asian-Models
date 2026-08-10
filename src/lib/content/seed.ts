@@ -55,8 +55,7 @@ export const seedModels: Model[] = [
     cityZh: "東京",
     bioEn:
       "A short-cropped silhouette that has become a signature on Tokyo runways. Aoi works closely with independent designers and small-run labels.",
-    bioZh:
-      "俐落短髮的輪廓已成為東京伸展台上的標誌。葵長期與獨立設計師及小量品牌合作。",
+    bioZh: "俐落短髮的輪廓已成為東京伸展台上的標誌。葵長期與獨立設計師及小量品牌合作。",
     stats: {
       height: "175 cm",
       bust: "80 cm",
@@ -82,8 +81,7 @@ export const seedModels: Model[] = [
     cityZh: "新加坡",
     bioEn:
       "Singapore-based with a long, quiet line that reads beautifully in motion. Regular face for regional beauty and swim campaigns.",
-    bioZh:
-      "以新加坡為據點，身形修長沉靜，動態表現尤其出色。經常出現於區域美妝與泳裝廣告。",
+    bioZh: "以新加坡為據點，身形修長沉靜，動態表現尤其出色。經常出現於區域美妝與泳裝廣告。",
     stats: {
       height: "177 cm",
       bust: "81 cm",
@@ -109,8 +107,7 @@ export const seedModels: Model[] = [
     cityZh: "台北",
     bioEn:
       "Tailoring specialist with a still, unhurried presence in front of the camera. Six seasons of menswear across Taipei and Shanghai.",
-    bioZh:
-      "擅長西服類型，鏡頭前沉穩不躁。已累積台北與上海共六季男裝經驗。",
+    bioZh: "擅長西服類型，鏡頭前沉穩不躁。已累積台北與上海共六季男裝經驗。",
     stats: {
       height: "186 cm",
       waist: "78 cm",
@@ -134,8 +131,7 @@ export const seedModels: Model[] = [
     cityZh: "首爾",
     bioEn:
       "Seoul-based, with a softer, longer-haired register that suits contemporary and streetwear casting.",
-    bioZh:
-      "以首爾為據點，中長髮的柔和氣質適合當代服飾與街頭風格選角。",
+    bioZh: "以首爾為據點，中長髮的柔和氣質適合當代服飾與街頭風格選角。",
     stats: {
       height: "184 cm",
       waist: "76 cm",
@@ -159,8 +155,7 @@ export const seedModels: Model[] = [
     cityZh: "沖繩",
     bioEn:
       "Signed this season. Freckled, bare-faced and completely new to the industry — first tests shot in March.",
-    bioZh:
-      "本季新簽約。雀斑素顏、初入業界，三月完成首次試拍。",
+    bioZh: "本季新簽約。雀斑素顏、初入業界，三月完成首次試拍。",
     stats: {
       height: "174 cm",
       bust: "79 cm",
@@ -186,8 +181,7 @@ export const seedModels: Model[] = [
     cityZh: "台北",
     bioEn:
       "Actor and presenter represented for commercial, film and brand ambassadorship work across Traditional Chinese speaking markets.",
-    bioZh:
-      "演員與主持人，代理商業廣告、影視及繁體中文市場的品牌代言合作。",
+    bioZh: "演員與主持人，代理商業廣告、影視及繁體中文市場的品牌代言合作。",
     stats: {
       height: "170 cm",
       bust: "84 cm",
@@ -263,8 +257,7 @@ export const seedModels: Model[] = [
     cityZh: "拉哥斯／台北",
     bioEn:
       "Lagos-born and now based in Taipei, Amara moves between West African and East Asian markets. Runway, beauty and campaign, with a strong motion reel.",
-    bioZh:
-      "生於拉哥斯，現居台北，工作橫跨西非與東亞市場。專長伸展台、美妝與廣告，動態表現尤佳。",
+    bioZh: "生於拉哥斯，現居台北，工作橫跨西非與東亞市場。專長伸展台、美妝與廣告，動態表現尤佳。",
     stats: {
       height: "179 cm",
       bust: "83 cm",
@@ -299,8 +292,7 @@ export const seedModels: Model[] = [
     cityZh: "孟買／新加坡",
     bioEn:
       "Working across South and Southeast Asia, Priya is a regular face for jewellery, couture and hair campaigns in Mumbai, Singapore and Dubai.",
-    bioZh:
-      "工作範圍涵蓋南亞與東南亞，經常出現於孟買、新加坡與杜拜的珠寶、高級訂製服與髮妝廣告。",
+    bioZh: "工作範圍涵蓋南亞與東南亞，經常出現於孟買、新加坡與杜拜的珠寶、高級訂製服與髮妝廣告。",
     stats: {
       height: "176 cm",
       bust: "82 cm",
@@ -379,15 +371,13 @@ export const seedModels: Model[] = [
   },
 ];
 
-
 export const seedNews: NewsPost[] = [
   {
     slug: "spring-board-update",
     date: "2026-07-14",
     titleEn: "Spring board update",
     titleZh: "春季分類更新",
-    excerptEn:
-      "Four new signings join the Women and New Faces boards ahead of the Taipei season.",
+    excerptEn: "Four new signings join the Women and New Faces boards ahead of the Taipei season.",
     excerptZh: "台北時裝季前夕，四位新簽約模特兒加入女模與新面孔分類。",
     bodyEn: [
       "Ahead of the Taipei season we have added four new faces across the Women and New Faces boards, each scouted in the last six months across Taiwan, Japan and Singapore.",
