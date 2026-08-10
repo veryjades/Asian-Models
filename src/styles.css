@@ -1,0 +1,188 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * J&J Model Agency design system.
+ * Morandi palette on warm paper, pastel mesh gradient used only as accent,
+ * halftone dot field as texture. All values oklch.
+ */
+
+@theme inline {
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
+
+  --font-sans: "Jost", "Noto Sans TC", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Jost", "Noto Sans TC", ui-sans-serif, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Morandi scale */
+  --color-mist: var(--mist);
+  --color-haze: var(--haze);
+  --color-stone-blue: var(--stone-blue);
+  --color-steel: var(--steel);
+  --color-slate-deep: var(--slate-deep);
+  --color-paper: var(--paper);
+}
+
+:root {
+  --radius: 0px;
+
+  --paper: oklch(0.968 0.006 85);
+  --mist: oklch(0.881 0.011 165);
+  --haze: oklch(0.831 0.017 232);
+  --stone-blue: oklch(0.752 0.032 233);
+  --steel: oklch(0.673 0.028 236);
+  --slate-deep: oklch(0.561 0.028 240);
+
+  --background: var(--paper);
+  --foreground: oklch(0.302 0.017 236);
+  --card: oklch(0.985 0.004 85);
+  --card-foreground: oklch(0.302 0.017 236);
+  --popover: oklch(0.985 0.004 85);
+  --popover-foreground: oklch(0.302 0.017 236);
+  --primary: oklch(0.302 0.017 236);
+  --primary-foreground: oklch(0.968 0.006 85);
+  --secondary: oklch(0.917 0.010 220);
+  --secondary-foreground: oklch(0.302 0.017 236);
+  --muted: oklch(0.930 0.008 220);
+  --muted-foreground: oklch(0.530 0.024 238);
+  --accent: var(--haze);
+  --accent-foreground: oklch(0.302 0.017 236);
+  --destructive: oklch(0.577 0.180 25);
+  --destructive-foreground: oklch(0.985 0.004 85);
+  --border: oklch(0.888 0.010 225);
+  --input: oklch(0.888 0.010 225);
+  --ring: oklch(0.673 0.028 236);
+
+  --gradient-accent: linear-gradient(
+    115deg,
+    oklch(0.92 0.13 175) 0%,
+    oklch(0.95 0.12 105) 38%,
+    oklch(0.86 0.10 75) 62%,
+    oklch(0.78 0.14 22) 100%
+  );
+  --gradient-accent-soft: linear-gradient(
+    115deg,
+    oklch(0.92 0.13 175 / 0.55) 0%,
+    oklch(0.95 0.12 105 / 0.5) 40%,
+    oklch(0.78 0.14 22 / 0.5) 100%
+  );
+}
+
+.dark {
+  --background: oklch(0.24 0.014 238);
+  --foreground: oklch(0.945 0.006 85);
+  --card: oklch(0.28 0.014 238);
+  --card-foreground: oklch(0.945 0.006 85);
+  --popover: oklch(0.28 0.014 238);
+  --popover-foreground: oklch(0.945 0.006 85);
+  --primary: oklch(0.945 0.006 85);
+  --primary-foreground: oklch(0.24 0.014 238);
+  --secondary: oklch(0.33 0.016 238);
+  --secondary-foreground: oklch(0.945 0.006 85);
+  --muted: oklch(0.33 0.016 238);
+  --muted-foreground: oklch(0.72 0.020 236);
+  --accent: oklch(0.38 0.020 236);
+  --accent-foreground: oklch(0.945 0.006 85);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.673 0.028 236);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Tiny uppercase letter-spaced label, the nav voice of the site */
+@utility label-xs {
+  font-size: 0.6875rem;
+  line-height: 1;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+@utility label-sm {
+  font-size: 0.75rem;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+/* Pastel mesh gradient, accent only */
+@utility gradient-accent {
+  background-image: var(--gradient-accent);
+}
+
+@utility gradient-accent-soft {
+  background-image: var(--gradient-accent-soft);
+}
+
+/* Fine halftone dot field, fades out downward */
+@utility halftone {
+  background-image: radial-gradient(
+    var(--color-steel) 1px,
+    transparent 1.2px
+  );
+  background-size: 7px 7px;
+  mask-image: linear-gradient(to bottom, black, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent);
+}
+
+@utility halftone-up {
+  background-image: radial-gradient(
+    var(--color-steel) 1px,
+    transparent 1.2px
+  );
+  background-size: 7px 7px;
+  mask-image: linear-gradient(to top, black, transparent);
+  -webkit-mask-image: linear-gradient(to top, black, transparent);
+}
+
+@utility portrait-hover {
+  & img {
+    transition: opacity 700ms ease, transform 900ms ease;
+  }
+  &:hover img {
+    opacity: 0.88;
+    transform: scale(1.015);
+  }
+}
