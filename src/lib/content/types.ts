@@ -1,3 +1,5 @@
+import type { VideoMedia } from "./media";
+
 export type BoardId = "women" | "men" | "new-faces" | "talent";
 
 export type Board = {
@@ -39,6 +41,8 @@ export type Model = {
   portrait: string;
   gallery: string[];
   digitals: string[];
+  /** Showreel / motion tests — uploaded files or YouTube links. */
+  videos?: VideoMedia[];
 };
 
 export type NewsPost = {
@@ -51,6 +55,8 @@ export type NewsPost = {
   bodyEn: string[];
   bodyZh: string[];
   cover: string;
+  /** Optional media clip attached to the story. */
+  videos?: VideoMedia[];
 };
 
 /**
