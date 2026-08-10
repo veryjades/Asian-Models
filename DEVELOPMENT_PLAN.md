@@ -23,7 +23,7 @@
 
 ### Required evidence
 
-- Record the package manager/toolchain available to the agent and any mismatch with the repository lockfile.
+- Record the package manager/toolchain available to the agent and any mismatch with the repository lockfile. Bun is canonical per D-006; a local environment without Bun is an onboarding/tooling gap, not permission to switch to npm.
 - Run and record `lint` and `build` results using a reproducible command path.
 - Record whether automated tests exist, how they would run, or explicitly record their absence.
 - Record the recommended minimum test strategy without introducing a test framework unless it is separately approved.
@@ -44,3 +44,11 @@
 - Architecture notes: `docs/architecture/`
 - Agent operating rules: `AGENTS.md`
 - Latest heartbeat: `docs/STATUS.md`
+
+## Canonical local and CI workflow
+
+- Requirement: Bun 1.x; CI must pin an explicit Bun version.
+- Install: `bun install --frozen-lockfile`
+- Development: `bun run dev`
+- Verification: `bun run lint` and `bun run build`
+- CI recommendation: install the pinned Bun version, run the frozen install, then run lint and build. Do not generate or commit another lockfile.
