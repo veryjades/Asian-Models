@@ -15,9 +15,9 @@ export type VideoMedia = {
   /** File URL for "file", or the YouTube video id for "youtube". */
   src: string;
   titleEn: string;
-  titleZh?: string;
+  titleZh?: string | undefined;
   /** Optional still shown before playback. */
-  poster?: string;
+  poster?: string | undefined;
 };
 
 /** Accepts watch, youtu.be, shorts and embed URLs — or a bare id. */
