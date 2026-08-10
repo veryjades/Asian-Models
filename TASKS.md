@@ -1,11 +1,11 @@
 # Asian Stars Agency — Task Board
 
-**Current phase:** Phase 0 — Baseline engineering audit  
+**Current phase:** Phase 1 — Architecture Design
 **Last updated:** 2026-08-10
 
 ## Phase 0 — COMPLETE
 
-All Phase 0 tasks below are complete. PR #2 is open for review; merging it is a review workflow step, not Phase 1 implementation.
+All Phase 0 tasks below are complete. PR #2 merged into `main` as `875f9eb`; this does not authorize Phase 1 implementation.
 
 ## Phase 0 tasks
 
@@ -17,7 +17,7 @@ All Phase 0 tasks below are complete. PR #2 is open for review; merging it is a 
 | P0-004 | Record lint baseline and bound failures. | Codex | Complete | None | Initial lint had 46 Prettier errors in 17 existing files and no non-Prettier errors. Applied the repository Prettier configuration to those files. `npm run lint` now exits 0 with 9 existing React-refresh warnings and 0 errors. |
 | P0-005 | Record production build baseline. | Codex | Complete | P0-004 | `npm run build` completed successfully on 2026-08-10 after the baseline formatting changes; it emitted non-fatal Vite/Nitro warnings. |
 | P0-006 | Establish automated-test baseline. | Codex | Complete | None | No test files, test runner dependency, or `test` script exists. Minimum recommended future strategy: first add unit tests for pure content/repository/i18n behavior, then add route/workflow integration tests only when their Phase 1 acceptance criteria exist. No framework was added. |
-| P0-007 | Open the control-protocol draft pull request. | Codex | Complete | B-003 | Draft PR [#2](https://github.com/veryjades/Asian-Models/pull/2) is open from `feature/baseline` to `main` with the Phase 0 verification evidence. |
+| P0-007 | Open the control-protocol draft pull request. | Codex | Complete | B-003 | PR [#2](https://github.com/veryjades/Asian-Models/pull/2) merged from `feature/baseline` into `main` as `875f9eb`. |
 
 ## Decision blockers
 
@@ -38,7 +38,7 @@ All Phase 0 tasks below are complete. PR #2 is open for review; merging it is a 
 
 | ID | Planned task | Owner | Status | Dependency | Next step |
 | --- | --- | --- | --- | --- | --- |
-| P1-001 | Confirm product/domain scope, user journeys, content inventory, and acceptance criteria. | Unassigned | Planned | PR #2 reviewed/merged | Obtain approved product/domain brief. |
+| P1-001 | Confirm product/domain scope, user journeys, content inventory, and acceptance criteria. | Unassigned | Planned | Luna Phase 1 architecture approval | Obtain approved product/domain brief. |
 | P1-002 | Document data ownership and the boundary between public content and future application data. | Unassigned | Planned | P1-001 | Add an architecture note under `docs/architecture/` if needed. |
 | P1-003 | Prepare the Phase 1 exit gate and implementation backlog. | Unassigned | Planned | P1-001, P1-002 | Record approved scope and dependencies before any Phase 2 work. |
 
