@@ -3,8 +3,8 @@
 **Phase:** Phase 1 — Architecture Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 1 — Architecture Foundation
-**Current task:** Establish the fictional, premium mock-asset pipeline and safe image-presentation boundary; no real talent data or backend/UI wiring.
-**Last heartbeat:** 2026-08-11 00:30:00 +08:00
+**Current task:** Deploy and review the first 18-asset fictional Golden Mock Set; no real talent data or backend/UI wiring.
+**Last heartbeat:** 2026-08-11 03:00:00 +08:00
 **Completion date:** 2026-08-10
 
 ## Completed items
@@ -23,11 +23,12 @@
 - Foundation review and migration validation are pending. No Phase 1 UI or product work is in progress.
 - The authorised D-008/D-009 mock-asset experience iteration documents source/licensing requirements and now includes a reusable safe-presentation component.
 - Draft PR [#5](https://github.com/veryjades/Asian-Models/pull/5) contains the mock-asset guide and image-presentation foundation; it targets `feature/phase-1-foundation` and remains unmerged.
+- The Golden Mock Asset Set is complete: 18 reviewed fictional adult assets for three desktop heroes, five Women/Men portrait/full-body pairs, two New Faces digitals, and three portfolio scenes. See `docs/GOLDEN_MOCK_ASSET_SET.md`.
 
 ## Blockers
 
 - A local Supabase database is not running, and no cloud Supabase project has been linked. The initial migration is therefore un-applied; this is intentional until local Docker or a project approval is available.
-- The session has no built-in image-generation capability. High-quality fictional assets must not be substituted with unlicensed stock or the existing low-confidence mock images; explicit approval is needed to use the key-based CLI fallback.
+- No mock-asset blocker remains. Final visual acceptance is pending the isolated Preview review.
 
 ## Phase 0 readiness
 
@@ -42,4 +43,4 @@
 
 ## Next action
 
-After the approved image-generation path is available, generate and review three art-directed hero assets and their mobile compositions, commit them with provenance metadata, then deploy this branch to an isolated Preview for desktop/mobile UX review.
+Deploy `feature/mock-assets` to an isolated Preview and review the updated hero, model boards, and profile galleries at desktop and 390px mobile. Do not merge PR #5 without review.
