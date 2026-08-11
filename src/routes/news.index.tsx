@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { contentRepository } from "@/lib/content/repository";
 import { useI18n } from "@/lib/i18n";
+import { AgencyImage } from "@/components/site/AgencyImage";
 
 const newsQuery = queryOptions({
   queryKey: ["news"],
@@ -53,13 +54,14 @@ function NewsIndex() {
               params={{ slug: post.slug }}
               className="portrait-hover group block"
             >
-              <img
+              <AgencyImage
                 src={post.cover}
                 alt={pick(post.titleEn, post.titleZh)}
                 loading="lazy"
                 width={768}
-                height={1024}
-                className="aspect-[4/3] w-full object-cover"
+                height={512}
+                aspectRatio="3 / 2"
+                fit="contain"
               />
               <p className="label-xs mt-4 text-muted-foreground">
                 {new Date(post.date).toLocaleDateString(lang === "zh" ? "zh-TW" : "en-GB", {

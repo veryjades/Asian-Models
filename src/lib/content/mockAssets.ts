@@ -42,6 +42,11 @@ export const goldenMockAssets = {
     menCommercial: portfolioMenCommercial,
     beautyCampaign: portfolioBeautyCampaign,
   },
+  news: {
+    springBoardUpdate: portfolioWomenEditorial,
+    tokyoShowroom: portfolioMenCommercial,
+    scoutingInAsia: portfolioBeautyCampaign,
+  },
 } as const;
 
 export const goldenMockAssetManifest = [

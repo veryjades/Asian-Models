@@ -2,7 +2,6 @@ import type { Model, NewsPost } from "./types";
 import { goldenMockAssets } from "./mockAssets";
 
 import m1 from "@/assets/model-01.jpg";
-import m2 from "@/assets/model-02.jpg";
 import m3 from "@/assets/model-03.jpg";
 import m4 from "@/assets/model-04.jpg";
 import m5 from "@/assets/model-05.jpg";
@@ -388,7 +387,7 @@ export const seedNews: NewsPost[] = [
       "在台北時裝季開始之前，我們於女模與新面孔分類新增四位面孔，皆為近半年間於台灣、日本與新加坡發掘。",
       "生活照與完整作品集可另行索取，工作邀約請聯繫台北辦公室。",
     ],
-    cover: m5,
+    cover: goldenMockAssets.news.springBoardUpdate,
     videos: [
       {
         id: "spring-board-clip",
@@ -415,7 +414,7 @@ export const seedNews: NewsPost[] = [
       "我們於澀谷舉辦三天展間，接待籌備秋季檔期的選角與造型團隊，共十四位模特兒到場，橫跨兩個分類。",
       "感謝所有到訪的夥伴，下一場展間將於九月公布。",
     ],
-    cover: m2,
+    cover: goldenMockAssets.news.tokyoShowroom,
   },
   {
     slug: "on-scouting-in-asia",
@@ -433,6 +432,6 @@ export const seedNews: NewsPost[] = [
       "我們近期簽下的模特兒多數並非來自台北、東京或首爾，而是台南、沖繩與柔佛——那些沒有人在尋找的地方。",
       "我們希望在申請中看到的很簡單：日光、不修圖、不加濾鏡、素色背景。臉部、全身、側面，這樣就足夠了。",
     ],
-    cover: m3,
+    cover: goldenMockAssets.news.scoutingInAsia,
   },
 ];

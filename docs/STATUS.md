@@ -3,8 +3,8 @@
 **Phase:** Phase 1 — Architecture Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 1 — Architecture Foundation
-**Current task:** Await product review of the isolated Preview containing the first 18-asset fictional Golden Mock Set; no real talent data or backend/UI wiring.
-**Last heartbeat:** 2026-08-11 02:42:38 +08:00
+**Current task:** Validate the minimal homepage visual-consistency iteration on an isolated Preview; no real talent data or backend/UI wiring.
+**Last heartbeat:** 2026-08-12 01:43:52 +08:00
 **Completion date:** 2026-08-10
 
 ## Completed items
@@ -25,11 +25,12 @@
 - Draft PR [#5](https://github.com/veryjades/Asian-Models/pull/5) contains the mock-asset guide and image-presentation foundation; it targets `feature/phase-1-foundation` and remains unmerged.
 - The Golden Mock Asset Set is complete: 18 reviewed fictional adult assets for three desktop heroes, five Women/Men portrait/full-body pairs, two New Faces digitals, and three portfolio scenes. See `docs/GOLDEN_MOCK_ASSET_SET.md`.
 - Isolated Preview review passed for desktop and a 390px viewport: three hero CTAs route to their intended boards; desktop arrows change slides; the Women board and Aya Mori profile load their mapped fictional media. Preview: `https://asian-models-gxon1hn2t-asian-models.vercel.app`.
+- Homepage asset audit found Golden assets in the Hero and Featured Models sections, but legacy `model-05`, `model-02`, and `model-03` covers in News. The minimal replacement maps each News post to a compositionally suitable existing Golden portfolio asset; no new media or dependency was needed. Build and lint passed before Preview validation.
 
 ## Blockers
 
 - A local Supabase database is not running, and no cloud Supabase project has been linked. The initial migration is therefore un-applied; this is intentional until local Docker or a project approval is available.
-- No deployment blocker remains. Product acceptance is pending review of the isolated Preview. Two legacy Women cards and legacy News imagery remain outside this intentionally limited 18-asset round.
+- No deployment blocker remains. Product acceptance is pending review of the isolated Preview. Legacy Women cards outside the homepage remain out of scope; the homepage News legacy imagery is being validated in this iteration.
 
 ## Phase 0 readiness
 
@@ -44,4 +45,4 @@
 
 ## Next action
 
-Review the isolated Preview with product stakeholders. Confirm whether the next narrow iteration should replace the remaining legacy Women/News samples or refine mobile-specific hero art direction. Do not merge PR #5 without review.
+Review the isolated Preview at desktop and 390px for the Hero → Featured Models → News sequence. Do not merge PR #5 without review.

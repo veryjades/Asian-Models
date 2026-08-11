@@ -123,13 +123,14 @@ function Index() {
                 params={{ slug: post.slug }}
                 className="portrait-hover group block"
               >
-                <img
+                <AgencyImage
                   src={post.cover}
                   alt={pick(post.titleEn, post.titleZh)}
                   loading="lazy"
                   width={768}
-                  height={1024}
-                  className="aspect-[4/3] w-full object-cover"
+                  height={512}
+                  aspectRatio="3 / 2"
+                  fit="contain"
                 />
                 <p className="label-xs mt-4 text-muted-foreground">
                   {new Date(post.date).toLocaleDateString(lang === "zh" ? "zh-TW" : "en-GB", {
