@@ -3,8 +3,8 @@
 **Phase:** Phase 1 — Architecture Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 1 — Architecture Foundation
-**Current task:** Correct Keyword Dynamic Runway focus interaction so hovering preserves the keyword's current position and changes only its visual scale.
-**Last heartbeat:** 2026-08-12 22:10:00 +08:00
+**Current task:** Keyword Dynamic Runway focus interaction correction complete; retain the same-person four-photo profile asset blocker as separate work.
+**Last heartbeat:** 2026-08-12 22:50:00 +08:00
 **Completion date:** 2026-08-10
 
 ## Completed items
@@ -32,7 +32,7 @@
 - The 390px Keyword Dynamic Runway was tightened so active keywords remain readable instead of collapsing into an overlapping text cluster; keyword destination pages continue to surface tagged models, portfolio signals, news, and Quick Booking.
 - Recruitment gate regression verification passed locally: 0 photos keeps submit disabled, one required photo keeps submit disabled, and half-body plus full-body enables submit; the optional third photo and optional video remain non-required.
 - The final Keyword Dynamic Runway correction is complete locally: the runway is now a 40px strip directly below Hero, consumes the top 15 active canonical keywords, moves LEFT↔RIGHT instead of as a one-direction ticker, gives the C-position keyword highest opacity/sharpness/z-order, fades and blurs keywords after C into the rear depth plane, keeps controlled overlap, and avoids horizontal overflow on desktop and 390px. Local click verification reached `/keywords/editorial-model` with Models/Portfolio/News/Quick Booking content. `bun run lint` passed with 0 errors and 9 existing warnings; `bun run build` passed.
-- The focus-interaction correction now separates the moving runway element from its nested text label: automatic C-state scales the label to 2.4× without relocating the keyword, while desktop hover/focus pauses the runway where it is and applies the same 2.4× label scale above neighboring keywords. The focus treatment has no background, inversion, padding, or colour change. Local lint/build pass; Preview validation follows after deploy.
+- The focus-interaction correction now separates the moving runway element from its nested text label: automatic C-state scales the label to 2.4× without relocating the keyword, while desktop hover/focus pauses the runway where it is and applies the same 2.4× label scale above neighboring keywords. The focus treatment has no background, inversion, padding, or colour change. Preview verification on commit `d136c69` passed: real desktop pointer hover reported a frozen non-zero runway transform, 2.4× label scale, z-index 20, transparent background, unchanged text colour, and no horizontal overflow; automatic C-state remained in place at the same scale. The 390px browser surface passed 40px height, 15 items, one line, no horizontal overflow, and no console errors.
 
 ## Blockers
 
@@ -53,4 +53,4 @@
 
 ## Next action
 
-Commit and deploy the Keyword Dynamic Runway focus-interaction correction to the PR #5 Preview, verify desktop hover, automatic C-state, and 390px behavior on the actual Preview, and keep PR #5 draft/open/not merged. Resolve the remaining same-person four-photo blocker only when a real image-generation path or approved model assets are available.
+Keep PR #5 draft/open/not merged while stakeholder review continues. Resolve the remaining same-person four-photo blocker only when a real image-generation path or approved model assets are available.
