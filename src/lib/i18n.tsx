@@ -83,8 +83,23 @@ const dict: Dict = {
   "scout.instagram": { en: "Instagram", zh: "Instagram" },
   "scout.photos": { en: "Photographs", zh: "照片" },
   "scout.photosHint": {
-    en: "Face, full body and profile. Up to 6 images.",
-    zh: "臉部、全身與側面，最多 6 張。",
+    en: "Minimum 2 photos: 1 clear half-body photo and 1 clear full-body photo. A third photo is optional.",
+    zh: "申請至少需要 2 張照片：1 張清楚的半身照 + 1 張清楚的全身照。第三張照片為選填。",
+  },
+  "scout.photosGate": {
+    en: "Applications require at least 2 photos: 1 clear half-body photo and 1 clear full-body photo.",
+    zh: "申請至少需要 2 張照片：1 張清楚的半身照 + 1 張清楚的全身照。",
+  },
+  "scout.photosNatural": {
+    en: "Photos should be natural, clear, unretouched and without filters.",
+    zh: "照片請保持自然、清楚，未經後製及未套用濾鏡。",
+  },
+  "scout.photoHalf": { en: "Half-body photo", zh: "半身照" },
+  "scout.photoFull": { en: "Full-body photo", zh: "全身照" },
+  "scout.photoAdditional": { en: "Additional photo (optional)", zh: "第三張照片（選填）" },
+  "scout.photosError": {
+    en: "Please upload at least 2 photos before submitting: 1 half-body photo and 1 full-body photo.",
+    zh: "請先上傳至少 2 張照片：1 張半身照及 1 張全身照，才能送出模特兒申請。",
   },
   "scout.message": { en: "Anything else", zh: "其他說明" },
   "scout.submit": { en: "Submit application", zh: "送出申請" },
