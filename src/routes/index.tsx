@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
+import type { CSSProperties } from "react";
 import { contentRepository } from "@/lib/content/repository";
 import { HeroCarousel } from "@/components/site/HeroCarousel";
 import { AgencyImage } from "@/components/site/AgencyImage";
 import { AskAssistant } from "@/components/site/AskAssistant";
 import { useI18n } from "@/lib/i18n";
+import type { Keyword } from "@/lib/content/types";
 
 const homeQuery = queryOptions({
   queryKey: ["home"],
@@ -56,14 +58,7 @@ function Index() {
     <div>
       <HeroCarousel />
 
-      <section className="mx-auto max-w-[1600px] px-5 pt-12 md:px-10">
-        <h1 className="max-w-3xl text-3xl font-light leading-tight md:text-5xl">
-          {t("home.tagline")}
-        </h1>
-        <p className="mt-4 max-w-xl text-sm text-muted-foreground md:text-base">
-          {t("home.intro")}
-        </p>
-      </section>
+      <KeywordDynamicRunway keywords={data.keywords} />
 
       <section className="mx-auto max-w-[1600px] px-5 py-14 md:px-10">
         <h2 className="label-xs text-muted-foreground">{t("home.featured")}</h2>
@@ -88,56 +83,6 @@ function Index() {
                   <div className="gradient-accent-soft pointer-events-none absolute inset-0 opacity-0 mix-blend-multiply transition-opacity duration-500 group-hover:opacity-100" />
                 </div>
                 <p className="label-xs px-3 py-3">{pick(model.name, model.nameZh)}</p>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section
-        className="mx-auto max-w-[1600px] px-5 pb-14 md:px-10"
-        data-testid="keyword-dynamic-runway"
-        aria-label={t("home.keywordRunway")}
-      >
-        <div className="halftone mb-10 h-14 w-full opacity-40" aria-hidden="true" />
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h2 className="label-xs text-muted-foreground">{t("home.keywordRunway")}</h2>
-            <p className="mt-3 max-w-xl text-sm text-muted-foreground">
-              {t("home.keywordRunwayIntro")}
-            </p>
-          </div>
-          <span className="label-xs text-muted-foreground">{t("home.keywordRunwayDynamic")}</span>
-        </div>
-        <ul className="mt-6 grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-5">
-          {data.keywords.map((keyword) => (
-            <li key={keyword.slug} className="bg-background">
-              <Link
-                to="/keywords/$slug"
-                params={{ slug: keyword.slug }}
-                data-keyword-tile={keyword.slug}
-                className="group relative flex min-h-[9rem] flex-col justify-between overflow-hidden p-4 transition-colors hover:bg-foreground hover:text-background md:min-h-[10rem]"
-              >
-                <span>
-                  <span className="label-xs block text-muted-foreground transition-colors group-hover:text-background/70">
-                    {t("home.keywordRunwayMeta")}
-                  </span>
-                  <span className="mt-4 block text-2xl font-light leading-none md:text-3xl">
-                    {pick(keyword.labelEn, keyword.labelZh)}
-                  </span>
-                </span>
-                <span>
-                  <span className="block text-xs text-muted-foreground transition-colors group-hover:text-background/70">
-                    {pick(keyword.descriptionEn, keyword.descriptionZh)}
-                  </span>
-                  <span className="label-xs mt-4 inline-flex border-b border-current pb-1">
-                    {t("home.keywordRunwayCta")}
-                  </span>
-                </span>
-                <span
-                  className="gradient-accent pointer-events-none absolute inset-x-0 top-0 h-1 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                  aria-hidden="true"
-                />
               </Link>
             </li>
           ))}
@@ -182,5 +127,37 @@ function Index() {
 
       <AskAssistant />
     </div>
+  );
+}
+
+function KeywordDynamicRunway({ keywords }: { keywords: Keyword[] }) {
+  const { t, pick } = useI18n();
+  const duration = 30;
+
+  return (
+    <section
+      className="keyword-runway"
+      data-testid="keyword-dynamic-runway"
+      aria-label={t("home.keywordRunway")}
+    >
+      <h2 className="sr-only">{t("home.keywordRunway")}</h2>
+      <div className="keyword-runway-stage">
+        {keywords.map((keyword, index) => (
+          <a
+            key={keyword.slug}
+            href={`/keywords/${keyword.slug}`}
+            data-keyword-tile={keyword.slug}
+            className="keyword-runway-item"
+            style={
+              {
+                "--runway-delay": `${-(index * (duration / keywords.length))}s`,
+              } as CSSProperties
+            }
+          >
+            {pick(keyword.labelEn, keyword.labelZh)}
+          </a>
+        ))}
+      </div>
+    </section>
   );
 }

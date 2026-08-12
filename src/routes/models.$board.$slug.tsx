@@ -121,12 +121,6 @@ function ModelPage() {
         </aside>
       </div>
 
-      <QuickBooking
-        modelId={model.slug}
-        modelName={modelDisplayName}
-        className="fixed bottom-5 left-5 z-[55] shadow-lg md:bottom-6 md:left-6"
-      />
-
       <Gallery title={t("model.portfolio")} images={model.gallery} model={model} />
       <Gallery title={t("model.digitals")} images={model.digitals} model={model} />
       <VideoGallery title={t("video.showreel")} videos={model.videos} />

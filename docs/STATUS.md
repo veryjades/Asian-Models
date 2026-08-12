@@ -3,8 +3,8 @@
 **Phase:** Phase 1 — Architecture Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 1 — Architecture Foundation
-**Current task:** Validate the missed public-experience requirements for favicon, keyword discovery, booking CTA reliability, and Golden model identity; no real talent data or backend/UI wiring.
-**Last heartbeat:** 2026-08-12 19:05:00 +08:00
+**Current task:** Recover the final UX quality gate for Quick Booking layering, model-profile CTA clarity, mobile keyword runway usability, and recruitment validation while documenting the remaining same-person four-photo profile blocker.
+**Last heartbeat:** 2026-08-12 19:45:00 +08:00
 **Completion date:** 2026-08-10
 
 ## Completed items
@@ -28,11 +28,15 @@
 - Homepage asset audit found Golden assets in the Hero and Featured Models sections, but legacy `model-05`, `model-02`, and `model-03` covers in News. The minimal replacement maps each News post to a compositionally suitable existing Golden portfolio asset; no new media or dependency was needed. Build and lint passed before Preview validation.
 - Visual-consistency Preview passed at desktop and 390px: Hero → Featured Models → News now stays within the Golden asset set, News has a reviewed 3:2 non-cropping presentation, and no browser console errors were observed. Preview: `https://asian-models-p2kd962ta-asian-models.vercel.app`.
 - Local verification for the missed-requirements iteration passed: J_J favicon route/link, homepage Keyword Dynamic Runway with 15 active taxonomy entries, keyword result page with models/portfolio/news/Quick Booking, model-specific Quick Booking modal payload, recruitment 2-photo gate, and Golden model profile identity cleanup. `bun run lint` passed with 0 errors and 9 existing warnings; `bun run build` passed.
+- The final UX recovery iteration now renders Quick Booking through a top-level portal overlay, locks background scroll, marks header/main/footer inert while open, and hides the generic header booking CTA on model profile pages so the profile exposes one model-specific 「快速預約」 action. Local desktop and 390px browser verification passed for modal layering and console errors.
+- The 390px Keyword Dynamic Runway was tightened so active keywords remain readable instead of collapsing into an overlapping text cluster; keyword destination pages continue to surface tagged models, portfolio signals, news, and Quick Booking.
+- Recruitment gate regression verification passed locally: 0 photos keeps submit disabled, one required photo keeps submit disabled, and half-body plus full-body enables submit; the optional third photo and optional video remain non-required.
 
 ## Blockers
 
 - A local Supabase database is not running, and no cloud Supabase project has been linked. The initial migration is therefore un-applied; this is intentional until local Docker or a project approval is available.
 - No deployment blocker remains. Product acceptance is pending review of the isolated Preview. The production keyword/tag admin and CMS backing remain future Phase 5/admin work; this iteration only adds the content boundary and documents the future requirement.
+- Model-profile identity depth remains blocked: the current Golden assets do not provide four distinct same-person images per audited model profile. Aya, Mei, Sora, Jun, and Ren have only portrait/full-body pairs; Nari and Dai have a single image reused across profile surfaces. This environment currently has no callable same-identity image generation tool and no `OPENAI_API_KEY`, so the iteration must not duplicate images or mix different faces to claim compliance.
 
 ## Phase 0 readiness
 
@@ -47,4 +51,4 @@
 
 ## Next action
 
-Deploy the missed-requirements iteration to the PR #5 Preview, verify desktop and 390px behavior, and keep PR #5 draft/open/not merged.
+Commit and deploy the final UX recovery changes to the PR #5 Preview, verify desktop and 390px behavior, and keep PR #5 draft/open/not merged. Resolve the remaining same-person four-photo blocker only when a real image-generation path or approved model assets are available.

@@ -52,6 +52,7 @@ export function SiteHeader() {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isModelProfile = /^\/models\/[^/]+\/[^/]+/.test(pathname);
 
   useEffect(() => {
     setOpen(false);
@@ -79,7 +80,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <QuickBooking className="hidden md:inline-block" />
+          {!isModelProfile && <QuickBooking className="hidden md:inline-block" />}
           <Link
             to="/scouted"
             className="label-xs hidden border border-foreground px-3 py-2 text-foreground transition-colors hover:bg-foreground hover:text-background md:inline-block"
@@ -117,9 +118,11 @@ export function SiteHeader() {
                 {t("nav.scouted")}
               </Link>
             </li>
-            <li>
-              <QuickBooking />
-            </li>
+            {!isModelProfile && (
+              <li>
+                <QuickBooking />
+              </li>
+            )}
           </ul>
         </nav>
       )}
