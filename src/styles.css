@@ -261,13 +261,22 @@ body[data-quick-booking-open="true"] [data-vercel-toolbar] {
   line-height: 1;
   text-decoration: none;
   text-transform: uppercase;
-  transform: translate(-50%, -50%) translateX(-52vw) translateZ(-130px) scale(0.76);
+  transform: translate(-50%, -50%) translateX(-52vw) translateZ(-130px);
   animation: keyword-runway-depth 34s ease-in-out infinite;
   animation-delay: var(--runway-delay);
   will-change: transform, opacity, filter, z-index;
 }
 
-.keyword-runway:hover .keyword-runway-item {
+.keyword-runway-label {
+  display: block;
+  transform-origin: center;
+  animation: keyword-runway-scale 34s ease-in-out infinite;
+  animation-delay: var(--runway-delay);
+  will-change: transform;
+}
+
+.keyword-runway:hover .keyword-runway-item,
+.keyword-runway:hover .keyword-runway-label {
   animation-play-state: paused;
 }
 
@@ -275,12 +284,14 @@ body[data-quick-booking-open="true"] [data-vercel-toolbar] {
 .keyword-runway-item:focus-visible {
   z-index: 20;
   outline: none;
-  color: var(--color-background);
-  background: var(--color-foreground);
-  padding: 0.42rem 0.55rem;
   filter: blur(0) !important;
   opacity: 1 !important;
-  transform: translate(-50%, -50%) translateX(0) translateZ(110px) scale(1.14) !important;
+}
+
+.keyword-runway-item:hover .keyword-runway-label,
+.keyword-runway-item:focus-visible .keyword-runway-label {
+  animation: none;
+  transform: scale(2.4);
 }
 
 @keyframes keyword-runway-depth {
@@ -288,85 +299,131 @@ body[data-quick-booking-open="true"] [data-vercel-toolbar] {
     z-index: 1;
     opacity: 0.08;
     filter: blur(2.8px);
-    transform: translate(-50%, -50%) translateX(-50vw) translateZ(-140px) scale(0.74);
+    transform: translate(-50%, -50%) translateX(-50vw) translateZ(-140px);
   }
   14% {
     z-index: 3;
     opacity: 0.32;
     filter: blur(1.4px);
-    transform: translate(-50%, -50%) translateX(-26vw) translateZ(-70px) scale(0.84);
+    transform: translate(-50%, -50%) translateX(-26vw) translateZ(-70px);
   }
   21% {
     z-index: 6;
     opacity: 0.58;
     filter: blur(0.75px);
-    transform: translate(-50%, -50%) translateX(-10vw) translateZ(-4px) scale(0.94);
+    transform: translate(-50%, -50%) translateX(-10vw) translateZ(-4px);
   }
   25% {
     z-index: 12;
     opacity: 1;
     filter: blur(0);
-    transform: translate(-50%, -50%) translateX(0) translateZ(110px) scale(1.14);
+    transform: translate(-50%, -50%) translateX(0) translateZ(110px);
   }
   29% {
     z-index: 4;
     opacity: 0.46;
     filter: blur(1px);
-    transform: translate(-50%, -50%) translateX(10vw) translateZ(-46px) scale(0.88);
+    transform: translate(-50%, -50%) translateX(10vw) translateZ(-46px);
   }
   38% {
     z-index: 2;
     opacity: 0.22;
     filter: blur(1.9px);
-    transform: translate(-50%, -50%) translateX(31vw) translateZ(-104px) scale(0.78);
+    transform: translate(-50%, -50%) translateX(31vw) translateZ(-104px);
   }
   50% {
     z-index: 1;
     opacity: 0.08;
     filter: blur(2.8px);
-    transform: translate(-50%, -50%) translateX(50vw) translateZ(-140px) scale(0.74);
+    transform: translate(-50%, -50%) translateX(50vw) translateZ(-140px);
   }
   64% {
     z-index: 3;
     opacity: 0.32;
     filter: blur(1.4px);
-    transform: translate(-50%, -50%) translateX(26vw) translateZ(-70px) scale(0.84);
+    transform: translate(-50%, -50%) translateX(26vw) translateZ(-70px);
   }
   71% {
     z-index: 6;
     opacity: 0.58;
     filter: blur(0.75px);
-    transform: translate(-50%, -50%) translateX(10vw) translateZ(-4px) scale(0.94);
+    transform: translate(-50%, -50%) translateX(10vw) translateZ(-4px);
   }
   75% {
     z-index: 12;
     opacity: 1;
     filter: blur(0);
-    transform: translate(-50%, -50%) translateX(0) translateZ(110px) scale(1.14);
+    transform: translate(-50%, -50%) translateX(0) translateZ(110px);
   }
   79% {
     z-index: 4;
     opacity: 0.46;
     filter: blur(1px);
-    transform: translate(-50%, -50%) translateX(-10vw) translateZ(-46px) scale(0.88);
+    transform: translate(-50%, -50%) translateX(-10vw) translateZ(-46px);
   }
   88% {
     z-index: 2;
     opacity: 0.22;
     filter: blur(1.9px);
-    transform: translate(-50%, -50%) translateX(-31vw) translateZ(-104px) scale(0.78);
+    transform: translate(-50%, -50%) translateX(-31vw) translateZ(-104px);
   }
   100% {
     z-index: 1;
     opacity: 0.08;
     filter: blur(2.8px);
-    transform: translate(-50%, -50%) translateX(-50vw) translateZ(-140px) scale(0.74);
+    transform: translate(-50%, -50%) translateX(-50vw) translateZ(-140px);
+  }
+}
+
+@keyframes keyword-runway-scale {
+  0% {
+    transform: scale(0.72);
+  }
+  14% {
+    transform: scale(0.9);
+  }
+  21% {
+    transform: scale(1.35);
+  }
+  25% {
+    transform: scale(2.4);
+  }
+  29% {
+    transform: scale(1.5);
+  }
+  38% {
+    transform: scale(0.96);
+  }
+  50% {
+    transform: scale(0.72);
+  }
+  64% {
+    transform: scale(0.9);
+  }
+  71% {
+    transform: scale(1.35);
+  }
+  75% {
+    transform: scale(2.4);
+  }
+  79% {
+    transform: scale(1.5);
+  }
+  88% {
+    transform: scale(0.96);
+  }
+  100% {
+    transform: scale(0.72);
   }
 }
 
 @media (max-width: 640px) {
   .keyword-runway-item {
     animation-name: keyword-runway-depth-mobile;
+  }
+
+  .keyword-runway-label {
+    animation-name: keyword-runway-scale-mobile;
   }
 }
 
@@ -375,79 +432,121 @@ body[data-quick-booking-open="true"] [data-vercel-toolbar] {
     z-index: 1;
     opacity: 0;
     filter: blur(2.7px);
-    transform: translate(-50%, -50%) translateX(-78vw) translateZ(-130px) scale(0.74);
+    transform: translate(-50%, -50%) translateX(-78vw) translateZ(-130px);
   }
   19% {
     z-index: 2;
     opacity: 0.2;
     filter: blur(1.8px);
-    transform: translate(-50%, -50%) translateX(-38vw) translateZ(-92px) scale(0.76);
+    transform: translate(-50%, -50%) translateX(-38vw) translateZ(-92px);
   }
   28% {
     z-index: 6;
     opacity: 0.62;
     filter: blur(0.65px);
-    transform: translate(-50%, -50%) translateX(-9vw) translateZ(-6px) scale(0.92);
+    transform: translate(-50%, -50%) translateX(-9vw) translateZ(-6px);
   }
   32% {
     z-index: 12;
     opacity: 1;
     filter: blur(0);
-    transform: translate(-50%, -50%) translateX(0) translateZ(100px) scale(1.08);
+    transform: translate(-50%, -50%) translateX(0) translateZ(100px);
   }
   36% {
     z-index: 3;
     opacity: 0.36;
     filter: blur(1.25px);
-    transform: translate(-50%, -50%) translateX(13vw) translateZ(-62px) scale(0.82);
+    transform: translate(-50%, -50%) translateX(13vw) translateZ(-62px);
   }
   43% {
     z-index: 2;
     opacity: 0.16;
     filter: blur(2px);
-    transform: translate(-50%, -50%) translateX(38vw) translateZ(-108px) scale(0.74);
+    transform: translate(-50%, -50%) translateX(38vw) translateZ(-108px);
   }
   50% {
     z-index: 1;
     opacity: 0;
     filter: blur(2.7px);
-    transform: translate(-50%, -50%) translateX(78vw) translateZ(-130px) scale(0.74);
+    transform: translate(-50%, -50%) translateX(78vw) translateZ(-130px);
   }
   69% {
     z-index: 2;
     opacity: 0.2;
     filter: blur(1.8px);
-    transform: translate(-50%, -50%) translateX(38vw) translateZ(-92px) scale(0.76);
+    transform: translate(-50%, -50%) translateX(38vw) translateZ(-92px);
   }
   78% {
     z-index: 6;
     opacity: 0.62;
     filter: blur(0.65px);
-    transform: translate(-50%, -50%) translateX(9vw) translateZ(-6px) scale(0.92);
+    transform: translate(-50%, -50%) translateX(9vw) translateZ(-6px);
   }
   82% {
     z-index: 12;
     opacity: 1;
     filter: blur(0);
-    transform: translate(-50%, -50%) translateX(0) translateZ(100px) scale(1.08);
+    transform: translate(-50%, -50%) translateX(0) translateZ(100px);
   }
   86% {
     z-index: 3;
     opacity: 0.36;
     filter: blur(1.25px);
-    transform: translate(-50%, -50%) translateX(-13vw) translateZ(-62px) scale(0.82);
+    transform: translate(-50%, -50%) translateX(-13vw) translateZ(-62px);
   }
   93% {
     z-index: 2;
     opacity: 0.16;
     filter: blur(2px);
-    transform: translate(-50%, -50%) translateX(-38vw) translateZ(-108px) scale(0.74);
+    transform: translate(-50%, -50%) translateX(-38vw) translateZ(-108px);
   }
   100% {
     z-index: 1;
     opacity: 0;
     filter: blur(2.7px);
-    transform: translate(-50%, -50%) translateX(-78vw) translateZ(-130px) scale(0.74);
+    transform: translate(-50%, -50%) translateX(-78vw) translateZ(-130px);
+  }
+}
+
+@keyframes keyword-runway-scale-mobile {
+  0% {
+    transform: scale(0.72);
+  }
+  19% {
+    transform: scale(0.88);
+  }
+  28% {
+    transform: scale(1.32);
+  }
+  32% {
+    transform: scale(2.4);
+  }
+  36% {
+    transform: scale(1.5);
+  }
+  43% {
+    transform: scale(0.9);
+  }
+  50% {
+    transform: scale(0.72);
+  }
+  69% {
+    transform: scale(0.88);
+  }
+  78% {
+    transform: scale(1.32);
+  }
+  82% {
+    transform: scale(2.4);
+  }
+  86% {
+    transform: scale(1.5);
+  }
+  93% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(0.72);
   }
 }
 
@@ -469,8 +568,18 @@ body[data-quick-booking-open="true"] [data-vercel-toolbar] {
     animation: none;
   }
 
+  .keyword-runway-label {
+    animation: none;
+    transform: none;
+  }
+
   .keyword-runway-item:hover,
   .keyword-runway-item:focus-visible {
     transform: none !important;
+  }
+
+  .keyword-runway-item:hover .keyword-runway-label,
+  .keyword-runway-item:focus-visible .keyword-runway-label {
+    transform: scale(2.4);
   }
 }

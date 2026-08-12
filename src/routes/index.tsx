@@ -154,7 +154,7 @@ function KeywordDynamicRunway({ keywords }: { keywords: Keyword[] }) {
               } as CSSProperties
             }
           >
-            {pick(keyword.labelEn, keyword.labelZh)}
+            <span className="keyword-runway-label">{pick(keyword.labelEn, keyword.labelZh)}</span>
           </a>
         ))}
       </div>
