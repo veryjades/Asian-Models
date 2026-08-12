@@ -101,7 +101,7 @@ const dict: Dict = {
   "scout.measurements": { en: "Measurements", zh: "三圍" },
   "scout.instagram": { en: "Instagram", zh: "Instagram" },
   "scout.socialLinks": { en: "Other social links", zh: "其他社群連結" },
-  "scout.modelCard": { en: "Model Card", zh: "Model Card／模特卡" },
+  "scout.modelCard": { en: "Model Card upload", zh: "Model Card／模特卡上傳" },
   "scout.photos": { en: "Photographs", zh: "照片" },
   "scout.photosHint": {
     en: "Minimum 2 photos: 1 clear half-body photo and 1 clear full-body photo. A third photo is optional.",

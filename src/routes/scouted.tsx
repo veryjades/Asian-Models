@@ -118,10 +118,11 @@ function ScoutedPage() {
 
             <label className="block md:col-span-2">
               <span className="label-xs text-muted-foreground">{t("scout.modelCard")}</span>
-              <textarea
+              <input
                 name="modelCard"
-                rows={5}
-                className="mt-2 w-full border-b border-border bg-transparent py-2 text-sm outline-none focus:border-foreground"
+                type="file"
+                accept="image/*,.pdf"
+                className="mt-2 w-full border border-dashed border-border p-4 text-sm"
               />
             </label>
 

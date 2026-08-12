@@ -89,7 +89,7 @@ function detectIntent(input: string): SearchIntent {
     ...(hasAny(query, ["廣告", "campaign", "advertising", "commercial", "品牌"])
       ? ["advertising-model"]
       : []),
-    ...(hasAny(query, ["時裝", "fashion", "runway", "伸展台"]) ? ["fashion-model"] : []),
+    ...(hasAny(query, ["時裝", "fashion", "runway", "伸展台", "走秀"]) ? ["fashion-model"] : []),
     ...(hasAny(query, ["主持", "host", "presenter"]) ? ["host"] : []),
   ];
 
