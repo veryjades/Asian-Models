@@ -3,8 +3,8 @@
 **Phase:** Phase 1 — Architecture Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 1 — Architecture Foundation
-**Current task:** Await product review of the completed homepage visual-consistency iteration; no real talent data or backend/UI wiring.
-**Last heartbeat:** 2026-08-12 01:46:14 +08:00
+**Current task:** Validate the missed public-experience requirements for favicon, keyword discovery, booking CTA reliability, and Golden model identity; no real talent data or backend/UI wiring.
+**Last heartbeat:** 2026-08-12 19:05:00 +08:00
 **Completion date:** 2026-08-10
 
 ## Completed items
@@ -27,11 +27,12 @@
 - Isolated Preview review passed for desktop and a 390px viewport: three hero CTAs route to their intended boards; desktop arrows change slides; the Women board and Aya Mori profile load their mapped fictional media. Preview: `https://asian-models-gxon1hn2t-asian-models.vercel.app`.
 - Homepage asset audit found Golden assets in the Hero and Featured Models sections, but legacy `model-05`, `model-02`, and `model-03` covers in News. The minimal replacement maps each News post to a compositionally suitable existing Golden portfolio asset; no new media or dependency was needed. Build and lint passed before Preview validation.
 - Visual-consistency Preview passed at desktop and 390px: Hero → Featured Models → News now stays within the Golden asset set, News has a reviewed 3:2 non-cropping presentation, and no browser console errors were observed. Preview: `https://asian-models-p2kd962ta-asian-models.vercel.app`.
+- Local verification for the missed-requirements iteration passed: J_J favicon route/link, homepage Keyword Dynamic Runway with 15 active taxonomy entries, keyword result page with models/portfolio/news/Quick Booking, model-specific Quick Booking modal payload, recruitment 2-photo gate, and Golden model profile identity cleanup. `bun run lint` passed with 0 errors and 9 existing warnings; `bun run build` passed.
 
 ## Blockers
 
 - A local Supabase database is not running, and no cloud Supabase project has been linked. The initial migration is therefore un-applied; this is intentional until local Docker or a project approval is available.
-- No deployment blocker remains. Product acceptance is pending review of the isolated Preview. Legacy Women cards outside the homepage remain out of scope; the homepage News legacy imagery is resolved.
+- No deployment blocker remains. Product acceptance is pending review of the isolated Preview. The production keyword/tag admin and CMS backing remain future Phase 5/admin work; this iteration only adds the content boundary and documents the future requirement.
 
 ## Phase 0 readiness
 
@@ -46,4 +47,4 @@
 
 ## Next action
 
-Review the isolated Preview at desktop and 390px for the Hero → Featured Models → News sequence. Do not merge PR #5 without review or begin a new iteration without recorded scope.
+Deploy the missed-requirements iteration to the PR #5 Preview, verify desktop and 390px behavior, and keep PR #5 draft/open/not merged.

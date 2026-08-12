@@ -37,7 +37,25 @@ const dict: Dict = {
   "home.boards": { en: "Boards", zh: "分類" },
   "home.featured": { en: "Featured", zh: "精選" },
   "home.viewBoard": { en: "View board", zh: "查看分類" },
+  "home.keywordRunway": { en: "Keyword Dynamic Runway", zh: "關鍵字動態伸展台" },
+  "home.keywordRunwayIntro": {
+    en: "Start from a production need, then move directly into relevant models, stories and portfolios.",
+    zh: "從製作需求出發，直接找到相關模特兒、文章與作品集。",
+  },
+  "home.keywordRunwayDynamic": { en: "Top active keywords", zh: "目前熱門關鍵字" },
+  "home.keywordRunwayMeta": { en: "Talent need", zh: "製作需求" },
+  "home.keywordRunwayCta": { en: "Find talent", zh: "尋找人選" },
   "home.latest": { en: "Latest", zh: "最新消息" },
+
+  "keyword.back": { en: "All keywords", zh: "所有關鍵字" },
+  "keyword.models": { en: "Relevant models", zh: "相關模特兒" },
+  "keyword.news": { en: "Related news", zh: "相關消息" },
+  "keyword.portfolio": { en: "Portfolio signals", zh: "作品集線索" },
+  "keyword.booking": { en: "Start a booking request", zh: "開始預約需求" },
+  "keyword.empty": {
+    en: "No matching content is active for this keyword yet.",
+    zh: "此關鍵字目前尚無啟用中的相關內容。",
+  },
 
   "board.count": { en: "models", zh: "位模特兒" },
   "board.all": { en: "All", zh: "全部" },

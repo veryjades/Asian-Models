@@ -41,6 +41,8 @@ export type Model = {
   portrait: string;
   gallery: string[];
   digitals: string[];
+  /** Canonical keyword/tag slugs from the shared taxonomy registry. */
+  tags: string[];
   /** Showreel / motion tests — uploaded files or YouTube links. */
   videos?: VideoMedia[];
 };
@@ -55,8 +57,32 @@ export type NewsPost = {
   bodyEn: string[];
   bodyZh: string[];
   cover: string;
+  /** Canonical keyword/tag slugs from the shared taxonomy registry. */
+  tags: string[];
   /** Optional media clip attached to the story. */
   videos?: VideoMedia[];
+};
+
+export type Keyword = {
+  slug: string;
+  labelEn: string;
+  labelZh: string;
+  descriptionEn: string;
+  descriptionZh: string;
+  active: boolean;
+  /** Manual homepage/display priority. Lower numbers appear first. */
+  displayPriority: number;
+  /** Search/landing-page priority. Higher numbers signal stronger SEO value. */
+  seoPriority: number;
+  language: "shared" | "en" | "zh";
+};
+
+export type KeywordResult = {
+  keyword: Keyword;
+  models: Model[];
+  news: NewsPost[];
+  /** Current prototype portfolio content is model gallery media. */
+  portfolio: Model[];
 };
 
 /**
@@ -71,6 +97,9 @@ export interface ContentRepository {
   listFeaturedModels(limit?: number): Promise<Model[]>;
   listNews(limit?: number): Promise<NewsPost[]>;
   getNewsPost(slug: string): Promise<NewsPost | null>;
+  listKeywords(options?: { activeOnly?: boolean; limit?: number }): Promise<Keyword[]>;
+  getKeyword(slug: string): Promise<Keyword | null>;
+  getKeywordResult(slug: string): Promise<KeywordResult | null>;
 }
 
 export type ScoutApplication = {

@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ScoutedRouteImport } from './routes/scouted'
+import { Route as KeywordsSlugRouteImport } from './routes/keywords.$slug'
 import { Route as NewsIndexRouteImport } from './routes/news.index'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 import { Route as ModelsBoardIndexRouteImport } from './routes/models.$board.index'
@@ -36,6 +37,11 @@ const ContactRoute = ContactRouteImport.update({
 const ScoutedRoute = ScoutedRouteImport.update({
   id: '/scouted',
   path: '/scouted',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KeywordsSlugRoute = KeywordsSlugRouteImport.update({
+  id: '/keywords/$slug',
+  path: '/keywords/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NewsIndexRoute = NewsIndexRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
   '/scouted': typeof ScoutedRoute
+  '/keywords/$slug': typeof KeywordsSlugRoute
   '/news/$slug': typeof NewsSlugRoute
   '/news/': typeof NewsIndexRoute
   '/models/$board/$slug': typeof ModelsBoardSlugRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
   '/scouted': typeof ScoutedRoute
+  '/keywords/$slug': typeof KeywordsSlugRoute
   '/news/$slug': typeof NewsSlugRoute
   '/news': typeof NewsIndexRoute
   '/models/$board/$slug': typeof ModelsBoardSlugRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
   '/scouted': typeof ScoutedRoute
+  '/keywords/$slug': typeof KeywordsSlugRoute
   '/news/$slug': typeof NewsSlugRoute
   '/news/': typeof NewsIndexRoute
   '/models/$board/$slug': typeof ModelsBoardSlugRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/contact'
     | '/scouted'
+    | '/keywords/$slug'
     | '/news/$slug'
     | '/news/'
     | '/models/$board/$slug'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/contact'
     | '/scouted'
+    | '/keywords/$slug'
     | '/news/$slug'
     | '/news'
     | '/models/$board/$slug'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/contact'
     | '/scouted'
+    | '/keywords/$slug'
     | '/news/$slug'
     | '/news/'
     | '/models/$board/$slug'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   ContactRoute: typeof ContactRoute
   ScoutedRoute: typeof ScoutedRoute
+  KeywordsSlugRoute: typeof KeywordsSlugRoute
   NewsSlugRoute: typeof NewsSlugRoute
   NewsIndexRoute: typeof NewsIndexRoute
   ModelsBoardSlugRoute: typeof ModelsBoardSlugRoute
@@ -162,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/scouted'
       fullPath: '/scouted'
       preLoaderRoute: typeof ScoutedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/keywords/$slug': {
+      id: '/keywords/$slug'
+      path: '/keywords/$slug'
+      fullPath: '/keywords/$slug'
+      preLoaderRoute: typeof KeywordsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/news/': {
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   ContactRoute: ContactRoute,
   ScoutedRoute: ScoutedRoute,
+  KeywordsSlugRoute: KeywordsSlugRoute,
   NewsSlugRoute: NewsSlugRoute,
   NewsIndexRoute: NewsIndexRoute,
   ModelsBoardSlugRoute: ModelsBoardSlugRoute,

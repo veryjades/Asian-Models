@@ -57,6 +57,8 @@ Phase 1 architecture work is in progress. No existing UI, form, Auth flow, Stora
 
 | UX-005 | Make the homepage image sequence visually consistent from Hero through Featured Models and News. | Codex | Complete | UX-004, D-008, D-009 | Replaced News covers with the reviewed Golden `portfolio.womenEditorial`, `portfolio.menCommercial`, and `portfolio.beautyCampaign` assets. Homepage plus News surfaces now use `AgencyImage` with a 3:2, non-cropping frame. `bun run lint` passed with 0 errors (9 existing warnings); `bun run build` passed; Preview `asian-models-p2kd962ta-asian-models.vercel.app` passed desktop and 390px review with no console errors. |
 
+| UX-006 | Recover missed public-experience requirements for favicon, keyword discovery, booking CTA reliability, and Golden model identity. | Codex | Complete | UX-005, D-008, D-009 | Added the J_J SVG favicon; introduced an extensible keyword/tag content boundary consumed by the homepage Keyword Dynamic Runway; added model/news tags and keyword result pages that route to relevant models, portfolio signals, news, and Quick Booking; documented future admin/CMS keyword management in `docs/KEYWORD_TAG_SYSTEM.md`; removed cross-person generic portfolio images from Golden model profile galleries. `bun run lint` passed with 0 errors (9 existing warnings); `bun run build` passed; local browser verification passed for desktop, 390px, keyword result, model-specific booking modal, recruitment photo gate, and console errors. Preview validation remains the final evidence after deployment. |
+
 ### UX-002 iteration card
 
 1. **User-experience problem:** current prototype imagery can read as a placeholder and wide hero framing can crop a model's head or feet.

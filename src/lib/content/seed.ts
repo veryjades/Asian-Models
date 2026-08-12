@@ -42,8 +42,9 @@ export const seedModels: Model[] = [
       eyesZh: "棕色",
     },
     portrait: goldenMockAssets.women.aya.portrait,
-    gallery: [goldenMockAssets.women.aya.fullBody, goldenMockAssets.portfolio.womenEditorial],
+    gallery: [goldenMockAssets.women.aya.fullBody],
     digitals: [goldenMockAssets.women.aya.fullBody],
+    tags: ["women", "taipei", "tokyo", "editorial-model", "fashion-model", "commercial-model"],
   },
   {
     slug: "mei-lin",
@@ -68,8 +69,9 @@ export const seedModels: Model[] = [
       eyesZh: "深棕",
     },
     portrait: goldenMockAssets.women.mei.portrait,
-    gallery: [goldenMockAssets.women.mei.fullBody, goldenMockAssets.portfolio.beautyCampaign],
+    gallery: [goldenMockAssets.women.mei.fullBody],
     digitals: [goldenMockAssets.women.mei.fullBody],
+    tags: ["women", "tokyo", "beauty", "editorial-model", "fashion-model", "commercial-model"],
   },
   {
     slug: "sora-kim",
@@ -94,8 +96,9 @@ export const seedModels: Model[] = [
       eyesZh: "棕色",
     },
     portrait: goldenMockAssets.women.sora.portrait,
-    gallery: [goldenMockAssets.women.sora.fullBody, goldenMockAssets.portfolio.womenEditorial],
+    gallery: [goldenMockAssets.women.sora.fullBody],
     digitals: [goldenMockAssets.women.sora.fullBody],
+    tags: ["women", "asia", "beauty", "fashion-model", "commercial-model"],
   },
   {
     slug: "jun-park",
@@ -118,8 +121,9 @@ export const seedModels: Model[] = [
       eyesZh: "深棕",
     },
     portrait: goldenMockAssets.men.jun.portrait,
-    gallery: [goldenMockAssets.men.jun.fullBody, goldenMockAssets.portfolio.menCommercial],
+    gallery: [goldenMockAssets.men.jun.fullBody],
     digitals: [goldenMockAssets.men.jun.fullBody],
+    tags: ["men", "taipei", "commercial-model", "fashion-model"],
   },
   {
     slug: "ren-chen",
@@ -142,8 +146,9 @@ export const seedModels: Model[] = [
       eyesZh: "棕色",
     },
     portrait: goldenMockAssets.men.ren.portrait,
-    gallery: [goldenMockAssets.men.ren.fullBody, goldenMockAssets.portfolio.menCommercial],
+    gallery: [goldenMockAssets.men.ren.fullBody],
     digitals: [goldenMockAssets.men.ren.fullBody],
+    tags: ["men", "seoul", "asia", "commercial-model", "fashion-model"],
   },
   {
     slug: "nari-choi",
@@ -170,6 +175,7 @@ export const seedModels: Model[] = [
     portrait: goldenMockAssets.newFaces.nari,
     gallery: [goldenMockAssets.newFaces.nari],
     digitals: [goldenMockAssets.newFaces.nari],
+    tags: ["new-faces", "natural-test", "scouting", "asia"],
   },
   {
     slug: "yang-shu-fen",
@@ -196,6 +202,7 @@ export const seedModels: Model[] = [
     portrait: m7,
     gallery: [m7, m1],
     digitals: [m7],
+    tags: ["actor", "host", "taipei", "commercial-model"],
   },
   {
     slug: "dai-nguyen",
@@ -221,6 +228,7 @@ export const seedModels: Model[] = [
     portrait: goldenMockAssets.newFaces.dai,
     gallery: [goldenMockAssets.newFaces.dai],
     digitals: [goldenMockAssets.newFaces.dai],
+    tags: ["new-faces", "natural-test", "scouting", "seoul", "asia"],
   },
   {
     slug: "ravi-tanaka",
@@ -246,6 +254,7 @@ export const seedModels: Model[] = [
     portrait: m9,
     gallery: [m9, m6],
     digitals: [m9],
+    tags: ["actor", "host", "asia", "commercial-model"],
   },
   {
     slug: "amara-okonkwo",
@@ -272,6 +281,7 @@ export const seedModels: Model[] = [
     portrait: m10,
     gallery: [m10, m3, m1],
     digitals: [m10],
+    tags: ["women", "taipei", "beauty", "fashion-model", "commercial-model"],
     videos: [
       {
         id: "amara-reel",
@@ -307,6 +317,7 @@ export const seedModels: Model[] = [
     portrait: m11,
     gallery: [m11, m5, m3],
     digitals: [m11],
+    tags: ["women", "asia", "beauty", "fashion-model", "commercial-model"],
   },
   {
     slug: "noah-castellanos",
@@ -332,6 +343,7 @@ export const seedModels: Model[] = [
     portrait: m12,
     gallery: [m12, m4, m6],
     digitals: [m12],
+    tags: ["men", "tokyo", "asia", "commercial-model", "fashion-model"],
     videos: [
       {
         id: "noah-motion",
@@ -368,6 +380,7 @@ export const seedModels: Model[] = [
     portrait: m13,
     gallery: [m13, m7],
     digitals: [m13],
+    tags: ["actor", "beauty", "commercial-model", "asia"],
   },
 ];
 
@@ -388,6 +401,7 @@ export const seedNews: NewsPost[] = [
       "生活照與完整作品集可另行索取，工作邀約請聯繫台北辦公室。",
     ],
     cover: goldenMockAssets.news.springBoardUpdate,
+    tags: ["women", "new-faces", "taipei", "fashion-model", "scouting"],
     videos: [
       {
         id: "spring-board-clip",
@@ -415,6 +429,7 @@ export const seedNews: NewsPost[] = [
       "感謝所有到訪的夥伴，下一場展間將於九月公布。",
     ],
     cover: goldenMockAssets.news.tokyoShowroom,
+    tags: ["tokyo", "editorial-model", "fashion-model", "commercial-model"],
   },
   {
     slug: "on-scouting-in-asia",
@@ -433,5 +448,6 @@ export const seedNews: NewsPost[] = [
       "我們希望在申請中看到的很簡單：日光、不修圖、不加濾鏡、素色背景。臉部、全身、側面，這樣就足夠了。",
     ],
     cover: goldenMockAssets.news.scoutingInAsia,
+    tags: ["scouting", "asia", "new-faces", "natural-test"],
   },
 ];

@@ -1,3 +1,4 @@
+import { seedKeywords, sortKeywords } from "./keywords";
 import { boards, type BoardId, type ContentRepository, type Model } from "./types";
 import { seedModels, seedNews } from "./seed";
 
@@ -30,6 +31,28 @@ export const seedRepository: ContentRepository = {
   },
   async getNewsPost(slug: string) {
     return seedNews.find((p) => p.slug === slug) ?? null;
+  },
+  async listKeywords(options) {
+    const activeOnly = options?.activeOnly ?? false;
+    const keywords = sortKeywords(
+      activeOnly ? seedKeywords.filter((keyword) => keyword.active) : seedKeywords,
+    );
+    return options?.limit ? keywords.slice(0, options.limit) : keywords;
+  },
+  async getKeyword(slug: string) {
+    return seedKeywords.find((keyword) => keyword.slug === slug) ?? null;
+  },
+  async getKeywordResult(slug: string) {
+    const keyword = seedKeywords.find((item) => item.slug === slug && item.active);
+    if (!keyword) return null;
+
+    const models = sortModels(seedModels.filter((model) => model.tags.includes(keyword.slug)));
+    const news = seedNews
+      .filter((post) => post.tags.includes(keyword.slug))
+      .sort((a, b) => b.date.localeCompare(a.date));
+    const portfolio = models.filter((model) => model.gallery.length > 0);
+
+    return { keyword, models, news, portfolio };
   },
 };
 
