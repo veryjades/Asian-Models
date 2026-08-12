@@ -31,6 +31,14 @@ type SearchIntent = {
   hasSearchIntent: boolean;
 };
 
+const cityLabelsZh: Record<string, string> = {
+  taipei: "台北",
+  tokyo: "東京",
+  seoul: "首爾",
+  singapore: "新加坡",
+  okinawa: "沖繩",
+};
+
 const hasAny = (query: string, terms: string[]) => terms.some((term) => query.includes(term));
 
 function detectIntent(input: string): SearchIntent {
@@ -142,7 +150,7 @@ function candidateFor(model: Model, intent: SearchIntent, keywords: Keyword[]): 
     (model.city.toLowerCase().includes(intent.city) || model.tags.includes(intent.city))
   ) {
     signalsEn.push(`${intent.city[0].toUpperCase()}${intent.city.slice(1)} market`);
-    signalsZh.push(`${intent.city}市場`);
+    signalsZh.push(`${cityLabelsZh[intent.city] ?? intent.city}市場`);
   }
   if (intent.requiresJapanese || (intent.japanMarket && model.languages.includes("Japanese"))) {
     signalsEn.push("Japanese-speaking");
