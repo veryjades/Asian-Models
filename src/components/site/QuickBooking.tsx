@@ -189,7 +189,7 @@ export function QuickBooking({ className = "", modelId, modelName }: QuickBookin
   }
 
   const dialog = open ? (
-    <div className="fixed inset-0 z-[1000]" role="presentation">
+    <div className="fixed inset-0 z-[2147483646]" role="presentation">
       <button
         type="button"
         aria-label={pick("Close booking dialog", "關閉預約視窗")}
@@ -200,7 +200,7 @@ export function QuickBooking({ className = "", modelId, modelName }: QuickBookin
         role="dialog"
         aria-modal="true"
         aria-labelledby="quick-booking-title"
-        className="fixed inset-x-0 bottom-0 z-[1001] max-h-[88vh] overflow-hidden border bg-background shadow-2xl sm:bottom-auto sm:left-[50%] sm:top-[50%] sm:max-w-2xl sm:translate-x-[-50%] sm:translate-y-[-50%]"
+        className="fixed inset-x-0 bottom-0 z-[2147483647] max-h-[88vh] overflow-hidden border bg-background shadow-2xl sm:bottom-auto sm:left-[50%] sm:top-[50%] sm:max-w-2xl sm:translate-x-[-50%] sm:translate-y-[-50%]"
       >
         <div className="gradient-accent h-1 w-full" aria-hidden="true" />
         <button
