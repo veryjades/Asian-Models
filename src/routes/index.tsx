@@ -132,7 +132,7 @@ function Index() {
 
 function KeywordDynamicRunway({ keywords }: { keywords: Keyword[] }) {
   const { t, pick } = useI18n();
-  const duration = 30;
+  const duration = 34;
 
   return (
     <section

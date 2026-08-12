@@ -185,9 +185,8 @@
 
 .keyword-runway {
   position: relative;
-  width: 100vw;
-  height: 25px;
-  margin-left: calc(50% - 50vw);
+  width: 100%;
+  height: 40px;
   overflow: hidden;
   border-top: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
@@ -200,7 +199,7 @@
       var(--color-background) 100%
     ),
     color-mix(in oklch, var(--color-background), var(--color-haze) 30%);
-  perspective: 560px;
+  perspective: 680px;
 }
 
 body[data-quick-booking-open="true"] vercel-live-feedback,
@@ -224,9 +223,27 @@ body[data-quick-booking-open="true"] [data-vercel-toolbar] {
   opacity: 0.32;
 }
 
+.keyword-runway::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 7px;
+  bottom: 7px;
+  width: min(15rem, 42vw);
+  pointer-events: none;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in oklch, var(--color-background), transparent 8%) 0%,
+    color-mix(in oklch, var(--color-haze), transparent 52%) 42%,
+    transparent 72%
+  );
+  opacity: 0.62;
+}
+
 .keyword-runway-stage {
   position: relative;
-  height: 25px;
+  height: 40px;
   width: 100%;
 }
 
@@ -244,10 +261,10 @@ body[data-quick-booking-open="true"] [data-vercel-toolbar] {
   line-height: 1;
   text-decoration: none;
   text-transform: uppercase;
-  transform: translate(-50%, -50%) translateX(-64vw) translateZ(-80px) scale(0.82);
-  animation: keyword-runway-depth 30s linear infinite;
+  transform: translate(-50%, -50%) translateX(-52vw) translateZ(-130px) scale(0.76);
+  animation: keyword-runway-depth 34s ease-in-out infinite;
   animation-delay: var(--runway-delay);
-  will-change: transform, opacity, filter;
+  will-change: transform, opacity, filter, z-index;
 }
 
 .keyword-runway:hover .keyword-runway-item {
@@ -256,51 +273,94 @@ body[data-quick-booking-open="true"] [data-vercel-toolbar] {
 
 .keyword-runway-item:hover,
 .keyword-runway-item:focus-visible {
-  z-index: 4;
+  z-index: 20;
   outline: none;
   color: var(--color-background);
   background: var(--color-foreground);
-  padding: 0.32rem 0.45rem;
+  padding: 0.42rem 0.55rem;
   filter: blur(0) !important;
   opacity: 1 !important;
-  transform: translate(-50%, -50%) translateX(0) translateZ(80px) scale(1.12) !important;
+  transform: translate(-50%, -50%) translateX(0) translateZ(110px) scale(1.14) !important;
 }
 
 @keyframes keyword-runway-depth {
   0% {
-    opacity: 0;
-    filter: blur(2.2px);
-    transform: translate(-50%, -50%) translateX(-64vw) translateZ(-120px) scale(0.76);
+    z-index: 1;
+    opacity: 0.08;
+    filter: blur(2.8px);
+    transform: translate(-50%, -50%) translateX(-50vw) translateZ(-140px) scale(0.74);
   }
-  18% {
-    opacity: 0.34;
+  14% {
+    z-index: 3;
+    opacity: 0.32;
     filter: blur(1.4px);
-    transform: translate(-50%, -50%) translateX(-34vw) translateZ(-70px) scale(0.86);
+    transform: translate(-50%, -50%) translateX(-26vw) translateZ(-70px) scale(0.84);
   }
-  38% {
-    opacity: 0.62;
-    filter: blur(0.6px);
-    transform: translate(-50%, -50%) translateX(-13vw) translateZ(-24px) scale(0.95);
+  21% {
+    z-index: 6;
+    opacity: 0.58;
+    filter: blur(0.75px);
+    transform: translate(-50%, -50%) translateX(-10vw) translateZ(-4px) scale(0.94);
   }
-  50% {
+  25% {
+    z-index: 12;
     opacity: 1;
     filter: blur(0);
-    transform: translate(-50%, -50%) translateX(0) translateZ(70px) scale(1.12);
+    transform: translate(-50%, -50%) translateX(0) translateZ(110px) scale(1.14);
   }
-  62% {
-    opacity: 0.62;
-    filter: blur(0.6px);
-    transform: translate(-50%, -50%) translateX(13vw) translateZ(-24px) scale(0.95);
+  29% {
+    z-index: 4;
+    opacity: 0.46;
+    filter: blur(1px);
+    transform: translate(-50%, -50%) translateX(10vw) translateZ(-46px) scale(0.88);
   }
-  82% {
-    opacity: 0.34;
+  38% {
+    z-index: 2;
+    opacity: 0.22;
+    filter: blur(1.9px);
+    transform: translate(-50%, -50%) translateX(31vw) translateZ(-104px) scale(0.78);
+  }
+  50% {
+    z-index: 1;
+    opacity: 0.08;
+    filter: blur(2.8px);
+    transform: translate(-50%, -50%) translateX(50vw) translateZ(-140px) scale(0.74);
+  }
+  64% {
+    z-index: 3;
+    opacity: 0.32;
     filter: blur(1.4px);
-    transform: translate(-50%, -50%) translateX(34vw) translateZ(-70px) scale(0.86);
+    transform: translate(-50%, -50%) translateX(26vw) translateZ(-70px) scale(0.84);
+  }
+  71% {
+    z-index: 6;
+    opacity: 0.58;
+    filter: blur(0.75px);
+    transform: translate(-50%, -50%) translateX(10vw) translateZ(-4px) scale(0.94);
+  }
+  75% {
+    z-index: 12;
+    opacity: 1;
+    filter: blur(0);
+    transform: translate(-50%, -50%) translateX(0) translateZ(110px) scale(1.14);
+  }
+  79% {
+    z-index: 4;
+    opacity: 0.46;
+    filter: blur(1px);
+    transform: translate(-50%, -50%) translateX(-10vw) translateZ(-46px) scale(0.88);
+  }
+  88% {
+    z-index: 2;
+    opacity: 0.22;
+    filter: blur(1.9px);
+    transform: translate(-50%, -50%) translateX(-31vw) translateZ(-104px) scale(0.78);
   }
   100% {
-    opacity: 0;
-    filter: blur(2.2px);
-    transform: translate(-50%, -50%) translateX(64vw) translateZ(-120px) scale(0.76);
+    z-index: 1;
+    opacity: 0.08;
+    filter: blur(2.8px);
+    transform: translate(-50%, -50%) translateX(-50vw) translateZ(-140px) scale(0.74);
   }
 }
 
@@ -311,32 +371,83 @@ body[data-quick-booking-open="true"] [data-vercel-toolbar] {
 }
 
 @keyframes keyword-runway-depth-mobile {
-  0%,
-  34% {
+  0% {
+    z-index: 1;
     opacity: 0;
-    filter: blur(2.2px);
-    transform: translate(-50%, -50%) translateX(-92vw) translateZ(-120px) scale(0.76);
+    filter: blur(2.7px);
+    transform: translate(-50%, -50%) translateX(-78vw) translateZ(-130px) scale(0.74);
   }
-  42% {
-    opacity: 0.28;
-    filter: blur(1.4px);
-    transform: translate(-50%, -50%) translateX(-42vw) translateZ(-70px) scale(0.84);
+  19% {
+    z-index: 2;
+    opacity: 0.2;
+    filter: blur(1.8px);
+    transform: translate(-50%, -50%) translateX(-38vw) translateZ(-92px) scale(0.76);
   }
-  50% {
+  28% {
+    z-index: 6;
+    opacity: 0.62;
+    filter: blur(0.65px);
+    transform: translate(-50%, -50%) translateX(-9vw) translateZ(-6px) scale(0.92);
+  }
+  32% {
+    z-index: 12;
     opacity: 1;
     filter: blur(0);
-    transform: translate(-50%, -50%) translateX(0) translateZ(70px) scale(1.08);
+    transform: translate(-50%, -50%) translateX(0) translateZ(100px) scale(1.08);
   }
-  58% {
-    opacity: 0.28;
-    filter: blur(1.4px);
-    transform: translate(-50%, -50%) translateX(42vw) translateZ(-70px) scale(0.84);
+  36% {
+    z-index: 3;
+    opacity: 0.36;
+    filter: blur(1.25px);
+    transform: translate(-50%, -50%) translateX(13vw) translateZ(-62px) scale(0.82);
   }
-  66%,
-  100% {
+  43% {
+    z-index: 2;
+    opacity: 0.16;
+    filter: blur(2px);
+    transform: translate(-50%, -50%) translateX(38vw) translateZ(-108px) scale(0.74);
+  }
+  50% {
+    z-index: 1;
     opacity: 0;
-    filter: blur(2.2px);
-    transform: translate(-50%, -50%) translateX(92vw) translateZ(-120px) scale(0.76);
+    filter: blur(2.7px);
+    transform: translate(-50%, -50%) translateX(78vw) translateZ(-130px) scale(0.74);
+  }
+  69% {
+    z-index: 2;
+    opacity: 0.2;
+    filter: blur(1.8px);
+    transform: translate(-50%, -50%) translateX(38vw) translateZ(-92px) scale(0.76);
+  }
+  78% {
+    z-index: 6;
+    opacity: 0.62;
+    filter: blur(0.65px);
+    transform: translate(-50%, -50%) translateX(9vw) translateZ(-6px) scale(0.92);
+  }
+  82% {
+    z-index: 12;
+    opacity: 1;
+    filter: blur(0);
+    transform: translate(-50%, -50%) translateX(0) translateZ(100px) scale(1.08);
+  }
+  86% {
+    z-index: 3;
+    opacity: 0.36;
+    filter: blur(1.25px);
+    transform: translate(-50%, -50%) translateX(-13vw) translateZ(-62px) scale(0.82);
+  }
+  93% {
+    z-index: 2;
+    opacity: 0.16;
+    filter: blur(2px);
+    transform: translate(-50%, -50%) translateX(-38vw) translateZ(-108px) scale(0.74);
+  }
+  100% {
+    z-index: 1;
+    opacity: 0;
+    filter: blur(2.7px);
+    transform: translate(-50%, -50%) translateX(-78vw) translateZ(-130px) scale(0.74);
   }
 }
 

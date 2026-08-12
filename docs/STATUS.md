@@ -3,8 +3,8 @@
 **Phase:** Phase 1 — Architecture Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 1 — Architecture Foundation
-**Current task:** Recover the final UX quality gate for Quick Booking layering, model-profile CTA clarity, mobile keyword runway usability, and recruitment validation while documenting the remaining same-person four-photo profile blocker.
-**Last heartbeat:** 2026-08-12 19:45:00 +08:00
+**Current task:** Correct the Keyword Dynamic Runway motion model while preserving the remaining same-person four-photo profile asset blocker as separate work.
+**Last heartbeat:** 2026-08-12 21:25:43 +08:00
 **Completion date:** 2026-08-10
 
 ## Completed items
@@ -31,6 +31,7 @@
 - The final UX recovery iteration now renders Quick Booking through a top-level portal overlay, locks background scroll, marks header/main/footer inert while open, and hides the generic header booking CTA on model profile pages so the profile exposes one model-specific 「快速預約」 action. Local desktop and 390px browser verification passed for modal layering and console errors.
 - The 390px Keyword Dynamic Runway was tightened so active keywords remain readable instead of collapsing into an overlapping text cluster; keyword destination pages continue to surface tagged models, portfolio signals, news, and Quick Booking.
 - Recruitment gate regression verification passed locally: 0 photos keeps submit disabled, one required photo keeps submit disabled, and half-body plus full-body enables submit; the optional third photo and optional video remain non-required.
+- The final Keyword Dynamic Runway correction is complete locally: the runway is now a 40px strip directly below Hero, consumes the top 15 active canonical keywords, moves LEFT↔RIGHT instead of as a one-direction ticker, gives the C-position keyword highest opacity/sharpness/z-order, fades and blurs keywords after C into the rear depth plane, keeps controlled overlap, and avoids horizontal overflow on desktop and 390px. Local click verification reached `/keywords/editorial-model` with Models/Portfolio/News/Quick Booking content. `bun run lint` passed with 0 errors and 9 existing warnings; `bun run build` passed.
 
 ## Blockers
 
@@ -51,4 +52,4 @@
 
 ## Next action
 
-Commit and deploy the final UX recovery changes to the PR #5 Preview, verify desktop and 390px behavior, and keep PR #5 draft/open/not merged. Resolve the remaining same-person four-photo blocker only when a real image-generation path or approved model assets are available.
+Commit and deploy the Keyword Dynamic Runway correction to the PR #5 Preview, verify desktop and 390px behavior on the actual Preview, and keep PR #5 draft/open/not merged. Resolve the remaining same-person four-photo blocker only when a real image-generation path or approved model assets are available.
