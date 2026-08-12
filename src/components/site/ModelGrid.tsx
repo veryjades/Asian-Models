@@ -54,7 +54,7 @@ export function ModelCard({ model }: { model: Model }) {
               containerClassName="model-card-hover-image absolute inset-0"
             />
           ) : null}
-          {hasPairedHover ? <span className="model-card-flash" aria-hidden="true" /> : null}
+          <span className="model-card-flash" aria-hidden="true" data-testid="model-card-flash" />
         </div>
         <div className="px-3 py-3">
           <p className="label-xs text-foreground">{pick(model.name, model.nameZh)}</p>

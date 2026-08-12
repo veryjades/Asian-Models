@@ -221,8 +221,8 @@
   transition-delay: 110ms;
 }
 
-.model-card--paired:hover .model-card-flash,
-.model-card--paired:focus-visible .model-card-flash {
+.model-card:hover .model-card-flash,
+.model-card:focus-visible .model-card-flash {
   animation: model-card-shutter 240ms ease-out both;
 }
 
