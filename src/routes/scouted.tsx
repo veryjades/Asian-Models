@@ -114,6 +114,16 @@ function ScoutedPage() {
             <Field label={t("scout.height")} name="height" required />
             <Field label={t("scout.measurements")} name="measurements" />
             <Field label={t("scout.instagram")} name="instagram" />
+            <Field label={t("scout.socialLinks")} name="socialLinks" />
+
+            <label className="block md:col-span-2">
+              <span className="label-xs text-muted-foreground">{t("scout.modelCard")}</span>
+              <textarea
+                name="modelCard"
+                rows={5}
+                className="mt-2 w-full border-b border-border bg-transparent py-2 text-sm outline-none focus:border-foreground"
+              />
+            </label>
 
             <div className="grid gap-4 md:col-span-2">
               <div>

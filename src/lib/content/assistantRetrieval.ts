@@ -24,6 +24,7 @@ export type AssistantRetrievalResult = {
 
 type SearchIntent = {
   gender?: Model["gender"];
+  city?: string;
   requiresJapanese: boolean;
   japanMarket: boolean;
   requiredTags: string[];
@@ -60,6 +61,18 @@ function detectIntent(input: string): SearchIntent {
     "japan campaign",
     "tokyo",
   ]);
+  const city = [
+    ["台北", "taipei"],
+    ["taipei", "taipei"],
+    ["東京", "tokyo"],
+    ["tokyo", "tokyo"],
+    ["首爾", "seoul"],
+    ["seoul", "seoul"],
+    ["新加坡", "singapore"],
+    ["singapore", "singapore"],
+    ["沖繩", "okinawa"],
+    ["okinawa", "okinawa"],
+  ].find(([term]) => query.includes(term))?.[1];
   const requiredTags = [
     ...(hasAny(query, ["show girl", "showgirl", "展場", "活動女孩"]) ? ["show-girl"] : []),
     ...(hasAny(query, ["美妝", "保養", "彩妝", "beauty", "skincare", "cosmetic"])
@@ -74,6 +87,7 @@ function detectIntent(input: string): SearchIntent {
 
   return {
     gender: wantsMen && !wantsWomen ? "men" : wantsWomen && !wantsMen ? "women" : undefined,
+    city,
     requiresJapanese,
     japanMarket,
     requiredTags,
@@ -89,6 +103,14 @@ function detectIntent(input: string): SearchIntent {
 
 function modelMatches(model: Model, intent: SearchIntent) {
   if (intent.gender && model.gender !== intent.gender) return false;
+  if (
+    intent.city &&
+    !model.city.toLowerCase().includes(intent.city) &&
+    !model.cityZh.includes(intent.city) &&
+    !model.tags.includes(intent.city)
+  ) {
+    return false;
+  }
   if (intent.requiresJapanese && !model.languages.some((language) => language === "Japanese"))
     return false;
   if (
@@ -115,6 +137,13 @@ function candidateFor(model: Model, intent: SearchIntent, keywords: Keyword[]): 
     signalsEn.push(intent.gender === "men" ? "Male model" : "Female model");
     signalsZh.push(intent.gender === "men" ? "男模" : "女模");
   }
+  if (
+    intent.city &&
+    (model.city.toLowerCase().includes(intent.city) || model.tags.includes(intent.city))
+  ) {
+    signalsEn.push(`${intent.city[0].toUpperCase()}${intent.city.slice(1)} market`);
+    signalsZh.push(`${intent.city}市場`);
+  }
   if (intent.requiresJapanese || (intent.japanMarket && model.languages.includes("Japanese"))) {
     signalsEn.push("Japanese-speaking");
     signalsZh.push("可使用日語");
@@ -140,6 +169,11 @@ function scoreCandidate(candidate: AssistantCandidate, intent: SearchIntent) {
   const { model } = candidate;
   let score = model.featured ? 2 : 0;
   if (intent.gender && model.board === intent.gender) score += 4;
+  if (
+    intent.city &&
+    (model.city.toLowerCase().includes(intent.city) || model.tags.includes(intent.city))
+  )
+    score += 5;
   if (intent.requiresJapanese && model.languages.includes("Japanese")) score += 4;
   if (intent.japanMarket && (model.tags.includes("tokyo") || model.city.includes("Tokyo")))
     score += 3;
