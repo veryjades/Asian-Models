@@ -282,7 +282,7 @@ body[data-quick-booking-open="true"] [data-vercel-toolbar] {
 
 .keyword-runway-item:hover,
 .keyword-runway-item:focus-visible {
-  z-index: 20;
+  z-index: 20 !important;
   outline: none;
   filter: blur(0) !important;
   opacity: 1 !important;
