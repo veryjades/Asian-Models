@@ -203,6 +203,13 @@
   perspective: 560px;
 }
 
+body[data-quick-booking-open="true"] vercel-live-feedback,
+body[data-quick-booking-open="true"] vercel-toolbar,
+body[data-quick-booking-open="true"] [data-vercel-toolbar] {
+  display: none !important;
+  pointer-events: none !important;
+}
+
 .keyword-runway::before {
   content: "";
   position: absolute;
