@@ -33,6 +33,13 @@ export type Model = {
   name: string;
   nameZh: string;
   board: BoardId;
+  /**
+   * Casting metadata. Board membership and gender are intentionally separate:
+   * a male/female talent can be represented outside the Men/Women boards.
+   */
+  gender: "women" | "men";
+  /** Languages available for casting, interviews, and on-set direction. */
+  languages: string[];
   featured: boolean;
   city: string;
   cityZh: string;

@@ -1,11 +1,25 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { contentRepository } from "@/lib/content/repository";
-import { boards, type BoardId, type Model } from "@/lib/content/types";
+import { boards, type BoardId, type Keyword, type Model } from "@/lib/content/types";
 import { useI18n } from "@/lib/i18n";
 import { VideoGallery } from "@/components/site/VideoGallery";
 import { AgencyImage } from "@/components/site/AgencyImage";
 import { QuickBooking } from "@/components/site/QuickBooking";
+import { seedKeywords } from "@/lib/content/keywords";
+
+const languageLabels: Record<string, { en: string; zh: string }> = {
+  Mandarin: { en: "Mandarin", zh: "中文" },
+  Japanese: { en: "Japanese", zh: "日語" },
+  English: { en: "English", zh: "英語" },
+  Korean: { en: "Korean", zh: "韓語" },
+  Malay: { en: "Malay", zh: "馬來語" },
+  Hindi: { en: "Hindi", zh: "印地語" },
+  Tamil: { en: "Tamil", zh: "坦米爾語" },
+  Filipino: { en: "Filipino", zh: "菲律賓語" },
+  Spanish: { en: "Spanish", zh: "西班牙語" },
+  Swedish: { en: "Swedish", zh: "瑞典語" },
+};
 
 const modelQuery = (board: BoardId, slug: string) =>
   queryOptions({
@@ -69,6 +83,13 @@ function ModelPage() {
   const { pick, t } = useI18n();
   const boardMeta = boards.find((b) => b.id === model.board)!;
   const modelDisplayName = pick(model.name, model.nameZh);
+  const modelLanguages = model.languages
+    .map((language) => languageLabels[language] ?? { en: language, zh: language })
+    .map((language) => pick(language.en, language.zh))
+    .join(pick(", ", "、"));
+  const modelTags = model.tags
+    .map((slug) => seedKeywords.find((keyword) => keyword.slug === slug))
+    .filter((keyword): keyword is Keyword => Boolean(keyword));
 
   return (
     <article className="mx-auto max-w-[1600px] px-5 py-8 md:px-10">
@@ -102,6 +123,19 @@ function ModelPage() {
         <aside>
           <h2 className="label-xs pb-3">{t("model.stats")}</h2>
           <dl>
+            <Stat
+              label={pick("Category", "分類")}
+              value={pick(boardMeta.labelEn, boardMeta.labelZh)}
+            />
+            <Stat
+              label={pick("Gender", "性別")}
+              value={pick(
+                model.gender === "men" ? "Male" : "Female",
+                model.gender === "men" ? "男" : "女",
+              )}
+            />
+            <Stat label={pick("Market", "市場／地點")} value={pick(model.city, model.cityZh)} />
+            <Stat label={pick("Languages", "工作語言")} value={modelLanguages} />
             <Stat label={t("model.height")} value={model.stats.height} />
             <Stat label={t("model.weight")} value={model.stats.weight} />
             <Stat label={t("model.bust")} value={model.stats.bust} />
@@ -123,6 +157,19 @@ function ModelPage() {
       <Gallery title={t("model.portfolio")} images={model.gallery} model={model} />
       <Gallery title={t("model.digitals")} images={model.digitals} model={model} />
       <VideoGallery title={t("video.showreel")} videos={model.videos} />
+      <section className="mt-16">
+        <h2 className="label-xs pb-4 text-muted-foreground">{pick("Tags", "標籤")}</h2>
+        <ul className="flex flex-wrap gap-2">
+          {modelTags.map((tag) => (
+            <li
+              key={tag.slug}
+              className="label-xs border border-border px-2.5 py-2 text-muted-foreground"
+            >
+              {pick(tag.labelEn, tag.labelZh)}
+            </li>
+          ))}
+        </ul>
+      </section>
     </article>
   );
 }
