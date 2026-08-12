@@ -54,7 +54,7 @@ const dict: Dict = {
   "model.eyes": { en: "Eyes", zh: "眼睛" },
   "model.portfolio": { en: "Portfolio", zh: "作品集" },
   "model.digitals": { en: "Digitals", zh: "生活照" },
-  "model.booking": { en: "Booking enquiries", zh: "工作邀約" },
+  "model.booking": { en: "Quick booking", zh: "快速預約" },
 
   "news.title": { en: "News", zh: "最新消息" },
   "news.readMore": { en: "Read", zh: "閱讀" },
@@ -65,7 +65,7 @@ const dict: Dict = {
 
   "contact.title": { en: "Contact", zh: "聯絡我們" },
   "contact.general": { en: "General", zh: "一般洽詢" },
-  "contact.bookings": { en: "Bookings", zh: "工作邀約" },
+  "contact.bookings": { en: "Bookings", zh: "快速預約" },
   "contact.press": { en: "Press", zh: "媒體聯繫" },
 
   "scout.title": { en: "Get Scouted", zh: "模特招募" },
@@ -136,14 +136,14 @@ const dict: Dict = {
   "booking.cta": { en: "Quick booking", zh: "快速預約" },
   "booking.title": { en: "Quick booking request", zh: "快速預約需求" },
   "booking.intro": {
-    en: "Leave a contact and we will call you back — full brief not required.",
-    zh: "留下聯絡方式，我們會盡快回電，暫不需完整需求說明。",
+    en: "Build a booking request quickly. A full casting brief is not required at this stage.",
+    zh: "用幾個選項快速建立預約需求，此階段不需要完整選角簡報。",
   },
   "booking.contact": { en: "Contact person", zh: "聯絡人" },
   "booking.phone": { en: "Phone", zh: "電話" },
   "booking.email": { en: "Email", zh: "電子信箱" },
   "booking.note": { en: "Note (optional)", zh: "備註（選填）" },
-  "booking.submit": { en: "Send request", zh: "送出需求" },
+  "booking.submit": { en: "Send booking request", zh: "送出預約需求" },
   "booking.sending": { en: "Sending…", zh: "傳送中…" },
   "booking.thanks": {
     en: "Received. A booker will contact you shortly.",

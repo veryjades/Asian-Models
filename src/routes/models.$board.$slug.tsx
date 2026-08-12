@@ -5,6 +5,7 @@ import { boards, type BoardId, type Model } from "@/lib/content/types";
 import { useI18n } from "@/lib/i18n";
 import { VideoGallery } from "@/components/site/VideoGallery";
 import { AgencyImage } from "@/components/site/AgencyImage";
+import { QuickBooking } from "@/components/site/QuickBooking";
 
 const modelQuery = (board: BoardId, slug: string) =>
   queryOptions({
@@ -67,6 +68,7 @@ function ModelPage() {
   const { data: model } = useSuspenseQuery(modelQuery(board, slug));
   const { pick, t } = useI18n();
   const boardMeta = boards.find((b) => b.id === model.board)!;
+  const modelDisplayName = pick(model.name, model.nameZh);
 
   return (
     <article className="mx-auto max-w-[1600px] px-5 py-8 md:px-10">
@@ -79,7 +81,7 @@ function ModelPage() {
       </Link>
 
       <header className="mt-6 flex flex-wrap items-baseline gap-x-6 gap-y-2 border-b border-border pb-6">
-        <h1 className="text-4xl font-light md:text-5xl">{pick(model.name, model.nameZh)}</h1>
+        <h1 className="text-4xl font-light md:text-5xl">{modelDisplayName}</h1>
         <p className="label-xs text-muted-foreground">{pick(model.city, model.cityZh)}</p>
       </header>
 
@@ -110,12 +112,20 @@ function ModelPage() {
           </dl>
           <div className="mt-8 border-t border-border pt-4">
             <p className="label-xs text-muted-foreground">{t("model.booking")}</p>
-            <a href="mailto:bookings@jjmodelagency.com" className="mt-2 block text-sm underline">
-              bookings@jjmodelagency.com
-            </a>
+            <QuickBooking
+              modelId={model.slug}
+              modelName={modelDisplayName}
+              className="mt-3 w-full"
+            />
           </div>
         </aside>
       </div>
+
+      <QuickBooking
+        modelId={model.slug}
+        modelName={modelDisplayName}
+        className="fixed bottom-5 left-5 z-[55] shadow-lg md:bottom-6 md:left-6"
+      />
 
       <Gallery title={t("model.portfolio")} images={model.gallery} model={model} />
       <Gallery title={t("model.digitals")} images={model.digitals} model={model} />

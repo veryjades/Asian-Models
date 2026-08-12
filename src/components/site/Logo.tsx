@@ -1,27 +1,17 @@
-/**
- * Minimal J&J monogram. Pure SVG so it stays crisp, themes with
- * currentColor and needs no image asset.
- */
 export function Logo({ className = "" }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2.5 ${className}`}>
-      <svg
-        viewBox="0 0 44 44"
-        aria-hidden="true"
-        className="h-7 w-7 shrink-0"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.4"
-      >
-        <rect x="0.7" y="0.7" width="42.6" height="42.6" />
-        {/* left J */}
-        <path d="M17 11v15.5a5 5 0 0 1-5 5 5 5 0 0 1-5-5" strokeLinecap="square" />
-        {/* right J */}
-        <path d="M37 11v15.5a5 5 0 0 1-5 5 5 5 0 0 1-5-5" strokeLinecap="square" />
-        {/* ampersand tie */}
-        <path d="M22 17.5v9" strokeLinecap="square" />
-      </svg>
-      <span className="label-sm tracking-[0.32em] leading-none">J&amp;J</span>
+    <span className={`inline-flex min-w-0 items-center gap-2.5 ${className}`}>
+      <span className="shrink-0 border border-foreground px-1.5 py-1 text-lg font-light leading-none tracking-[0.08em]">
+        J_J
+      </span>
+      <span className="flex min-w-0 flex-col leading-none">
+        <span className="truncate text-[0.68rem] font-medium tracking-[0.22em] uppercase">
+          J&amp;J Model Agency
+        </span>
+        <span className="mt-1 truncate text-[0.58rem] tracking-[0.12em] text-muted-foreground">
+          寰星娛樂國際股份有限公司
+        </span>
+      </span>
     </span>
   );
 }
