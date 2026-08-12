@@ -103,6 +103,7 @@ function ModelPage() {
           <h2 className="label-xs pb-3">{t("model.stats")}</h2>
           <dl>
             <Stat label={t("model.height")} value={model.stats.height} />
+            <Stat label={t("model.weight")} value={model.stats.weight} />
             <Stat label={t("model.bust")} value={model.stats.bust} />
             <Stat label={t("model.waist")} value={model.stats.waist} />
             <Stat label={t("model.hips")} value={model.stats.hips} />
@@ -110,16 +111,14 @@ function ModelPage() {
             <Stat label={t("model.hair")} value={pick(model.stats.hair, model.stats.hairZh)} />
             <Stat label={t("model.eyes")} value={pick(model.stats.eyes, model.stats.eyesZh)} />
           </dl>
-          <div className="mt-8 border-t border-border pt-4">
-            <p className="label-xs text-muted-foreground">{t("model.booking")}</p>
-            <QuickBooking
-              modelId={model.slug}
-              modelName={modelDisplayName}
-              className="mt-3 w-full"
-            />
-          </div>
         </aside>
       </div>
+
+      <QuickBooking
+        modelId={model.slug}
+        modelName={modelDisplayName}
+        className="model-profile-quick-booking"
+      />
 
       <Gallery title={t("model.portfolio")} images={model.gallery} model={model} />
       <Gallery title={t("model.digitals")} images={model.digitals} model={model} />

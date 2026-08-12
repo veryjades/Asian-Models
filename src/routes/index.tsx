@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import { contentRepository } from "@/lib/content/repository";
 import { HeroCarousel } from "@/components/site/HeroCarousel";
 import { AgencyImage } from "@/components/site/AgencyImage";
+import { ModelCard } from "@/components/site/ModelGrid";
 import { AskAssistant } from "@/components/site/AskAssistant";
 import { useI18n } from "@/lib/i18n";
 import type { Keyword } from "@/lib/content/types";
@@ -64,27 +65,7 @@ function Index() {
         <h2 className="label-xs text-muted-foreground">{t("home.featured")}</h2>
         <ul className="mt-6 grid grid-cols-2 gap-px bg-border md:grid-cols-4">
           {data.featured.map((model) => (
-            <li key={model.slug} className="bg-background">
-              <Link
-                to="/models/$board/$slug"
-                params={{ board: model.board, slug: model.slug }}
-                className="portrait-hover group block"
-              >
-                <div className="relative">
-                  <AgencyImage
-                    src={model.portrait}
-                    alt={model.name}
-                    loading="lazy"
-                    width={1024}
-                    height={1536}
-                    aspectRatio="2 / 3"
-                    fit="contain"
-                  />
-                  <div className="gradient-accent-soft pointer-events-none absolute inset-0 opacity-0 mix-blend-multiply transition-opacity duration-500 group-hover:opacity-100" />
-                </div>
-                <p className="label-xs px-3 py-3">{pick(model.name, model.nameZh)}</p>
-              </Link>
-            </li>
+            <ModelCard key={model.slug} model={model} />
           ))}
         </ul>
       </section>

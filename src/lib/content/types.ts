@@ -17,6 +17,7 @@ export const boards: Board[] = [
 
 export type ModelStats = {
   height: string;
+  weight: string;
   bust?: string;
   waist?: string;
   hips?: string;
@@ -39,6 +40,12 @@ export type Model = {
   bioZh: string;
   stats: ModelStats;
   portrait: string;
+  /**
+   * A reviewed second frame from the same photo session as `portrait`.
+   * It must preserve identity, wardrobe, scene, camera position and framing;
+   * only pose or expression may differ.
+   */
+  hoverPortrait?: string;
   gallery: string[];
   digitals: string[];
   /** Canonical keyword/tag slugs from the shared taxonomy registry. */

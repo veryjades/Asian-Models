@@ -183,6 +183,68 @@
   }
 }
 
+.model-profile-quick-booking {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 1.25rem;
+  z-index: 40;
+  box-shadow: 0 10px 26px color-mix(in oklch, var(--color-foreground), transparent 78%);
+}
+
+.model-card-primary,
+.model-card-hover-image {
+  transition: opacity 180ms ease;
+}
+
+.model-card-hover-image {
+  opacity: 0;
+}
+
+.model-card-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: white;
+  opacity: 0;
+}
+
+.model-card--paired:hover .model-card-primary,
+.model-card--paired:focus-visible .model-card-primary {
+  opacity: 0;
+  transition-delay: 110ms;
+}
+
+.model-card--paired:hover .model-card-hover-image,
+.model-card--paired:focus-visible .model-card-hover-image {
+  opacity: 1;
+  transition-delay: 110ms;
+}
+
+.model-card--paired:hover .model-card-flash,
+.model-card--paired:focus-visible .model-card-flash {
+  animation: model-card-shutter 240ms ease-out both;
+}
+
+@keyframes model-card-shutter {
+  0% {
+    opacity: 0;
+  }
+  28% {
+    opacity: 0.94;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .model-profile-quick-booking {
+    bottom: 0.75rem;
+    left: 0.75rem;
+  }
+}
+
 .keyword-runway {
   position: relative;
   width: 100%;

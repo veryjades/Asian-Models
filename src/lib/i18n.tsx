@@ -64,6 +64,7 @@ const dict: Dict = {
 
   "model.stats": { en: "Statistics", zh: "身型資料" },
   "model.height": { en: "Height", zh: "身高" },
+  "model.weight": { en: "Weight", zh: "體重" },
   "model.bust": { en: "Bust", zh: "胸圍" },
   "model.waist": { en: "Waist", zh: "腰圍" },
   "model.hips": { en: "Hips", zh: "臀圍" },

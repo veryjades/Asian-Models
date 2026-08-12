@@ -94,28 +94,9 @@ function KeywordPage() {
           {data.portfolio.length > 0 ? (
             <section className="mx-auto max-w-[1600px] px-5 py-12 md:px-10">
               <h2 className="label-xs text-muted-foreground">{t("keyword.portfolio")}</h2>
-              <ul className="mt-6 grid gap-px bg-border md:grid-cols-3">
-                {data.portfolio.slice(0, 6).map((model) => (
-                  <li key={model.slug} className="bg-background">
-                    <Link
-                      to="/models/$board/$slug"
-                      params={{ board: model.board, slug: model.slug }}
-                      className="portrait-hover group block"
-                    >
-                      <AgencyImage
-                        src={model.gallery[0] ?? model.portrait}
-                        alt={`${model.name} portfolio`}
-                        loading="lazy"
-                        width={768}
-                        height={1024}
-                        aspectRatio="3 / 4"
-                        fit="contain"
-                      />
-                      <p className="label-xs px-3 py-3">{pick(model.name, model.nameZh)}</p>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <div className="mt-6">
+                <ModelGrid models={data.portfolio.slice(0, 6)} />
+              </div>
             </section>
           ) : null}
 

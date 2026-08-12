@@ -19,19 +19,20 @@ export const heroImage = hero;
 
 export const seedModels: Model[] = [
   {
-    slug: "aya-mori",
-    name: "Aya Mori",
-    nameZh: "森綾",
+    slug: "chen-yu-xin",
+    name: "Chen Yu-Xin",
+    nameZh: "陳昱心",
     board: "women",
     featured: true,
     city: "Taipei",
     cityZh: "台北",
     bioEn:
-      "Taipei-born, Lin moved into fashion after three seasons of studio work and now splits her year between Taipei and Tokyo. Editorial, campaign and runway.",
+      "Taipei-born, Chen moved into fashion after three seasons of studio work and now splits her year between Taipei and Tokyo. Editorial, campaign and runway.",
     bioZh:
       "生於台北，在攝影棚工作三季後正式踏入時尚圈，目前往返台北與東京兩地。專長為雜誌、廣告與伸展台。",
     stats: {
       height: "178 cm",
+      weight: "52 kg",
       bust: "82 cm",
       waist: "60 cm",
       hips: "88 cm",
@@ -57,9 +58,9 @@ export const seedModels: Model[] = [
     ],
   },
   {
-    slug: "mei-lin",
-    name: "Mei Lin",
-    nameZh: "林玫",
+    slug: "aoi-takahashi",
+    name: "Aoi Takahashi",
+    nameZh: "高橋葵",
     board: "women",
     featured: true,
     city: "Tokyo",
@@ -69,6 +70,7 @@ export const seedModels: Model[] = [
     bioZh: "俐落短髮的輪廓已成為東京伸展台上的標誌。葵長期與獨立設計師及小量品牌合作。",
     stats: {
       height: "175 cm",
+      weight: "50 kg",
       bust: "80 cm",
       waist: "58 cm",
       hips: "86 cm",
@@ -94,9 +96,9 @@ export const seedModels: Model[] = [
     ],
   },
   {
-    slug: "sora-kim",
-    name: "Sora Kim",
-    nameZh: "金素拉",
+    slug: "tanya-lim",
+    name: "Tanya Lim",
+    nameZh: "林丹雅",
     board: "women",
     featured: false,
     city: "Singapore",
@@ -106,6 +108,7 @@ export const seedModels: Model[] = [
     bioZh: "以新加坡為據點，身形修長沉靜，動態表現尤其出色。經常出現於區域美妝與泳裝廣告。",
     stats: {
       height: "177 cm",
+      weight: "51 kg",
       bust: "81 cm",
       waist: "59 cm",
       hips: "87 cm",
@@ -130,9 +133,9 @@ export const seedModels: Model[] = [
     ],
   },
   {
-    slug: "jun-park",
-    name: "Jun Park",
-    nameZh: "朴俊",
+    slug: "lin-wei-jie",
+    name: "Lin Wei-Jie",
+    nameZh: "林威傑",
     board: "men",
     featured: true,
     city: "Taipei",
@@ -142,6 +145,7 @@ export const seedModels: Model[] = [
     bioZh: "擅長西服類型，鏡頭前沉穩不躁。已累積台北與上海共六季男裝經驗。",
     stats: {
       height: "186 cm",
+      weight: "73 kg",
       waist: "78 cm",
       shoes: "EU 43",
       hair: "Black",
@@ -163,9 +167,9 @@ export const seedModels: Model[] = [
     ],
   },
   {
-    slug: "ren-chen",
-    name: "Ren Chen",
-    nameZh: "陳任",
+    slug: "han-min-jae",
+    name: "Han Min-jae",
+    nameZh: "韓敏宰",
     board: "men",
     featured: false,
     city: "Seoul",
@@ -175,6 +179,7 @@ export const seedModels: Model[] = [
     bioZh: "以首爾為據點，中長髮的柔和氣質適合當代服飾與街頭風格選角。",
     stats: {
       height: "184 cm",
+      weight: "70 kg",
       waist: "76 cm",
       shoes: "EU 42",
       hair: "Black",
@@ -197,9 +202,9 @@ export const seedModels: Model[] = [
     ],
   },
   {
-    slug: "nari-choi",
-    name: "Nari Choi",
-    nameZh: "崔娜莉",
+    slug: "hina-chinen",
+    name: "Hina Chinen",
+    nameZh: "知念陽菜",
     board: "new-faces",
     featured: true,
     city: "Okinawa",
@@ -209,6 +214,7 @@ export const seedModels: Model[] = [
     bioZh: "本季新簽約。雀斑素顏、初入業界，三月完成首次試拍。",
     stats: {
       height: "174 cm",
+      weight: "49 kg",
       bust: "79 cm",
       waist: "58 cm",
       hips: "85 cm",
@@ -236,6 +242,7 @@ export const seedModels: Model[] = [
     bioZh: "演員與主持人，代理商業廣告、影視及繁體中文市場的品牌代言合作。",
     stats: {
       height: "170 cm",
+      weight: "53 kg",
       bust: "84 cm",
       waist: "63 cm",
       hips: "90 cm",
@@ -260,9 +267,9 @@ export const seedModels: Model[] = [
     ],
   },
   {
-    slug: "dai-nguyen",
-    name: "Dai Nguyen",
-    nameZh: "阮岱",
+    slug: "kim-do-yun",
+    name: "Kim Do-yun",
+    nameZh: "金度允",
     board: "new-faces",
     featured: false,
     city: "Busan",
@@ -273,6 +280,7 @@ export const seedModels: Model[] = [
       "十八歲於釜山被發掘，四月簽約。五官乾淨未經雕琢，穿著西服自然從容，首次試拍已在首爾選角圈流傳。",
     stats: {
       height: "183 cm",
+      weight: "68 kg",
       waist: "74 cm",
       shoes: "EU 42",
       hair: "Black",
@@ -286,9 +294,9 @@ export const seedModels: Model[] = [
     tags: ["new-faces", "natural-test", "scouting", "seoul", "asia", "men", "print-model"],
   },
   {
-    slug: "ravi-tanaka",
-    name: "Ravi Tanaka",
-    nameZh: "田中拉維",
+    slug: "ravi-iskandar",
+    name: "Ravi Iskandar",
+    nameZh: "拉維・伊斯坎達爾",
     board: "talent",
     featured: false,
     city: "Kuala Lumpur",
@@ -299,6 +307,7 @@ export const seedModels: Model[] = [
       "演員與電視主持人，工作橫跨馬來西亞、新加坡與日本。代理戲劇、商業廣告及主持工作，能以英語、馬來語與日語進行。",
     stats: {
       height: "181 cm",
+      weight: "71 kg",
       waist: "80 cm",
       shoes: "EU 43",
       hair: "Black",
@@ -333,6 +342,7 @@ export const seedModels: Model[] = [
     bioZh: "生於拉哥斯，現居台北，工作橫跨西非與東亞市場。專長伸展台、美妝與廣告，動態表現尤佳。",
     stats: {
       height: "179 cm",
+      weight: "57 kg",
       bust: "83 cm",
       waist: "61 cm",
       hips: "89 cm",
@@ -378,6 +388,7 @@ export const seedModels: Model[] = [
     bioZh: "工作範圍涵蓋南亞與東南亞，經常出現於孟買、新加坡與杜拜的珠寶、高級訂製服與髮妝廣告。",
     stats: {
       height: "176 cm",
+      weight: "54 kg",
       bust: "82 cm",
       waist: "60 cm",
       hips: "88 cm",
@@ -415,6 +426,7 @@ export const seedModels: Model[] = [
       "菲律賓與西班牙混血，於馬尼拉成長，目前主要以東京為工作據點。專長西服、運動服飾與商業影片。",
     stats: {
       height: "185 cm",
+      weight: "72 kg",
       waist: "77 cm",
       shoes: "EU 43",
       hair: "Dark brown, curly",
@@ -459,6 +471,7 @@ export const seedModels: Model[] = [
       "六十四歲，仍在線上。瑪吉特代表我們的經典分類，適合追求真實面孔與歲月質地的精品、保養與生活風格廣告。",
     stats: {
       height: "172 cm",
+      weight: "59 kg",
       bust: "88 cm",
       waist: "68 cm",
       hips: "94 cm",
