@@ -18,7 +18,7 @@ function SlideBody({ slide }: { slide: SpotlightSlide }) {
         alt={pick(slide.titleEn, slide.titleZh)}
         width={1920}
         height={1024}
-        containerClassName="h-[62vh] md:h-[78vh]"
+        containerClassName="aspect-video md:aspect-auto md:h-[calc(100vh-4.25rem)]"
         fit={slide.imageFit}
         objectPosition={slide.objectPosition}
       />

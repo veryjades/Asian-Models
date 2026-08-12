@@ -99,9 +99,9 @@ function Index() {
                     src={model.portrait}
                     alt={model.name}
                     loading="lazy"
-                    width={768}
-                    height={1024}
-                    aspectRatio="3 / 4"
+                    width={1024}
+                    height={1536}
+                    aspectRatio="2 / 3"
                     fit="contain"
                   />
                   <div className="gradient-accent-soft pointer-events-none absolute inset-0 opacity-0 mix-blend-multiply transition-opacity duration-500 group-hover:opacity-100" />
