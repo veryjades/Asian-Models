@@ -266,7 +266,10 @@
 
 body[data-quick-booking-open="true"] vercel-live-feedback,
 body[data-quick-booking-open="true"] vercel-toolbar,
-body[data-quick-booking-open="true"] [data-vercel-toolbar] {
+body[data-quick-booking-open="true"] [data-vercel-toolbar],
+body[data-j-assistant-open="true"] vercel-live-feedback,
+body[data-j-assistant-open="true"] vercel-toolbar,
+body[data-j-assistant-open="true"] [data-vercel-toolbar] {
   display: none !important;
   pointer-events: none !important;
 }

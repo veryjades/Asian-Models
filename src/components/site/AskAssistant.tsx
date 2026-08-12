@@ -30,6 +30,14 @@ export function AskAssistant() {
   }, [open]);
 
   useEffect(() => {
+    if (!open) return;
+    document.body.dataset.jAssistantOpen = "true";
+    return () => {
+      delete document.body.dataset.jAssistantOpen;
+    };
+  }, [open]);
+
+  useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
   }, [turns]);
 
@@ -67,7 +75,8 @@ export function AskAssistant() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full border border-foreground bg-background text-foreground transition-colors hover:bg-foreground hover:text-background"
+        className="fixed bottom-5 right-24 z-[2147483645] flex h-14 w-14 items-center justify-center rounded-full border border-foreground bg-background text-foreground transition-colors hover:bg-foreground hover:text-background"
+        data-j-assistant-trigger
         aria-expanded={open}
         aria-label={open ? t("assistant.close") : t("assistant.open")}
         title={t("assistant.cta")}
@@ -101,7 +110,7 @@ export function AskAssistant() {
       </button>
 
       {open && (
-        <div className="fixed bottom-20 right-5 z-50 flex max-h-[70vh] w-[min(24rem,calc(100vw-2.5rem))] flex-col border border-border bg-background">
+        <div className="fixed bottom-20 right-5 z-[2147483646] flex max-h-[70vh] w-[min(24rem,calc(100vw-2.5rem))] flex-col border border-border bg-background">
           <div className="gradient-accent h-1 w-full" aria-hidden="true" />
           <div className="border-b border-border px-4 py-3">
             <p className="label-xs text-foreground">{t("assistant.title")}</p>
