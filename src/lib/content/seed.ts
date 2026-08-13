@@ -45,6 +45,7 @@ export const seedModels: Model[] = [
       eyesZh: "棕色",
     },
     portrait: goldenMockAssets.women.aya.portrait,
+    hoverPortrait: goldenMockAssets.women.aya.hoverPortrait,
     gallery: [goldenMockAssets.women.aya.fullBody],
     digitals: [goldenMockAssets.women.aya.fullBody],
     tags: [
