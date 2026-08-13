@@ -11,7 +11,6 @@ import portfolioBeautyCampaign from "@/assets/mock/golden-set/portfolio-beauty-c
 import portfolioMenCommercial from "@/assets/mock/golden-set/portfolio-men-commercial.webp";
 import portfolioWomenEditorial from "@/assets/mock/golden-set/portfolio-women-editorial.webp";
 import womenAyaFullBody from "@/assets/mock/golden-set/women-aya-full-body.webp";
-import womenAyaHover from "@/assets/mock/golden-set/women-aya-hover.webp";
 import womenAyaLook02 from "@/assets/mock/golden-set/women-aya-look-02.webp";
 import womenAyaLook03 from "@/assets/mock/golden-set/women-aya-look-03.webp";
 import womenAyaPortrait from "@/assets/mock/golden-set/women-aya-portrait.webp";
@@ -34,7 +33,7 @@ export const goldenMockAssets = {
     aya: {
       portrait: womenAyaPortrait,
       fullBody: womenAyaFullBody,
-      hoverPortrait: womenAyaHover,
+      hoverPortrait: womenAyaLook03,
       look02: womenAyaLook02,
       look03: womenAyaLook03,
     },
