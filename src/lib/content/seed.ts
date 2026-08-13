@@ -46,7 +46,7 @@ export const seedModels: Model[] = [
     },
     portrait: goldenMockAssets.women.aya.portrait,
     hoverPortrait: goldenMockAssets.women.aya.hoverPortrait,
-    gallery: [goldenMockAssets.women.aya.fullBody],
+    gallery: [goldenMockAssets.women.aya.look02, goldenMockAssets.women.aya.look03],
     digitals: [goldenMockAssets.women.aya.fullBody],
     tags: [
       "women",

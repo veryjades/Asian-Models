@@ -12,6 +12,8 @@ import portfolioMenCommercial from "@/assets/mock/golden-set/portfolio-men-comme
 import portfolioWomenEditorial from "@/assets/mock/golden-set/portfolio-women-editorial.webp";
 import womenAyaFullBody from "@/assets/mock/golden-set/women-aya-full-body.webp";
 import womenAyaHover from "@/assets/mock/golden-set/women-aya-hover.webp";
+import womenAyaLook02 from "@/assets/mock/golden-set/women-aya-look-02.webp";
+import womenAyaLook03 from "@/assets/mock/golden-set/women-aya-look-03.webp";
 import womenAyaPortrait from "@/assets/mock/golden-set/women-aya-portrait.webp";
 import womenMeiFullBody from "@/assets/mock/golden-set/women-mei-full-body.webp";
 import womenMeiPortrait from "@/assets/mock/golden-set/women-mei-portrait.webp";
@@ -29,7 +31,13 @@ export const goldenMockAssets = {
     tokyoEvening: heroTokyoEvening,
   },
   women: {
-    aya: { portrait: womenAyaPortrait, fullBody: womenAyaFullBody, hoverPortrait: womenAyaHover },
+    aya: {
+      portrait: womenAyaPortrait,
+      fullBody: womenAyaFullBody,
+      hoverPortrait: womenAyaHover,
+      look02: womenAyaLook02,
+      look03: womenAyaLook03,
+    },
     mei: { portrait: womenMeiPortrait, fullBody: womenMeiFullBody },
     sora: { portrait: womenSoraPortrait, fullBody: womenSoraFullBody },
   },
@@ -63,6 +71,18 @@ export const goldenMockAssetManifest = [
   {
     id: "women-aya-hover",
     usage: "portrait-card-hover",
+    aspectRatio: "2 / 3",
+    objectPosition: "50% 50%",
+  },
+  {
+    id: "women-aya-look-02",
+    usage: "portfolio-gallery",
+    aspectRatio: "2 / 3",
+    objectPosition: "50% 50%",
+  },
+  {
+    id: "women-aya-look-03",
+    usage: "portfolio-gallery",
     aspectRatio: "2 / 3",
     objectPosition: "50% 50%",
   },
