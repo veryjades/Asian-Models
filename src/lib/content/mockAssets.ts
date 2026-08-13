@@ -33,7 +33,10 @@ export const goldenMockAssets = {
     aya: {
       portrait: womenAyaPortrait,
       fullBody: womenAyaFullBody,
-      hoverPortrait: womenAyaLook03,
+      // Strongest reviewed same-session pose change: the shoulders, torso, arm
+      // line, stance, and leg separation all reset without changing Chen's
+      // identity, studio, wardrobe, or card framing.
+      hoverPortrait: womenAyaLook02,
       look02: womenAyaLook02,
       look03: womenAyaLook03,
     },

@@ -3,8 +3,8 @@
 **Phase:** Phase 1 — Architecture Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 1 — Architecture Foundation
-**Current task:** Complete identity-consistent paired card photography while maintaining J Assistant's repository-backed candidate retrieval.
-**Last heartbeat:** 2026-08-12 23:35:00 +08:00
+**Current task:** Validate Chen Yu-Xin's bold paired card hover and complete the remaining identity-consistent pairs.
+**Last heartbeat:** 2026-08-13 +08:00
 **Completion date:** 2026-08-10
 
 ## Completed items
@@ -34,6 +34,7 @@
 - The final Keyword Dynamic Runway correction is complete locally: the runway is now a 40px strip directly below Hero, consumes the top 15 active canonical keywords, moves LEFT↔RIGHT instead of as a one-direction ticker, gives the C-position keyword highest opacity/sharpness/z-order, fades and blurs keywords after C into the rear depth plane, keeps controlled overlap, and avoids horizontal overflow on desktop and 390px. Local click verification reached `/keywords/editorial-model` with Models/Portfolio/News/Quick Booking content. `bun run lint` passed with 0 errors and 9 existing warnings; `bun run build` passed.
 - The focus-interaction correction now separates the moving runway element from its nested text label: automatic C-state scales the label to 2.4× without relocating the keyword, while desktop hover/focus pauses the runway where it is and applies the same 2.4× label scale above neighboring keywords. The focus treatment has no background, inversion, padding, or colour change. Preview verification on commit `d136c69` passed: real desktop pointer hover reported a frozen non-zero runway transform, 2.4× label scale, z-index 20, transparent background, unchanged text colour, and no horizontal overflow; automatic C-state remained in place at the same scale. The 390px browser surface passed 40px height, 15 items, one line, no horizontal overflow, and no console errors.
 - Profile data and interaction corrections are ready locally: every fictional model now has a weight, culturally inconsistent city/name combinations have been corrected (including Hina Chinen for Okinawa and Kim Do-yun for Busan), and model-specific Quick Booking is fixed to the bottom-left viewport rather than the profile content flow. The reusable model-card component is wired for a white shutter flash and a separate `hoverPortrait` second frame on homepage, category, and keyword discovery cards; no invalid existing image is used as a substitute.
+- Chen Yu-Xin's category and keyword cards now use `women-aya-look-02.webp` as the reviewed same-person, same-studio, same-wardrobe hover frame. Its changed shoulders, torso, arm line, stance, and leg separation make the shutter transition visually distinct while the two image layers keep identical geometry. Local desktop and 390px checks found no horizontal overflow or console errors; the profile still exposes its existing portrait, editorial gallery, and digitals.
 - J Assistant now performs deterministic, repository-backed candidate retrieval instead of telling visitors to browse on their own. It combines reviewed gender, language, market, tag, portfolio, and News signals, and renders a direct profile plus model-specific Quick Booking action for each recommendation. `docs/ASSISTANT_RETRIEVAL.md` records the current boundary and the later Supabase/pgvector replacement path; the five required Chinese queries were executed against the actual content set.
 - The J Assistant control no longer collides with the Vercel Preview Toolbar: its trigger is positioned clear of the toolbar and its opened conversation temporarily hides that toolbar. The latest Preview was clicked directly; it opened J Assistant and returned four candidate profiles for `我要找男模`. The 390px surface had no horizontal overflow or console errors.
 
@@ -41,7 +42,7 @@
 
 - A local Supabase database is not running, and no cloud Supabase project has been linked. The initial migration is therefore un-applied; this is intentional until local Docker or a project approval is available.
 - No deployment blocker remains. Product acceptance is pending review of the isolated Preview. The production keyword/tag admin and CMS backing remain future Phase 5/admin work; this iteration only adds the content boundary and documents the future requirement.
-- Identity-consistent hover photography remains in progress: every card requires a genuine same-person, same-session, same-framing second image with only pose/expression changed. The current task environment exposes the image-generation skill guidance but no callable image generator and no `OPENAI_API_KEY`; no current asset may be duplicated, mirrored, cropped, or exchanged for another person to imitate the effect.
+- Identity-consistent hover photography remains in progress for the remaining 12 models. Chen Yu-Xin has the only reviewed existing same-person pose pair that meets the current bar; no current asset may be duplicated, mirrored, cropped, or exchanged for another person to imitate the effect.
 
 ## Phase 0 readiness
 
@@ -56,4 +57,4 @@
 
 ## Next action
 
-Generate and review all same-session paired hover images, map them to the model-card `hoverPortrait` field, then validate the camera-flash interaction at desktop and 390px Preview. Keep PR #5 draft/open/not merged.
+Validate Chen Yu-Xin's deployed desktop pointer hover, then source and review genuine same-session paired images for the remaining 12 models. Keep PR #5 draft/open/not merged.
