@@ -3,7 +3,6 @@ import heroSeoulTailoring from "@/assets/mock/golden-set/hero-seoul-tailoring.we
 import heroTokyoEvening from "@/assets/mock/golden-set/hero-tokyo-evening.webp";
 import menJunFullBody from "@/assets/mock/golden-set/men-jun-full-body.webp";
 import menJunPortrait from "@/assets/mock/golden-set/men-jun-portrait.webp";
-import linWeiJieLook02 from "@/assets/mock/golden-set/lin-wei-jie-look-02-cropped.webp";
 import menRenFullBody from "@/assets/mock/golden-set/men-ren-full-body.webp";
 import menRenPortrait from "@/assets/mock/golden-set/men-ren-portrait.webp";
 import newFaceDaiDigital from "@/assets/mock/golden-set/new-face-dai-digital.webp";
@@ -12,8 +11,10 @@ import portfolioBeautyCampaign from "@/assets/mock/golden-set/portfolio-beauty-c
 import portfolioMenCommercial from "@/assets/mock/golden-set/portfolio-men-commercial.webp";
 import portfolioWomenEditorial from "@/assets/mock/golden-set/portfolio-women-editorial.webp";
 import womenAyaFullBody from "@/assets/mock/golden-set/women-aya-full-body.webp";
+import womenAyaHoverV2 from "@/assets/mock/golden-set/women-aya-hover-v2.png";
 import womenAyaLook02 from "@/assets/mock/golden-set/women-aya-look-02.webp";
 import womenAyaLook03 from "@/assets/mock/golden-set/women-aya-look-03.webp";
+import womenAyaLook04 from "@/assets/mock/golden-set/women-aya-look-04.png";
 import womenAyaPortrait from "@/assets/mock/golden-set/women-aya-portrait.webp";
 import womenMeiFullBody from "@/assets/mock/golden-set/women-mei-full-body.webp";
 import womenMeiHover from "@/assets/mock/golden-set/women-mei-hover.webp";
@@ -47,9 +48,10 @@ export const goldenMockAssets = {
       // Strongest reviewed same-session pose change: the shoulders, torso, arm
       // line, stance, and leg separation all reset without changing Chen's
       // identity, studio, wardrobe, or card framing.
-      hoverPortrait: womenAyaLook02,
+      hoverPortrait: womenAyaHoverV2,
       look02: womenAyaLook02,
       look03: womenAyaLook03,
+      look04: womenAyaLook04,
     },
     mei: {
       portrait: womenMeiPortrait,
@@ -69,8 +71,9 @@ export const goldenMockAssets = {
     jun: {
       portrait: menJunPortrait,
       fullBody: menJunFullBody,
-      // The same-studio navy-suit side profile is the identity-safe hover
-      hoverPortrait: linWeiJieLook02,
+      // Keep the pair in the same navy tailoring set. The clean full-body
+      // frame fills the card without the old cropped/letterboxed source.
+      hoverPortrait: menJunFullBody,
     },
     ren: {
       portrait: menRenPortrait,
@@ -123,6 +126,12 @@ export const goldenMockAssetManifest = [
     objectPosition: "50% 50%",
   },
   {
+    id: "women-aya-hover-v2",
+    usage: "portrait-card-hover",
+    aspectRatio: "2 / 3",
+    objectPosition: "50% 50%",
+  },
+  {
     id: "women-aya-look-02",
     usage: "portfolio-gallery",
     aspectRatio: "2 / 3",
@@ -130,6 +139,12 @@ export const goldenMockAssetManifest = [
   },
   {
     id: "women-aya-look-03",
+    usage: "portfolio-gallery",
+    aspectRatio: "2 / 3",
+    objectPosition: "50% 50%",
+  },
+  {
+    id: "women-aya-look-04",
     usage: "portfolio-gallery",
     aspectRatio: "2 / 3",
     objectPosition: "50% 50%",
@@ -191,12 +206,6 @@ export const goldenMockAssetManifest = [
   {
     id: "men-jun-full-body",
     usage: "full-body-profile",
-    aspectRatio: "2 / 3",
-    objectPosition: "50% 50%",
-  },
-  {
-    id: "lin-wei-jie-look-02-cropped",
-    usage: "portrait-card-hover",
     aspectRatio: "2 / 3",
     objectPosition: "50% 50%",
   },

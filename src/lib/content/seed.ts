@@ -40,7 +40,11 @@ export const seedModels: Model[] = [
     },
     portrait: goldenMockAssets.women.aya.portrait,
     hoverPortrait: goldenMockAssets.women.aya.hoverPortrait,
-    gallery: [goldenMockAssets.women.aya.look02, goldenMockAssets.women.aya.look03],
+    gallery: [
+      goldenMockAssets.women.aya.look02,
+      goldenMockAssets.women.aya.look03,
+      goldenMockAssets.women.aya.look04,
+    ],
     digitals: [goldenMockAssets.women.aya.fullBody],
     tags: [
       "women",
@@ -237,7 +241,7 @@ export const seedModels: Model[] = [
     },
     portrait: goldenMockAssets.newFaces.nari,
     hoverPortrait: goldenMockAssets.newFaces.nariHover,
-    gallery: [goldenMockAssets.newFaces.nari],
+    gallery: [goldenMockAssets.newFaces.nari, goldenMockAssets.newFaces.nariHover],
     digitals: [goldenMockAssets.newFaces.nari],
     tags: ["new-faces", "natural-test", "scouting", "asia", "print-model", "beauty"],
   },
@@ -268,7 +272,7 @@ export const seedModels: Model[] = [
     },
     portrait: m7,
     hoverPortrait: goldenMockAssets.hoverPairs.yangShuFen,
-    gallery: [m7],
+    gallery: [m7, goldenMockAssets.hoverPairs.yangShuFen],
     digitals: [m7],
     tags: [
       "actor",
@@ -307,7 +311,7 @@ export const seedModels: Model[] = [
     },
     portrait: goldenMockAssets.newFaces.dai,
     hoverPortrait: goldenMockAssets.newFaces.daiHover,
-    gallery: [goldenMockAssets.newFaces.dai],
+    gallery: [goldenMockAssets.newFaces.dai, goldenMockAssets.newFaces.daiHover],
     digitals: [goldenMockAssets.newFaces.dai],
     tags: ["new-faces", "natural-test", "scouting", "seoul", "asia", "men", "print-model"],
   },
@@ -337,7 +341,7 @@ export const seedModels: Model[] = [
     },
     portrait: m9,
     hoverPortrait: goldenMockAssets.hoverPairs.raviIskandar,
-    gallery: [m9],
+    gallery: [m9, goldenMockAssets.hoverPairs.raviIskandar],
     digitals: [m9],
     tags: [
       "actor",
@@ -377,7 +381,7 @@ export const seedModels: Model[] = [
     },
     portrait: m10,
     hoverPortrait: goldenMockAssets.hoverPairs.amaraOkonkwo,
-    gallery: [m10],
+    gallery: [m10, goldenMockAssets.hoverPairs.amaraOkonkwo],
     digitals: [m10],
     tags: [
       "women",
@@ -426,7 +430,7 @@ export const seedModels: Model[] = [
     },
     portrait: m11,
     hoverPortrait: goldenMockAssets.hoverPairs.priyaRaghunathan,
-    gallery: [m11],
+    gallery: [m11, goldenMockAssets.hoverPairs.priyaRaghunathan],
     digitals: [m11],
     tags: [
       "women",
@@ -465,7 +469,7 @@ export const seedModels: Model[] = [
     },
     portrait: m12,
     hoverPortrait: goldenMockAssets.hoverPairs.noahCastellanos,
-    gallery: [m12],
+    gallery: [m12, goldenMockAssets.hoverPairs.noahCastellanos],
     digitals: [m12],
     tags: [
       "men",
@@ -515,7 +519,7 @@ export const seedModels: Model[] = [
     },
     portrait: m13,
     hoverPortrait: goldenMockAssets.hoverPairs.margitLindqvist,
-    gallery: [m13],
+    gallery: [m13, goldenMockAssets.hoverPairs.margitLindqvist],
     digitals: [m13],
     tags: [
       "actor",

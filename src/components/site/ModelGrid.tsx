@@ -30,16 +30,15 @@ export function ModelCard({ model }: { model: Model }) {
         params={{ board: model.board, slug: model.slug }}
         className={`model-card group block${hasPairedHover ? " model-card--paired" : ""}`}
       >
-        <div className="relative">
+        <div className="relative aspect-[2/3]">
           <AgencyImage
             src={model.portrait}
             alt={`${model.name} — ${model.city}`}
             loading="lazy"
             width={768}
             height={1024}
-            aspectRatio="2 / 3"
             fit="cover"
-            containerClassName="model-card-primary"
+            containerClassName="model-card-primary absolute inset-0 h-full w-full"
           />
           {model.hoverPortrait ? (
             <AgencyImage
@@ -49,9 +48,8 @@ export function ModelCard({ model }: { model: Model }) {
               loading="lazy"
               width={768}
               height={1024}
-              aspectRatio="2 / 3"
               fit="cover"
-              containerClassName="model-card-hover-image absolute inset-0"
+              containerClassName="model-card-hover-image absolute inset-0 h-full w-full"
             />
           ) : null}
           <span className="model-card-flash" aria-hidden="true" data-testid="model-card-flash" />
