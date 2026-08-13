@@ -20,7 +20,6 @@ import womenAyaLook03 from "@/assets/mock/golden-set/women-aya-look-03.webp";
 import womenAyaPortrait from "@/assets/mock/golden-set/women-aya-portrait.webp";
 import womenMeiFullBody from "@/assets/mock/golden-set/women-mei-full-body.webp";
 import womenMeiHover from "@/assets/mock/golden-set/women-mei-hover.webp";
-import womenMeiLook02 from "@/assets/mock/golden-set/women-mei-look-02.webp";
 import womenMeiLook03 from "@/assets/mock/golden-set/women-mei-look-03.webp";
 import womenMeiPortrait from "@/assets/mock/golden-set/women-mei-portrait.webp";
 import womenSoraFullBody from "@/assets/mock/golden-set/women-sora-full-body.webp";
@@ -51,7 +50,6 @@ export const goldenMockAssets = {
       portrait: womenMeiPortrait,
       fullBody: womenMeiFullBody,
       hoverPortrait: womenMeiHover,
-      look02: womenMeiLook02,
       look03: womenMeiLook03,
     },
     sora: { portrait: womenSoraPortrait, fullBody: womenSoraFullBody },
@@ -60,16 +58,20 @@ export const goldenMockAssets = {
     jun: {
       portrait: menJunPortrait,
       fullBody: menJunFullBody,
-      hoverPortrait: linWeiJieHover,
-      look02: linWeiJieLook02,
+      // The same-studio navy-suit side profile is the identity-safe hover
+      // frame; the beach image stays a portfolio look instead.
+      hoverPortrait: linWeiJieLook02,
+      look02: linWeiJieHover,
     },
     ren: { portrait: menRenPortrait, fullBody: menRenFullBody },
   },
   newFaces: {
     nari: newFaceNariDigital,
     dai: newFaceDaiDigital,
-    hinaHover: hinaChinenHover,
-    hinaLook02: hinaChinenLook02,
+    // The seated studio frame keeps stronger face/hair continuity with the
+    // existing Hina digital; the rainbow frame remains a portfolio look.
+    hinaHover: hinaChinenLook02,
+    hinaLook02: hinaChinenHover,
   },
   portfolio: {
     womenEditorial: portfolioWomenEditorial,
@@ -130,6 +132,18 @@ export const goldenMockAssetManifest = [
     objectPosition: "50% 50%",
   },
   {
+    id: "women-mei-hover",
+    usage: "portrait-card-hover",
+    aspectRatio: "2 / 3",
+    objectPosition: "50% 50%",
+  },
+  {
+    id: "women-mei-look-03",
+    usage: "portfolio-gallery",
+    aspectRatio: "2 / 3",
+    objectPosition: "50% 50%",
+  },
+  {
     id: "women-sora-portrait",
     usage: "portrait-card",
     aspectRatio: "2 / 3",
@@ -154,6 +168,18 @@ export const goldenMockAssetManifest = [
     objectPosition: "50% 50%",
   },
   {
+    id: "lin-wei-jie-look-02",
+    usage: "portrait-card-hover",
+    aspectRatio: "2 / 3",
+    objectPosition: "50% 50%",
+  },
+  {
+    id: "lin-wei-jie-hover",
+    usage: "portfolio-gallery",
+    aspectRatio: "2 / 3",
+    objectPosition: "50% 50%",
+  },
+  {
     id: "men-ren-portrait",
     usage: "portrait-card",
     aspectRatio: "2 / 3",
@@ -174,6 +200,18 @@ export const goldenMockAssetManifest = [
   {
     id: "new-face-dai-digital",
     usage: "full-body-profile",
+    aspectRatio: "2 / 3",
+    objectPosition: "50% 50%",
+  },
+  {
+    id: "hina-chinen-hover",
+    usage: "portfolio-gallery",
+    aspectRatio: "2 / 3",
+    objectPosition: "50% 50%",
+  },
+  {
+    id: "hina-chinen-look-02",
+    usage: "portrait-card-hover",
     aspectRatio: "2 / 3",
     objectPosition: "50% 50%",
   },

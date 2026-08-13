@@ -87,11 +87,7 @@ export const seedModels: Model[] = [
     },
     portrait: goldenMockAssets.women.mei.portrait,
     hoverPortrait: goldenMockAssets.women.mei.hoverPortrait,
-    gallery: [
-      goldenMockAssets.women.mei.fullBody,
-      goldenMockAssets.women.mei.look02,
-      goldenMockAssets.women.mei.look03,
-    ],
+    gallery: [goldenMockAssets.women.mei.fullBody, goldenMockAssets.women.mei.look03],
     digitals: [goldenMockAssets.women.mei.fullBody],
     tags: [
       "women",
