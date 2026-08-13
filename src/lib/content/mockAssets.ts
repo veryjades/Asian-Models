@@ -21,6 +21,14 @@ import womenMeiLook03 from "@/assets/mock/golden-set/women-mei-look-03.webp";
 import womenMeiPortrait from "@/assets/mock/golden-set/women-mei-portrait.webp";
 import womenSoraFullBody from "@/assets/mock/golden-set/women-sora-full-body.webp";
 import womenSoraPortrait from "@/assets/mock/golden-set/women-sora-portrait.webp";
+import amaraOkonkwoHover from "@/assets/mock/golden-set/amara-okonkwo-hover.png";
+import hinaChinenHover from "@/assets/mock/golden-set/hina-chinen-hover.png";
+import kimDoYunHover from "@/assets/mock/golden-set/kim-do-yun-hover.png";
+import margitLindqvistHover from "@/assets/mock/golden-set/margit-lindqvist-hover.png";
+import noahCastellanosHover from "@/assets/mock/golden-set/noah-castellanos-hover.png";
+import priyaRaghunathanHover from "@/assets/mock/golden-set/priya-raghunathan-hover.png";
+import raviIskandarHover from "@/assets/mock/golden-set/ravi-iskandar-hover.png";
+import yangShuFenHover from "@/assets/mock/golden-set/yang-shu-fen-hover.jpg";
 
 /**
  * First reviewed fictional asset set. The component-facing shape mirrors the
@@ -74,7 +82,17 @@ export const goldenMockAssets = {
   },
   newFaces: {
     nari: newFaceNariDigital,
+    nariHover: hinaChinenHover,
     dai: newFaceDaiDigital,
+    daiHover: kimDoYunHover,
+  },
+  hoverPairs: {
+    yangShuFen: yangShuFenHover,
+    raviIskandar: raviIskandarHover,
+    amaraOkonkwo: amaraOkonkwoHover,
+    priyaRaghunathan: priyaRaghunathanHover,
+    noahCastellanos: noahCastellanosHover,
+    margitLindqvist: margitLindqvistHover,
   },
   portfolio: {
     womenEditorial: portfolioWomenEditorial,
@@ -207,11 +225,36 @@ export const goldenMockAssetManifest = [
     objectPosition: "50% 50%",
   },
   {
+    id: "hina-chinen-hover",
+    usage: "portrait-card-hover",
+    aspectRatio: "2 / 3",
+    objectPosition: "50% 50%",
+  },
+  {
     id: "new-face-dai-digital",
     usage: "full-body-profile",
     aspectRatio: "2 / 3",
     objectPosition: "50% 50%",
   },
+  {
+    id: "kim-do-yun-hover",
+    usage: "portrait-card-hover",
+    aspectRatio: "2 / 3",
+    objectPosition: "50% 50%",
+  },
+  ...[
+    "yang-shu-fen-hover",
+    "ravi-iskandar-hover",
+    "amara-okonkwo-hover",
+    "priya-raghunathan-hover",
+    "noah-castellanos-hover",
+    "margit-lindqvist-hover",
+  ].map((id) => ({
+    id,
+    usage: "portrait-card-hover" as const,
+    aspectRatio: "2 / 3" as const,
+    objectPosition: "50% 50%" as const,
+  })),
   {
     id: "portfolio-women-editorial",
     usage: "portfolio-gallery",

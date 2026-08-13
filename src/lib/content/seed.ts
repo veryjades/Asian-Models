@@ -236,6 +236,7 @@ export const seedModels: Model[] = [
       eyesZh: "棕色",
     },
     portrait: goldenMockAssets.newFaces.nari,
+    hoverPortrait: goldenMockAssets.newFaces.nariHover,
     gallery: [goldenMockAssets.newFaces.nari],
     digitals: [goldenMockAssets.newFaces.nari],
     tags: ["new-faces", "natural-test", "scouting", "asia", "print-model", "beauty"],
@@ -266,6 +267,7 @@ export const seedModels: Model[] = [
       eyesZh: "深棕",
     },
     portrait: m7,
+    hoverPortrait: goldenMockAssets.hoverPairs.yangShuFen,
     gallery: [m7],
     digitals: [m7],
     tags: [
@@ -304,6 +306,7 @@ export const seedModels: Model[] = [
       eyesZh: "深棕",
     },
     portrait: goldenMockAssets.newFaces.dai,
+    hoverPortrait: goldenMockAssets.newFaces.daiHover,
     gallery: [goldenMockAssets.newFaces.dai],
     digitals: [goldenMockAssets.newFaces.dai],
     tags: ["new-faces", "natural-test", "scouting", "seoul", "asia", "men", "print-model"],
@@ -333,6 +336,7 @@ export const seedModels: Model[] = [
       eyesZh: "深棕",
     },
     portrait: m9,
+    hoverPortrait: goldenMockAssets.hoverPairs.raviIskandar,
     gallery: [m9],
     digitals: [m9],
     tags: [
@@ -372,6 +376,7 @@ export const seedModels: Model[] = [
       eyesZh: "深棕",
     },
     portrait: m10,
+    hoverPortrait: goldenMockAssets.hoverPairs.amaraOkonkwo,
     gallery: [m10],
     digitals: [m10],
     tags: [
@@ -420,6 +425,7 @@ export const seedModels: Model[] = [
       eyesZh: "深棕",
     },
     portrait: m11,
+    hoverPortrait: goldenMockAssets.hoverPairs.priyaRaghunathan,
     gallery: [m11],
     digitals: [m11],
     tags: [
@@ -458,6 +464,7 @@ export const seedModels: Model[] = [
       eyesZh: "綠色",
     },
     portrait: m12,
+    hoverPortrait: goldenMockAssets.hoverPairs.noahCastellanos,
     gallery: [m12],
     digitals: [m12],
     tags: [
@@ -507,6 +514,7 @@ export const seedModels: Model[] = [
       eyesZh: "藍色",
     },
     portrait: m13,
+    hoverPortrait: goldenMockAssets.hoverPairs.margitLindqvist,
     gallery: [m13],
     digitals: [m13],
     tags: [
