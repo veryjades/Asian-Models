@@ -164,7 +164,7 @@ export const seedModels: Model[] = [
     },
     portrait: goldenMockAssets.men.jun.portrait,
     hoverPortrait: goldenMockAssets.men.jun.hoverPortrait,
-    gallery: [goldenMockAssets.men.jun.fullBody],
+    gallery: [goldenMockAssets.men.jun.fullBody, goldenMockAssets.men.jun.hoverPortrait],
     digitals: [goldenMockAssets.men.jun.fullBody],
     tags: [
       "men",

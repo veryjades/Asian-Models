@@ -3,6 +3,7 @@ import heroSeoulTailoring from "@/assets/mock/golden-set/hero-seoul-tailoring.we
 import heroTokyoEvening from "@/assets/mock/golden-set/hero-tokyo-evening.webp";
 import menJunFullBody from "@/assets/mock/golden-set/men-jun-full-body.webp";
 import menJunPortrait from "@/assets/mock/golden-set/men-jun-portrait.webp";
+import linWeiJieLook02 from "@/assets/mock/golden-set/lin-wei-jie-look-02-cropped.webp";
 import menRenFullBody from "@/assets/mock/golden-set/men-ren-full-body.webp";
 import menRenPortrait from "@/assets/mock/golden-set/men-ren-portrait.webp";
 import newFaceDaiDigital from "@/assets/mock/golden-set/new-face-dai-digital.webp";
@@ -71,9 +72,10 @@ export const goldenMockAssets = {
     jun: {
       portrait: menJunPortrait,
       fullBody: menJunFullBody,
-      // Keep the pair in the same navy tailoring set. The clean full-body
-      // frame fills the card without the old cropped/letterboxed source.
-      hoverPortrait: menJunFullBody,
+      // Same navy tailoring set and same face; the side-profile hat frame is a
+      // decisive second shutter moment with a different head, shoulder, torso,
+      // arm and leg line. It is already a clean 2:3 asset with no letterbox.
+      hoverPortrait: linWeiJieLook02,
     },
     ren: {
       portrait: menRenPortrait,
@@ -200,6 +202,12 @@ export const goldenMockAssetManifest = [
   {
     id: "men-jun-portrait",
     usage: "portrait-card",
+    aspectRatio: "2 / 3",
+    objectPosition: "50% 50%",
+  },
+  {
+    id: "lin-wei-jie-look-02",
+    usage: "portrait-card-hover",
     aspectRatio: "2 / 3",
     objectPosition: "50% 50%",
   },
