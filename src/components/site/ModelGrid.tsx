@@ -28,7 +28,7 @@ export function ModelCard({ model }: { model: Model }) {
       <Link
         to="/models/$board/$slug"
         params={{ board: model.board, slug: model.slug }}
-        className={`model-card group block${hasPairedHover ? " model-card--paired" : ""}`}
+        className={`model-card group block${hasPairedHover ? " model-card--paired" : ""}${model.slug === "lin-wei-jie" ? " model-card--crop-hover" : ""}`}
       >
         <div className="relative">
           <AgencyImage
@@ -38,7 +38,7 @@ export function ModelCard({ model }: { model: Model }) {
             width={768}
             height={1024}
             aspectRatio="3 / 4"
-            fit="contain"
+            fit="cover"
             containerClassName="model-card-primary"
           />
           {model.hoverPortrait ? (
@@ -50,7 +50,7 @@ export function ModelCard({ model }: { model: Model }) {
               width={768}
               height={1024}
               aspectRatio="3 / 4"
-              fit="contain"
+              fit="cover"
               containerClassName="model-card-hover-image absolute inset-0"
             />
           ) : null}

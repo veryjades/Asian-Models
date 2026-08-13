@@ -196,6 +196,16 @@
   transition: opacity 180ms ease;
 }
 
+.model-card > .relative {
+  overflow: hidden;
+}
+
+/* Lin's supplied hover frame includes a baked-in black matte; crop it inside
+   the fixed card frame while preserving the card's geometry. */
+.model-card--crop-hover .model-card-hover-image img {
+  transform: scale(1.16);
+}
+
 .model-card-hover-image {
   opacity: 0;
 }

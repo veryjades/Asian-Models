@@ -127,6 +127,7 @@ export const seedModels: Model[] = [
       eyesZh: "棕色",
     },
     portrait: goldenMockAssets.women.sora.portrait,
+    hoverPortrait: goldenMockAssets.women.sora.hoverPortrait,
     gallery: [goldenMockAssets.women.sora.fullBody],
     digitals: [goldenMockAssets.women.sora.fullBody],
     tags: [
@@ -201,6 +202,7 @@ export const seedModels: Model[] = [
       eyesZh: "棕色",
     },
     portrait: goldenMockAssets.men.ren.portrait,
+    hoverPortrait: goldenMockAssets.men.ren.hoverPortrait,
     gallery: [goldenMockAssets.men.ren.fullBody],
     digitals: [goldenMockAssets.men.ren.fullBody],
     tags: [

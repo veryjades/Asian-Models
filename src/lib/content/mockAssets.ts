@@ -52,7 +52,13 @@ export const goldenMockAssets = {
       hoverPortrait: womenMeiHover,
       look03: womenMeiLook03,
     },
-    sora: { portrait: womenSoraPortrait, fullBody: womenSoraFullBody },
+    sora: {
+      portrait: womenSoraPortrait,
+      fullBody: womenSoraFullBody,
+      // Reviewed same-person full-body extension; the wider stance and hand
+      // placement read as a distinct second frame in the fixed card window.
+      hoverPortrait: womenSoraFullBody,
+    },
   },
   men: {
     jun: {
@@ -63,7 +69,13 @@ export const goldenMockAssets = {
       hoverPortrait: linWeiJieLook02,
       look02: linWeiJieHover,
     },
-    ren: { portrait: menRenPortrait, fullBody: menRenFullBody },
+    ren: {
+      portrait: menRenPortrait,
+      fullBody: menRenFullBody,
+      // Reviewed same-person full-body extension with a changed arm line and
+      // stance, used as the card's second frame without changing geometry.
+      hoverPortrait: menRenFullBody,
+    },
   },
   newFaces: {
     nari: newFaceNariDigital,
@@ -156,6 +168,12 @@ export const goldenMockAssetManifest = [
     objectPosition: "50% 50%",
   },
   {
+    id: "women-sora-hover",
+    usage: "portrait-card-hover",
+    aspectRatio: "2 / 3",
+    objectPosition: "50% 50%",
+  },
+  {
     id: "men-jun-portrait",
     usage: "portrait-card",
     aspectRatio: "2 / 3",
@@ -188,6 +206,12 @@ export const goldenMockAssetManifest = [
   {
     id: "men-ren-full-body",
     usage: "full-body-profile",
+    aspectRatio: "2 / 3",
+    objectPosition: "50% 50%",
+  },
+  {
+    id: "men-ren-hover",
+    usage: "portrait-card-hover",
     aspectRatio: "2 / 3",
     objectPosition: "50% 50%",
   },
