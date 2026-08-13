@@ -3,10 +3,14 @@ import heroSeoulTailoring from "@/assets/mock/golden-set/hero-seoul-tailoring.we
 import heroTokyoEvening from "@/assets/mock/golden-set/hero-tokyo-evening.webp";
 import menJunFullBody from "@/assets/mock/golden-set/men-jun-full-body.webp";
 import menJunPortrait from "@/assets/mock/golden-set/men-jun-portrait.webp";
+import linWeiJieHover from "@/assets/mock/golden-set/lin-wei-jie-hover.webp";
+import linWeiJieLook02 from "@/assets/mock/golden-set/lin-wei-jie-look-02.webp";
 import menRenFullBody from "@/assets/mock/golden-set/men-ren-full-body.webp";
 import menRenPortrait from "@/assets/mock/golden-set/men-ren-portrait.webp";
 import newFaceDaiDigital from "@/assets/mock/golden-set/new-face-dai-digital.webp";
 import newFaceNariDigital from "@/assets/mock/golden-set/new-face-nari-digital.webp";
+import hinaChinenHover from "@/assets/mock/golden-set/hina-chinen-hover.webp";
+import hinaChinenLook02 from "@/assets/mock/golden-set/hina-chinen-look-02.webp";
 import portfolioBeautyCampaign from "@/assets/mock/golden-set/portfolio-beauty-campaign.webp";
 import portfolioMenCommercial from "@/assets/mock/golden-set/portfolio-men-commercial.webp";
 import portfolioWomenEditorial from "@/assets/mock/golden-set/portfolio-women-editorial.webp";
@@ -15,6 +19,9 @@ import womenAyaLook02 from "@/assets/mock/golden-set/women-aya-look-02.webp";
 import womenAyaLook03 from "@/assets/mock/golden-set/women-aya-look-03.webp";
 import womenAyaPortrait from "@/assets/mock/golden-set/women-aya-portrait.webp";
 import womenMeiFullBody from "@/assets/mock/golden-set/women-mei-full-body.webp";
+import womenMeiHover from "@/assets/mock/golden-set/women-mei-hover.webp";
+import womenMeiLook02 from "@/assets/mock/golden-set/women-mei-look-02.webp";
+import womenMeiLook03 from "@/assets/mock/golden-set/women-mei-look-03.webp";
 import womenMeiPortrait from "@/assets/mock/golden-set/women-mei-portrait.webp";
 import womenSoraFullBody from "@/assets/mock/golden-set/women-sora-full-body.webp";
 import womenSoraPortrait from "@/assets/mock/golden-set/women-sora-portrait.webp";
@@ -40,14 +47,30 @@ export const goldenMockAssets = {
       look02: womenAyaLook02,
       look03: womenAyaLook03,
     },
-    mei: { portrait: womenMeiPortrait, fullBody: womenMeiFullBody },
+    mei: {
+      portrait: womenMeiPortrait,
+      fullBody: womenMeiFullBody,
+      hoverPortrait: womenMeiHover,
+      look02: womenMeiLook02,
+      look03: womenMeiLook03,
+    },
     sora: { portrait: womenSoraPortrait, fullBody: womenSoraFullBody },
   },
   men: {
-    jun: { portrait: menJunPortrait, fullBody: menJunFullBody },
+    jun: {
+      portrait: menJunPortrait,
+      fullBody: menJunFullBody,
+      hoverPortrait: linWeiJieHover,
+      look02: linWeiJieLook02,
+    },
     ren: { portrait: menRenPortrait, fullBody: menRenFullBody },
   },
-  newFaces: { nari: newFaceNariDigital, dai: newFaceDaiDigital },
+  newFaces: {
+    nari: newFaceNariDigital,
+    dai: newFaceDaiDigital,
+    hinaHover: hinaChinenHover,
+    hinaLook02: hinaChinenLook02,
+  },
   portfolio: {
     womenEditorial: portfolioWomenEditorial,
     menCommercial: portfolioMenCommercial,

@@ -86,7 +86,12 @@ export const seedModels: Model[] = [
       eyesZh: "深棕",
     },
     portrait: goldenMockAssets.women.mei.portrait,
-    gallery: [goldenMockAssets.women.mei.fullBody],
+    hoverPortrait: goldenMockAssets.women.mei.hoverPortrait,
+    gallery: [
+      goldenMockAssets.women.mei.fullBody,
+      goldenMockAssets.women.mei.look02,
+      goldenMockAssets.women.mei.look03,
+    ],
     digitals: [goldenMockAssets.women.mei.fullBody],
     tags: [
       "women",
@@ -163,7 +168,8 @@ export const seedModels: Model[] = [
       eyesZh: "深棕",
     },
     portrait: goldenMockAssets.men.jun.portrait,
-    gallery: [goldenMockAssets.men.jun.fullBody],
+    hoverPortrait: goldenMockAssets.men.jun.hoverPortrait,
+    gallery: [goldenMockAssets.men.jun.fullBody, goldenMockAssets.men.jun.look02],
     digitals: [goldenMockAssets.men.jun.fullBody],
     tags: [
       "men",
@@ -238,7 +244,8 @@ export const seedModels: Model[] = [
       eyesZh: "棕色",
     },
     portrait: goldenMockAssets.newFaces.nari,
-    gallery: [goldenMockAssets.newFaces.nari],
+    hoverPortrait: goldenMockAssets.newFaces.hinaHover,
+    gallery: [goldenMockAssets.newFaces.nari, goldenMockAssets.newFaces.hinaLook02],
     digitals: [goldenMockAssets.newFaces.nari],
     tags: ["new-faces", "natural-test", "scouting", "asia", "print-model", "beauty"],
   },
