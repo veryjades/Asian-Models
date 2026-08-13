@@ -173,13 +173,7 @@
 
 @utility portrait-hover {
   & img {
-    transition:
-      opacity 700ms ease,
-      transform 900ms ease;
-  }
-  &:hover img {
-    opacity: 0.88;
-    transform: scale(1.015);
+    transition: opacity 700ms ease;
   }
 }
 
@@ -198,12 +192,6 @@
 
 .model-card > .relative {
   overflow: hidden;
-}
-
-/* Lin's supplied hover frame includes a baked-in black matte; crop it inside
-   the fixed card frame while preserving the card's geometry. */
-.model-card--crop-hover .model-card-hover-image img {
-  transform: scale(1.16);
 }
 
 .model-card-hover-image {

@@ -1,13 +1,7 @@
 import type { Model, NewsPost } from "./types";
 import { goldenMockAssets } from "./mockAssets";
 
-import m1 from "@/assets/model-01.jpg";
-import m3 from "@/assets/model-03.jpg";
-import m4 from "@/assets/model-04.jpg";
-import m5 from "@/assets/model-05.jpg";
-import m6 from "@/assets/model-06.jpg";
 import m7 from "@/assets/model-07.jpg";
-import m8 from "@/assets/model-08.jpg";
 import m9 from "@/assets/model-09.jpg";
 import m10 from "@/assets/model-10.jpg";
 import m11 from "@/assets/model-11.jpg";
@@ -166,7 +160,7 @@ export const seedModels: Model[] = [
     },
     portrait: goldenMockAssets.men.jun.portrait,
     hoverPortrait: goldenMockAssets.men.jun.hoverPortrait,
-    gallery: [goldenMockAssets.men.jun.fullBody, goldenMockAssets.men.jun.look02],
+    gallery: [goldenMockAssets.men.jun.fullBody],
     digitals: [goldenMockAssets.men.jun.fullBody],
     tags: [
       "men",
@@ -242,8 +236,7 @@ export const seedModels: Model[] = [
       eyesZh: "棕色",
     },
     portrait: goldenMockAssets.newFaces.nari,
-    hoverPortrait: goldenMockAssets.newFaces.hinaHover,
-    gallery: [goldenMockAssets.newFaces.nari, goldenMockAssets.newFaces.hinaLook02],
+    gallery: [goldenMockAssets.newFaces.nari],
     digitals: [goldenMockAssets.newFaces.nari],
     tags: ["new-faces", "natural-test", "scouting", "asia", "print-model", "beauty"],
   },
@@ -273,7 +266,7 @@ export const seedModels: Model[] = [
       eyesZh: "深棕",
     },
     portrait: m7,
-    gallery: [m7, m1],
+    gallery: [m7],
     digitals: [m7],
     tags: [
       "actor",
@@ -340,7 +333,7 @@ export const seedModels: Model[] = [
       eyesZh: "深棕",
     },
     portrait: m9,
-    gallery: [m9, m6],
+    gallery: [m9],
     digitals: [m9],
     tags: [
       "actor",
@@ -379,7 +372,7 @@ export const seedModels: Model[] = [
       eyesZh: "深棕",
     },
     portrait: m10,
-    gallery: [m10, m3, m1],
+    gallery: [m10],
     digitals: [m10],
     tags: [
       "women",
@@ -427,7 +420,7 @@ export const seedModels: Model[] = [
       eyesZh: "深棕",
     },
     portrait: m11,
-    gallery: [m11, m5, m3],
+    gallery: [m11],
     digitals: [m11],
     tags: [
       "women",
@@ -465,7 +458,7 @@ export const seedModels: Model[] = [
       eyesZh: "綠色",
     },
     portrait: m12,
-    gallery: [m12, m4, m6],
+    gallery: [m12],
     digitals: [m12],
     tags: [
       "men",
@@ -514,7 +507,7 @@ export const seedModels: Model[] = [
       eyesZh: "藍色",
     },
     portrait: m13,
-    gallery: [m13, m7],
+    gallery: [m13],
     digitals: [m13],
     tags: [
       "actor",

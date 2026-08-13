@@ -188,8 +188,8 @@ function Gallery({ title, images, model }: { title: string; images: string[]; mo
               loading="lazy"
               width={768}
               height={1024}
-              aspectRatio="3 / 4"
-              fit="contain"
+              aspectRatio="2 / 3"
+              fit="cover"
             />
           </li>
         ))}

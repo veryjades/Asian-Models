@@ -3,14 +3,11 @@ import heroSeoulTailoring from "@/assets/mock/golden-set/hero-seoul-tailoring.we
 import heroTokyoEvening from "@/assets/mock/golden-set/hero-tokyo-evening.webp";
 import menJunFullBody from "@/assets/mock/golden-set/men-jun-full-body.webp";
 import menJunPortrait from "@/assets/mock/golden-set/men-jun-portrait.webp";
-import linWeiJieHover from "@/assets/mock/golden-set/lin-wei-jie-hover.webp";
-import linWeiJieLook02 from "@/assets/mock/golden-set/lin-wei-jie-look-02.webp";
+import linWeiJieLook02 from "@/assets/mock/golden-set/lin-wei-jie-look-02-cropped.webp";
 import menRenFullBody from "@/assets/mock/golden-set/men-ren-full-body.webp";
 import menRenPortrait from "@/assets/mock/golden-set/men-ren-portrait.webp";
 import newFaceDaiDigital from "@/assets/mock/golden-set/new-face-dai-digital.webp";
 import newFaceNariDigital from "@/assets/mock/golden-set/new-face-nari-digital.webp";
-import hinaChinenHover from "@/assets/mock/golden-set/hina-chinen-hover.webp";
-import hinaChinenLook02 from "@/assets/mock/golden-set/hina-chinen-look-02.webp";
 import portfolioBeautyCampaign from "@/assets/mock/golden-set/portfolio-beauty-campaign.webp";
 import portfolioMenCommercial from "@/assets/mock/golden-set/portfolio-men-commercial.webp";
 import portfolioWomenEditorial from "@/assets/mock/golden-set/portfolio-women-editorial.webp";
@@ -65,9 +62,7 @@ export const goldenMockAssets = {
       portrait: menJunPortrait,
       fullBody: menJunFullBody,
       // The same-studio navy-suit side profile is the identity-safe hover
-      // frame; the beach image stays a portfolio look instead.
       hoverPortrait: linWeiJieLook02,
-      look02: linWeiJieHover,
     },
     ren: {
       portrait: menRenPortrait,
@@ -80,10 +75,6 @@ export const goldenMockAssets = {
   newFaces: {
     nari: newFaceNariDigital,
     dai: newFaceDaiDigital,
-    // The seated studio frame keeps stronger face/hair continuity with the
-    // existing Hina digital; the rainbow frame remains a portfolio look.
-    hinaHover: hinaChinenLook02,
-    hinaLook02: hinaChinenHover,
   },
   portfolio: {
     womenEditorial: portfolioWomenEditorial,
@@ -186,14 +177,8 @@ export const goldenMockAssetManifest = [
     objectPosition: "50% 50%",
   },
   {
-    id: "lin-wei-jie-look-02",
+    id: "lin-wei-jie-look-02-cropped",
     usage: "portrait-card-hover",
-    aspectRatio: "2 / 3",
-    objectPosition: "50% 50%",
-  },
-  {
-    id: "lin-wei-jie-hover",
-    usage: "portfolio-gallery",
     aspectRatio: "2 / 3",
     objectPosition: "50% 50%",
   },
@@ -224,18 +209,6 @@ export const goldenMockAssetManifest = [
   {
     id: "new-face-dai-digital",
     usage: "full-body-profile",
-    aspectRatio: "2 / 3",
-    objectPosition: "50% 50%",
-  },
-  {
-    id: "hina-chinen-hover",
-    usage: "portfolio-gallery",
-    aspectRatio: "2 / 3",
-    objectPosition: "50% 50%",
-  },
-  {
-    id: "hina-chinen-look-02",
-    usage: "portrait-card-hover",
     aspectRatio: "2 / 3",
     objectPosition: "50% 50%",
   },
