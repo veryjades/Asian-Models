@@ -228,7 +228,6 @@ function AdminPasswordSetup({
               type="password"
               autoComplete="new-password"
               required
-              minLength={12}
               className="mt-2 w-full border border-white/20 bg-black/20 px-3 py-3 text-white outline-none focus:border-white/60"
             />
           </label>
@@ -240,7 +239,6 @@ function AdminPasswordSetup({
               type="password"
               autoComplete="new-password"
               required
-              minLength={12}
               className="mt-2 w-full border border-white/20 bg-black/20 px-3 py-3 text-white outline-none focus:border-white/60"
             />
           </label>

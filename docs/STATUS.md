@@ -4,7 +4,7 @@
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
 **Current task:** Close the live Auth/Storage evidence gate and prepare the reviewed Phase 3 handoff.
-**Last heartbeat:** 2026-08-15 +08:00 (Auth policy alignment, invite/recovery routing, and local admin QA)
+**Last heartbeat:** 2026-08-15 +08:00 (reset invitation retry and password-form policy correction)
 **Completion date:** 2026-08-10
 
 ## Completed items
@@ -58,10 +58,12 @@
 - Owner-authorized Admin UI preparation is complete at `/admin`: Auth sign-in, trusted Admin/Editor role gate, model create/update form, primary photo upload, optional second hover photo upload, private Storage paths, and `media_assets.sort_order` 0/1 persistence are implemented without service-role exposure. Local browser QA showed the configured sign-in state, no console errors, and no horizontal overflow. Full operational admin scope remains Phase 5.
 - Admin media manager extension is complete: `model_video_links` and `model_social_links` are live with RLS; `/admin` accepts unlimited gallery media including MP4, validated YouTube URLs, HTTPS social links, and Admin-only deletion. Public route consumption remains intentionally unconnected until the Phase 3 data/mapping review.
 - Admin recovery delivery is verified: `src/lib/supabase/auth.ts` supports reset/update password operations and `/admin` renders a first-time setup form that delegates password policy to Supabase Auth. Supabase Auth URL Configuration is set to `http://127.0.0.1:8090` with local and Preview wildcard redirects; the Dashboard confirmed all three URLs were added. The existing `menscheck@gmail.com` account is email-confirmed and has the server-side `app_metadata.role=admin`. The root route now catches invite/recovery links that land on the homepage and redirects to `/admin?reset=1` while preserving the auth hash; local browser QA rendered the setup form with no console errors. The live Email provider policy is owner-authorized minimum 6 characters with no required character classes. No password is stored in the repository or browser code.
+- A fresh owner reset invitation was attempted from the live `/admin` form, but Supabase returned `429: email rate limit exceeded`; therefore no new invitation is claimed as sent. The application path remains ready for a retry after the provider window clears.
 
 ## Blockers
 
 - The live Auth/Data API/Storage matrix is clean. Supabase Auth policy is project-configurable; the owner-authorized Email provider setting is currently minimum 6 characters with no required character classes. Security advisor still reports `auth_leaked_password_protection` because Supabase makes leaked-password checks available only on Pro and above; this is a plan limitation, not a failed setting. Performance advisors report only unused indexes on the empty database. Local Docker remains unavailable but is non-blocking.
+- Owner password-reset invitation is temporarily blocked by Supabase's email send rate limit (`429 over_email_send_rate_limit`); retry after the provider window clears.
 - The strict TypeScript baseline is resolved: fixed the 10 pre-existing errors in AskAssistant, QuickBooking, and assistantRetrieval; `bunx tsc --noEmit`, `bun run lint`, and `bun run build` now pass (lint retains 9 existing warnings).
 - No deployment blocker remains. Product acceptance is pending review of the isolated Preview. The production keyword/tag admin and CMS backing remain future Phase 5/admin work; this iteration only adds the content boundary and documents the future requirement.
 - Identity-consistent hover photography remains in progress for the remaining models. No other-person photo may be substituted or duplicated; the Lin hover derivative only trims the supplied frame's baked black matte while preserving the subject.
