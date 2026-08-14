@@ -49,6 +49,7 @@
 - Anonymous Data API smoke check returned `401 permission denied`; Storage list returned an empty `200` because there are no objects, so anonymous Storage denial remains unverified rather than being overstated as passed.
 - Extended policy probe script executed against the linked project: invalid role fallback, viewer client-write denial, and admin insert/delete transaction all behaved as expected.
 - Asset mapping audit found no media path shared across different model slugs; repeated paths are limited to the same model's gallery/digital usage. The only black-edge legacy asset (`src/assets/model-03.jpg`) is not referenced by the content seed.
+- Local Playwright QA on 2026-08-15 loaded `/models/women`, `/keywords/women`, and `/models/women/chen-yu-xin` with HTTP 200 and no console/page errors; Women board rendered 5 paired cards, and Chen hover switched primary opacity `0` → hover opacity `1` with fixed card geometry.
 - `.env.example` now points to the approved public project URL; the publishable key remains a local-only placeholder and no service-role secret is committed.
 - The J Assistant control no longer collides with the Vercel Preview Toolbar: its trigger is positioned clear of the toolbar and its opened conversation temporarily hides that toolbar. The latest Preview was clicked directly; it opened J Assistant and returned four candidate profiles for `我要找男模`. The 390px surface had no horizontal overflow or console errors.
 
