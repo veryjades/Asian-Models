@@ -77,6 +77,7 @@ function AdminRoute() {
   const [identity, setIdentity] = useState<AuthIdentity | null>(null);
   const [access, setAccess] = useState<AccessState>("loading");
   const [notice, setNotice] = useState<Notice | null>(null);
+  const [passwordSetup, setPasswordSetup] = useState(false);
 
   useEffect(() => {
     let disposed = false;
@@ -85,6 +86,9 @@ function AdminRoute() {
     try {
       const nextClient = getSupabaseBrowserClient();
       setClient(nextClient);
+      const recoveryHash = new URLSearchParams(window.location.hash.slice(1)).get("type");
+      const recoveryQuery = new URLSearchParams(window.location.search).get("reset");
+      setPasswordSetup(recoveryHash === "recovery" || recoveryQuery === "1");
       const auth = createAuthAdapter(nextClient);
 
       const refreshIdentity = async () => {
@@ -137,6 +141,9 @@ function AdminRoute() {
         }
       />
     );
+  if (passwordSetup && client) {
+    return <AdminPasswordSetup client={client} onComplete={() => setPasswordSetup(false)} />;
+  }
   if (access === "signed-out") {
     return <AdminSignIn client={client} notice={notice} />;
   }
@@ -161,6 +168,103 @@ function AdminRoute() {
       identity={identity}
       onSignedOut={() => setAccess("signed-out")}
     />
+  );
+}
+
+function AdminPasswordSetup({
+  client,
+  onComplete,
+}: {
+  client: SupabaseClient<Database>;
+  onComplete: () => void;
+}) {
+  const [password, setPassword] = useState("");
+  const [confirmation, setConfirmation] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<Notice | null>(null);
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (password.length < 12) {
+      setMessage({ tone: "error", text: "Password must be at least 12 characters." });
+      return;
+    }
+    if (password !== confirmation) {
+      setMessage({ tone: "error", text: "Passwords do not match." });
+      return;
+    }
+    setBusy(true);
+    setMessage(null);
+    const { error } = await createAuthAdapter(client).updatePassword(password);
+    if (error) {
+      setMessage({ tone: "error", text: error.message });
+    } else {
+      window.history.replaceState({}, "", "/admin");
+      setMessage({
+        tone: "success",
+        text: "Password updated. You can now sign in to the workspace.",
+      });
+      setPassword("");
+      setConfirmation("");
+      onComplete();
+    }
+    setBusy(false);
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-white">
+      <div className="w-full max-w-md border border-white/15 bg-white/5 p-8">
+        <p className="label-xs text-white/50">J&J / ADMIN</p>
+        <h1 className="mt-4 text-3xl font-light">Set your workspace password</h1>
+        <p className="mt-4 text-sm leading-7 text-white/65">
+          Use a new password of at least 12 characters. Do not reuse your email address.
+        </p>
+        <form className="mt-8 space-y-5" onSubmit={submit}>
+          <label className="block text-sm text-white/70">
+            New password
+            <input
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={12}
+              className="mt-2 w-full border border-white/20 bg-black/20 px-3 py-3 text-white outline-none focus:border-white/60"
+            />
+          </label>
+          <label className="block text-sm text-white/70">
+            Confirm password
+            <input
+              value={confirmation}
+              onChange={(event) => setConfirmation(event.target.value)}
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={12}
+              className="mt-2 w-full border border-white/20 bg-black/20 px-3 py-3 text-white outline-none focus:border-white/60"
+            />
+          </label>
+          {message && (
+            <p
+              className={
+                message.tone === "error"
+                  ? "border border-red-300/30 bg-red-300/10 p-3 text-sm text-red-100"
+                  : "border border-emerald-300/30 bg-emerald-300/10 p-3 text-sm text-emerald-100"
+              }
+            >
+              {message.text}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={busy}
+            className="label-xs w-full bg-white px-4 py-3 text-slate-950 transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {busy ? "Updating…" : "Set password"}
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }
 
@@ -210,6 +314,7 @@ function AdminSignIn({
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(notice?.text ?? null);
+  const [resetSent, setResetSent] = useState(false);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -221,6 +326,23 @@ function AdminSignIn({
       password,
     );
     if (signInError) setError(signInError.message);
+    setBusy(false);
+  };
+
+  const sendReset = async () => {
+    if (!client || !email.trim()) {
+      setError("Enter your email first.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    setResetSent(false);
+    const { error: resetError } = await createAuthAdapter(client).resetPasswordForEmail(
+      email.trim(),
+      `${window.location.origin}/admin?reset=1`,
+    );
+    if (resetError) setError(resetError.message);
+    else setResetSent(true);
     setBusy(false);
   };
 
@@ -274,6 +396,19 @@ function AdminSignIn({
           >
             {busy ? "Signing in…" : "Sign in"}
           </button>
+          <button
+            type="button"
+            onClick={() => void sendReset()}
+            disabled={busy || !client}
+            className="w-full text-center text-xs text-white/55 underline underline-offset-4 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Forgot password / first-time setup
+          </button>
+          {resetSent && (
+            <p className="border border-emerald-300/30 bg-emerald-300/10 p-3 text-sm text-emerald-100">
+              Check your email for a secure password setup link.
+            </p>
+          )}
         </form>
       </div>
     </div>

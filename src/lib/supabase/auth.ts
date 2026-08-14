@@ -38,6 +38,8 @@ export interface AuthAdapter {
   getSession: () => Promise<{ data: { session: Session | null }; error: Error | null }>;
   getIdentity: () => Promise<{ data: { identity: AuthIdentity | null }; error: Error | null }>;
   signInWithPassword: (email: string, password: string) => Promise<AuthResponse>;
+  resetPasswordForEmail: (email: string, redirectTo: string) => Promise<{ error: Error | null }>;
+  updatePassword: (password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<{ error: Error | null }>;
   onAuthStateChange: (callback: (event: AuthChangeEvent, session: Session | null) => void) => {
     unsubscribe: () => void;
@@ -62,6 +64,14 @@ export function createAuthAdapter(client: SupabaseClient<Database>): AuthAdapter
       };
     },
     signInWithPassword: (email, password) => client.auth.signInWithPassword({ email, password }),
+    resetPasswordForEmail: async (email, redirectTo) => {
+      const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo });
+      return { error };
+    },
+    updatePassword: async (password) => {
+      const { error } = await client.auth.updateUser({ password });
+      return { error };
+    },
     signOut: () => client.auth.signOut(),
     onAuthStateChange: (callback) => {
       const { data } = client.auth.onAuthStateChange(callback);
