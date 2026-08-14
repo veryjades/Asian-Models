@@ -60,6 +60,7 @@ Phase 1 architecture foundation is complete. No existing UI route is connected t
 | ID     | Task                                                                 | Owner | Status      | Dependency | Evidence / next action |
 | ------ | -------------------------------------------------------------------- | ----- | ----------- | ---------- | --------------------- |
 | ADM-001 | Build the authenticated model media admin surface for primary + hover uploads. | Codex | Complete | D-012, P2-003 | Added `/admin` with Auth sign-in, Admin/Editor gate, model create/update form, primary photo slot, optional hover photo slot, private Storage uploads, and `media_assets.sort_order` 0/1 persistence. `bunx tsc --noEmit`, `bun run lint`, and `bun run build` pass; local browser QA at `/admin` showed the configured sign-in state, no console errors, and no horizontal overflow. |
+| ADM-002 | Extend each model profile with unlimited gallery media, MP4 upload, YouTube links, and social links. | Codex | Complete | D-013, ADM-001 | Migration `20260814190731_admin_media_links.sql` is applied to live project `cajkkxustehtzyymlopm`; `/admin` now supports multi-file gallery selection, MP4 validation, YouTube URL validation, HTTPS social links, and Admin-only deletion. `bunx tsc --noEmit`, `bun run lint`, and `bun run build` pass. |
 
 ## Experience-validation iteration — Mock assets
 

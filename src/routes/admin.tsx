@@ -13,6 +13,8 @@ import type { Database } from "@/lib/supabase/database.types";
 
 type ModelRow = Database["public"]["Tables"]["models"]["Row"];
 type MediaRow = Database["public"]["Tables"]["media_assets"]["Row"];
+type VideoLinkRow = Database["public"]["Tables"]["model_video_links"]["Row"];
+type SocialLinkRow = Database["public"]["Tables"]["model_social_links"]["Row"];
 type ModelStatus = ModelRow["status"];
 type ModelGender = "women" | "men";
 
@@ -43,6 +45,30 @@ const EMPTY_DRAFT: ModelDraft = {
   bio: "",
   status: "active",
 };
+
+const SOCIAL_PLATFORMS = [
+  ["instagram", "Instagram"],
+  ["tiktok", "TikTok"],
+  ["youtube", "YouTube"],
+  ["facebook", "Facebook"],
+  ["x", "X"],
+  ["website", "Website"],
+  ["other", "Other"],
+] as const;
+
+function isYouTubeUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return (
+      url.protocol === "https:" &&
+      ["youtube.com", "www.youtube.com", "youtu.be", "www.youtu.be"].includes(
+        url.hostname.toLowerCase(),
+      )
+    );
+  } catch {
+    return false;
+  }
+}
 
 export const Route = createFileRoute("/admin")({ component: AdminRoute });
 
@@ -269,7 +295,15 @@ function AdminDashboard({
   const [draft, setDraft] = useState<ModelDraft>(EMPTY_DRAFT);
   const [primaryFile, setPrimaryFile] = useState<File | null>(null);
   const [hoverFile, setHoverFile] = useState<File | null>(null);
+  const [additionalFiles, setAdditionalFiles] = useState<File[]>([]);
   const [mediaRows, setMediaRows] = useState<MediaRow[]>([]);
+  const [videoLinks, setVideoLinks] = useState<VideoLinkRow[]>([]);
+  const [socialLinks, setSocialLinks] = useState<SocialLinkRow[]>([]);
+  const [videoTitle, setVideoTitle] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [socialPlatform, setSocialPlatform] = useState("instagram");
+  const [socialLabel, setSocialLabel] = useState("");
+  const [socialUrl, setSocialUrl] = useState("");
   const [remotePreviews, setRemotePreviews] = useState<PreviewState>({
     primary: undefined,
     hover: undefined,
@@ -296,6 +330,27 @@ function AdminDashboard({
   useEffect(() => {
     void loadModels();
   }, [loadModels]);
+
+  const loadRelations = useCallback(
+    async (modelId: string) => {
+      const [mediaResult, videosResult, socialResult] = await Promise.all([
+        client
+          .from("media_assets")
+          .select("*")
+          .eq("owner_type", "model")
+          .eq("owner_id", modelId)
+          .order("sort_order"),
+        client.from("model_video_links").select("*").eq("model_id", modelId).order("sort_order"),
+        client.from("model_social_links").select("*").eq("model_id", modelId).order("sort_order"),
+      ]);
+      const firstError = mediaResult.error ?? videosResult.error ?? socialResult.error;
+      if (firstError) setNotice({ tone: "error", text: firstError.message });
+      setMediaRows(mediaResult.data ?? []);
+      setVideoLinks(videosResult.data ?? []);
+      setSocialLinks(socialResult.data ?? []);
+    },
+    [client],
+  );
 
   useEffect(() => {
     const urls: string[] = [];
@@ -351,63 +406,164 @@ function AdminDashboard({
     });
     setPrimaryFile(null);
     setHoverFile(null);
+    setAdditionalFiles([]);
+    setVideoTitle("");
+    setVideoUrl("");
+    setSocialLabel("");
+    setSocialUrl("");
     setNotice(null);
-    const { data, error } = await client
-      .from("media_assets")
-      .select("*")
-      .eq("owner_type", "model")
-      .eq("owner_id", model.id)
-      .order("sort_order");
-    if (error) setNotice({ tone: "error", text: error.message });
-    setMediaRows(data ?? []);
+    await loadRelations(model.id);
   };
 
   const newModel = () => {
     setSelectedModelId(null);
     setDraft(EMPTY_DRAFT);
     setMediaRows([]);
+    setVideoLinks([]);
+    setSocialLinks([]);
     setPrimaryFile(null);
     setHoverFile(null);
+    setAdditionalFiles([]);
     setNotice(null);
   };
 
-  const persistMedia = async (modelId: string, file: File, sortOrder: 0 | 1) => {
+  const persistMedia = async (modelId: string, file: File, sortOrder: number, replace = false) => {
     const mime = file.type as ModelMediaMimeType;
-    const extension = mime === "image/jpeg" ? "jpg" : mime === "image/png" ? "png" : "webp";
-    const slot = sortOrder === 0 ? "primary" : "hover";
+    const extension =
+      mime === "image/jpeg"
+        ? "jpg"
+        : mime === "image/png"
+          ? "png"
+          : mime === "video/mp4"
+            ? "mp4"
+            : "webp";
+    const slot =
+      sortOrder === 0
+        ? "primary"
+        : sortOrder === 1
+          ? "hover"
+          : `gallery-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const path = createModelMediaPath("models", modelId, `${slot}.${extension}`);
+    const mediaType = mime === "video/mp4" ? "video" : "image";
     const media = createModelMediaAdapter(client);
     const { error: uploadError } = await media.upload(path, file, {
       cacheControl: "3600",
-      upsert: true,
+      upsert: replace,
     });
     if (uploadError) throw new Error(uploadError.message);
 
-    const { data: existing, error: lookupError } = await client
-      .from("media_assets")
-      .select("id")
-      .eq("owner_type", "model")
-      .eq("owner_id", modelId)
-      .eq("sort_order", sortOrder)
-      .maybeSingle();
-    if (lookupError) throw new Error(lookupError.message);
-    if (existing) {
-      const { error } = await client
+    if (replace) {
+      const { data: existing, error: lookupError } = await client
         .from("media_assets")
-        .update({ file_url: path, type: "image", visibility: "private" })
-        .eq("id", existing.id);
-      if (error) throw new Error(error.message);
-    } else {
+        .select("id")
+        .eq("owner_type", "model")
+        .eq("owner_id", modelId)
+        .eq("sort_order", sortOrder)
+        .maybeSingle();
+      if (lookupError) throw new Error(lookupError.message);
+      if (existing) {
+        const { error } = await client
+          .from("media_assets")
+          .update({ file_url: path, type: mediaType, visibility: "private" })
+          .eq("id", existing.id);
+        if (error) throw new Error(error.message);
+        return;
+      }
+    }
+
+    {
       const { error } = await client.from("media_assets").insert({
         owner_type: "model",
         owner_id: modelId,
         file_url: path,
-        type: "image",
+        type: mediaType,
         sort_order: sortOrder,
         visibility: "private",
       });
       if (error) throw new Error(error.message);
     }
+  };
+
+  const addVideoLink = async () => {
+    if (!canEdit || !selectedModelId) {
+      setNotice({ tone: "error", text: "Save the model profile before adding links." });
+      return;
+    }
+    const title = videoTitle.trim();
+    const url = videoUrl.trim();
+    if (!title || !isYouTubeUrl(url)) {
+      setNotice({ tone: "error", text: "Enter a title and a valid HTTPS YouTube URL." });
+      return;
+    }
+    const { error } = await client.from("model_video_links").insert({
+      model_id: selectedModelId,
+      title,
+      youtube_url: url,
+      sort_order: videoLinks.length,
+    });
+    if (error) {
+      setNotice({ tone: "error", text: error.message });
+      return;
+    }
+    setVideoTitle("");
+    setVideoUrl("");
+    await loadRelations(selectedModelId);
+    setNotice({ tone: "success", text: "YouTube link added." });
+  };
+
+  const addSocialLink = async () => {
+    if (!canEdit || !selectedModelId) {
+      setNotice({ tone: "error", text: "Save the model profile before adding links." });
+      return;
+    }
+    const url = socialUrl.trim();
+    if (!url.startsWith("https://")) {
+      setNotice({ tone: "error", text: "Social links must use HTTPS." });
+      return;
+    }
+    const platform = socialPlatform as SocialLinkRow["platform"];
+    const { error } = await client.from("model_social_links").insert({
+      model_id: selectedModelId,
+      platform,
+      label: socialLabel.trim() || platform,
+      url,
+      sort_order: socialLinks.length,
+    });
+    if (error) {
+      setNotice({ tone: "error", text: error.message });
+      return;
+    }
+    setSocialLabel("");
+    setSocialUrl("");
+    await loadRelations(selectedModelId);
+    setNotice({ tone: "success", text: "Social link added." });
+  };
+
+  const deleteVideoLink = async (id: string) => {
+    if (identity.role !== "admin") return;
+    const { error } = await client.from("model_video_links").delete().eq("id", id);
+    if (error) setNotice({ tone: "error", text: error.message });
+    else if (selectedModelId) await loadRelations(selectedModelId);
+  };
+
+  const deleteSocialLink = async (id: string) => {
+    if (identity.role !== "admin") return;
+    const { error } = await client.from("model_social_links").delete().eq("id", id);
+    if (error) setNotice({ tone: "error", text: error.message });
+    else if (selectedModelId) await loadRelations(selectedModelId);
+  };
+
+  const deleteMedia = async (row: MediaRow) => {
+    if (identity.role !== "admin") return;
+    const media = createModelMediaAdapter(client);
+    const { error: storageError } = await media.remove([row.file_url]);
+    if (storageError) {
+      setNotice({ tone: "error", text: storageError.message });
+      return;
+    }
+    const { error } = await client.from("media_assets").delete().eq("id", row.id);
+    if (error) setNotice({ tone: "error", text: error.message });
+    else if (selectedModelId) await loadRelations(selectedModelId);
   };
 
   const saveModel = async (event: FormEvent<HTMLFormElement>) => {
@@ -455,20 +611,20 @@ function AdminDashboard({
         saved = data;
       }
       if (!saved) throw new Error("The model record was not returned after save.");
-      if (primaryFile) await persistMedia(saved.id, primaryFile, 0);
-      if (hoverFile) await persistMedia(saved.id, hoverFile, 1);
+      if (primaryFile) await persistMedia(saved.id, primaryFile, 0, true);
+      if (hoverFile) await persistMedia(saved.id, hoverFile, 1, true);
+      let nextSortOrder = Math.max(1, ...mediaRows.map((media) => media.sort_order)) + 1;
+      for (const file of additionalFiles) {
+        await persistMedia(saved.id, file, nextSortOrder);
+        nextSortOrder += 1;
+      }
       setSelectedModelId(saved.id);
       setPrimaryFile(null);
       setHoverFile(null);
+      setAdditionalFiles([]);
       await loadModels();
-      const { data: refreshedMedia } = await client
-        .from("media_assets")
-        .select("*")
-        .eq("owner_type", "model")
-        .eq("owner_id", saved.id)
-        .order("sort_order");
-      setMediaRows(refreshedMedia ?? []);
-      setNotice({ tone: "success", text: "Model profile and selected photo frames saved." });
+      await loadRelations(saved.id);
+      setNotice({ tone: "success", text: "Model profile and selected media saved." });
     } catch (error) {
       setNotice({
         tone: "error",
@@ -733,6 +889,200 @@ function AdminDashboard({
                 </div>
               </section>
 
+              <section className="border border-white/15 bg-white/[0.03] p-5 md:p-7">
+                <div className="flex flex-wrap items-end justify-between gap-4">
+                  <div>
+                    <p className="label-xs text-white/45">GALLERY / UNLIMITED MEDIA</p>
+                    <h3 className="mt-2 text-2xl font-light">Additional photos and video</h3>
+                    <p className="mt-2 max-w-xl text-sm leading-6 text-white/50">
+                      Add as many portfolio files as the profile needs. Images use the public
+                      surface&apos;s cover crop, while MP4 files remain private until a signed-in
+                      workflow requests them.
+                    </p>
+                  </div>
+                  <span className="text-xs uppercase tracking-[0.16em] text-white/40">
+                    JPG / PNG / WEBP / MP4 · 50 MB max each
+                  </span>
+                </div>
+                <div className="mt-6">
+                  <MultiUploadSlot
+                    disabled={!canEdit || !selectedModelId}
+                    selectedCount={additionalFiles.length}
+                    onFiles={setAdditionalFiles}
+                  />
+                  {!selectedModelId && (
+                    <p className="mt-3 text-xs text-white/40">
+                      Save the profile first, then add gallery media.
+                    </p>
+                  )}
+                </div>
+                {mediaRows.filter((row) => row.sort_order > 1).length > 0 && (
+                  <ul className="mt-6 divide-y divide-white/10 border border-white/10">
+                    {mediaRows
+                      .filter((row) => row.sort_order > 1)
+                      .map((row) => (
+                        <li
+                          key={row.id}
+                          className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm"
+                        >
+                          <span className="text-white/70">
+                            {row.type === "video" ? "MP4 video" : "Image"} · gallery #
+                            {row.sort_order - 1}
+                          </span>
+                          {identity.role === "admin" && (
+                            <button
+                              type="button"
+                              onClick={() => void deleteMedia(row)}
+                              className="text-xs uppercase tracking-[0.14em] text-red-200/70 hover:text-red-100"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                  </ul>
+                )}
+              </section>
+
+              <section className="grid gap-8 lg:grid-cols-2">
+                <div className="border border-white/15 bg-white/[0.03] p-5 md:p-7">
+                  <p className="label-xs text-white/45">VIDEO LINKS</p>
+                  <h3 className="mt-2 text-2xl font-light">YouTube references</h3>
+                  <p className="mt-2 text-sm leading-6 text-white/50">
+                    Store interviews, runway reels, or casting references without embedding them in
+                    the profile record.
+                  </p>
+                  <div className="mt-5 space-y-4">
+                    <Field
+                      label="Title"
+                      value={videoTitle}
+                      disabled={!canEdit || !selectedModelId}
+                      onChange={setVideoTitle}
+                      placeholder="Editorial film"
+                    />
+                    <Field
+                      label="YouTube URL"
+                      value={videoUrl}
+                      disabled={!canEdit || !selectedModelId}
+                      onChange={setVideoUrl}
+                      placeholder="https://youtu.be/..."
+                    />
+                    <button
+                      type="button"
+                      disabled={!canEdit || !selectedModelId}
+                      onClick={() => void addVideoLink()}
+                      className="label-xs border border-white/40 px-4 py-3 transition-colors hover:bg-white hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      + Add YouTube link
+                    </button>
+                  </div>
+                  {videoLinks.length > 0 && (
+                    <ul className="mt-6 divide-y divide-white/10 border border-white/10">
+                      {videoLinks.map((link) => (
+                        <li
+                          key={link.id}
+                          className="flex items-center justify-between gap-3 px-4 py-3 text-sm"
+                        >
+                          <a
+                            href={link.youtube_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="min-w-0 truncate text-white/75 underline decoration-white/20 underline-offset-4 hover:text-white"
+                          >
+                            {link.title}
+                          </a>
+                          {identity.role === "admin" && (
+                            <button
+                              type="button"
+                              onClick={() => void deleteVideoLink(link.id)}
+                              className="shrink-0 text-xs text-red-200/70 hover:text-red-100"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                <div className="border border-white/15 bg-white/[0.03] p-5 md:p-7">
+                  <p className="label-xs text-white/45">SOCIAL LINKS</p>
+                  <h3 className="mt-2 text-2xl font-light">Profile channels</h3>
+                  <p className="mt-2 text-sm leading-6 text-white/50">
+                    Keep each model&apos;s social presence attached to the record for casting and
+                    editorial follow-up.
+                  </p>
+                  <div className="mt-5 space-y-4">
+                    <label className="block text-sm text-white/65">
+                      Platform
+                      <select
+                        value={socialPlatform}
+                        disabled={!canEdit || !selectedModelId}
+                        onChange={(event) => setSocialPlatform(event.target.value)}
+                        className="mt-2 w-full border border-white/20 bg-slate-950 px-3 py-3 text-white outline-none focus:border-white/60"
+                      >
+                        {SOCIAL_PLATFORMS.map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <Field
+                      label="Label (optional)"
+                      value={socialLabel}
+                      disabled={!canEdit || !selectedModelId}
+                      onChange={setSocialLabel}
+                      placeholder="Official Instagram"
+                    />
+                    <Field
+                      label="HTTPS URL"
+                      value={socialUrl}
+                      disabled={!canEdit || !selectedModelId}
+                      onChange={setSocialUrl}
+                      placeholder="https://instagram.com/..."
+                    />
+                    <button
+                      type="button"
+                      disabled={!canEdit || !selectedModelId}
+                      onClick={() => void addSocialLink()}
+                      className="label-xs border border-white/40 px-4 py-3 transition-colors hover:bg-white hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      + Add social link
+                    </button>
+                  </div>
+                  {socialLinks.length > 0 && (
+                    <ul className="mt-6 divide-y divide-white/10 border border-white/10">
+                      {socialLinks.map((link) => (
+                        <li
+                          key={link.id}
+                          className="flex items-center justify-between gap-3 px-4 py-3 text-sm"
+                        >
+                          <a
+                            href={link.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="min-w-0 truncate text-white/75 underline decoration-white/20 underline-offset-4 hover:text-white"
+                          >
+                            {link.label} · {link.platform}
+                          </a>
+                          {identity.role === "admin" && (
+                            <button
+                              type="button"
+                              onClick={() => void deleteSocialLink(link.id)}
+                              className="shrink-0 text-xs text-red-200/70 hover:text-red-100"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </section>
+
               <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/15 pt-6">
                 <p className="max-w-xl text-xs leading-6 text-white/40">
                   Saving writes only through authenticated client calls. Admin can delete records
@@ -835,5 +1185,40 @@ function UploadSlot({
         </div>
       </label>
     </div>
+  );
+}
+
+function MultiUploadSlot({
+  disabled,
+  selectedCount,
+  onFiles,
+}: {
+  disabled: boolean;
+  selectedCount: number;
+  onFiles: (files: File[]) => void;
+}) {
+  return (
+    <label
+      className={`flex min-h-32 items-center justify-between gap-5 border border-dashed border-white/25 bg-black/20 px-5 py-5 ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:border-white/65"}`}
+    >
+      <div>
+        <p className="text-sm text-white/80">Choose gallery media</p>
+        <p className="mt-2 text-xs leading-5 text-white/40">
+          Select multiple images or MP4 files. They will be appended after the primary and hover
+          slots.
+        </p>
+      </div>
+      <span className="shrink-0 border border-white/35 px-4 py-3 text-xs uppercase tracking-[0.14em] text-white/65">
+        {selectedCount > 0 ? `${selectedCount} selected` : "Choose files"}
+      </span>
+      <input
+        type="file"
+        multiple
+        accept="image/jpeg,image/png,image/webp,video/mp4"
+        disabled={disabled}
+        className="sr-only"
+        onChange={(event) => onFiles(Array.from(event.target.files ?? []))}
+      />
+    </label>
   );
 }

@@ -113,6 +113,79 @@ export type Database = {
         };
         Relationships: [];
       };
+      model_social_links: {
+        Row: {
+          created_at: string;
+          id: string;
+          label: string;
+          model_id: string;
+          platform: string;
+          sort_order: number;
+          url: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          label: string;
+          model_id: string;
+          platform: string;
+          sort_order?: number;
+          url: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          label?: string;
+          model_id?: string;
+          platform?: string;
+          sort_order?: number;
+          url?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "model_social_links_model_id_fkey";
+            columns: ["model_id"];
+            isOneToOne: false;
+            referencedRelation: "models";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      model_video_links: {
+        Row: {
+          created_at: string;
+          id: string;
+          model_id: string;
+          sort_order: number;
+          title: string;
+          youtube_url: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          model_id: string;
+          sort_order?: number;
+          title: string;
+          youtube_url: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          model_id?: string;
+          sort_order?: number;
+          title?: string;
+          youtube_url?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "model_video_links_model_id_fkey";
+            columns: ["model_id"];
+            isOneToOne: false;
+            referencedRelation: "models";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       models: {
         Row: {
           bio: string | null;
@@ -201,7 +274,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      current_app_role: {
+        Args: Record<PropertyKey, never>;
+        Returns: string;
+      };
     };
     Enums: {
       [_ in never]: never;
