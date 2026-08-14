@@ -56,3 +56,7 @@ above are completed.
 `src/lib/supabase/media.ts` provides the matching private Storage boundary:
 fixed `model-media` bucket, validated owner paths, and client-side MIME/size
 guards before the database-enforced Storage policies run.
+
+Role assignment is isolated in the deployed `provision-user` Edge Function;
+its JWT gate and in-function admin check prevent viewer/editor callers from
+using the service-role admin client.

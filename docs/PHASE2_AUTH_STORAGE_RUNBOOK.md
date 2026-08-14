@@ -9,9 +9,16 @@
 - Supported values are `admin`, `editor`, and `viewer`.
 - A missing or invalid role is treated as `viewer` by `public.current_app_role()`.
 - Never use `raw_user_meta_data` / `user_metadata` for authorization; users can edit it.
-- Create users through Supabase Auth Dashboard or a server-only admin workflow. If a role must be assigned programmatically, use the service-role API only from a server/Edge Function and write `app_metadata.role`.
+- Create users through Supabase Auth Dashboard or the server-only `provision-user` Edge Function. If a role must be assigned programmatically, use the service-role API only from that server/Edge workflow and write `app_metadata.role`.
 - Never put a service-role key in `VITE_*`, browser code, `.env.example`, or a client bundle.
 - After changing `app_metadata`, force a session refresh before testing the new role because existing JWT claims can be stale.
+
+The deployed `provision-user` function (`verify_jwt = true`) accepts
+`POST { user_id, role }`, requires the caller's server-confirmed
+`app_metadata.role = admin`, merges existing target metadata, and writes only
+the validated role. It returns no user metadata and never exposes the
+service-role key. Missing bearer tokens return 401; anonymous/non-admin JWTs
+return 403.
 
 ## Browser Auth boundary
 
