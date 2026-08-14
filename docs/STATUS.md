@@ -3,7 +3,7 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** Define concrete Auth, Storage, and RLS policy tests before browser exposure.
+**Current task:** Implement Auth role provisioning and end-to-end role tests before browser exposure.
 **Last heartbeat:** 2026-08-15 +08:00
 **Completion date:** 2026-08-10
 
@@ -41,11 +41,12 @@
 - Supabase project `asian-models` is provisioned and `ACTIVE_HEALTHY` in `ap-southeast-1` (ref `cajkkxustehtzyymlopm`, URL `https://cajkkxustehtzyymlopm.supabase.co`). Auth, Storage, browser grants, and role policies remain pending P2-002/P2-003.
 - Supabase pre-migration smoke check passed before Phase 2; the migration was then applied and the post-migration table/advisor verification is recorded below.
 - Phase 2 approved by the project owner. Migration `20260814163450_initial_platform_foundation` is now applied to `cajkkxustehtzyymlopm`; five public tables are present with RLS enabled, and `src/lib/supabase/database.types.ts` has been regenerated from the live schema.
+- P2-002 is complete: migration `20260814164022_phase2_security_policies` adds trusted `app_metadata.role` evaluation, authenticated-only grants, Admin/Editor/Viewer policies, private `model-media` Storage bucket/path policies, and was verified by security advisors plus viewer/editor transaction probes.
 - The J Assistant control no longer collides with the Vercel Preview Toolbar: its trigger is positioned clear of the toolbar and its opened conversation temporarily hides that toolbar. The latest Preview was clicked directly; it opened J Assistant and returned four candidate profiles for `我要找男模`. The 390px surface had no horizontal overflow or console errors.
 
 ## Blockers
 
-- Security advisors report INFO findings because the five RLS-enabled tables have no policies yet; this is the active P2-002 task. Performance INFO findings only report unused indexes on the empty database. Local Docker remains unavailable.
+- Security advisors are clean after P2-002. Performance advisors report only unused indexes on the empty database. P2-003 remains active for Auth role provisioning and end-to-end tests; local Docker remains unavailable.
 - No deployment blocker remains. Product acceptance is pending review of the isolated Preview. The production keyword/tag admin and CMS backing remain future Phase 5/admin work; this iteration only adds the content boundary and documents the future requirement.
 - Identity-consistent hover photography remains in progress for the remaining models. No other-person photo may be substituted or duplicated; the Lin hover derivative only trims the supplied frame's baked black matte while preserving the subject.
 

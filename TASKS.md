@@ -48,11 +48,11 @@ Phase 1 architecture foundation is complete. No existing UI route is connected t
 
 ## Phase 2 — Application Foundation
 
-| ID     | Planned task                                                                 | Owner | Status      | Dependency | Next step                                                                                                                 |
-| ------ | ---------------------------------------------------------------------------- | ----- | ----------- | ---------- | ------------------------------------------------------------------------------------------------------------------------- |
-| P2-001 | Apply the approved schema and refresh the typed database boundary.           | Codex | Complete    | D-011      | Migration and generated types are verified against the linked project.                                                    |
-| P2-002 | Define concrete Auth, Storage, and RLS policy tests for Admin/Editor/Viewer. | Codex | In progress | P2-001     | Convert the policy plan into explicit SQL policies, bucket/path rules, and role-claim test cases before browser exposure. |
-| P2-003 | Implement Auth, Storage boundaries, and role enforcement.                    | Codex | Pending     | P2-002     | Implement only after P2-002 is reviewed and its policy tests are defined.                                                 |
+| ID     | Planned task                                                                 | Owner | Status      | Dependency | Next step                                                                                                                                                                                                                     |
+| ------ | ---------------------------------------------------------------------------- | ----- | ----------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P2-001 | Apply the approved schema and refresh the typed database boundary.           | Codex | Complete    | D-011      | Migration and generated types are verified against the linked project.                                                                                                                                                        |
+| P2-002 | Define concrete Auth, Storage, and RLS policy tests for Admin/Editor/Viewer. | Codex | Complete    | P2-001     | Phase 2 security migration applied; private `model-media` bucket, trusted `app_metadata.role` function, grants, policies, advisor check, viewer-deny probe, and editor-allow probe are recorded in `docs/RLS_POLICY_PLAN.md`. |
+| P2-003 | Implement Auth, Storage boundaries, and role enforcement.                    | Codex | In progress | P2-002     | Storage boundary and database role enforcement are applied; next implement Auth role provisioning and keep public routes disconnected until end-to-end role tests pass.                                                       |
 
 ## Experience-validation iteration — Mock assets
 
