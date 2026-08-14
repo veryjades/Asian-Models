@@ -72,4 +72,8 @@
 
 ## Next action
 
-Source and review genuine same-session paired images for the remaining models. Keep PR #5 draft/open/not merged.
+Create disposable viewer/editor/admin Auth users in the Supabase Dashboard,
+seed one controlled `model-media` object through the approved workflow, and run
+the live session/Data API/Storage matrix. Keep public routes cloud-agnostic and
+PR #5 draft/open/not merged until that evidence is complete; UX-010's remaining
+stronger hover-pose sourcing stays tracked separately.
