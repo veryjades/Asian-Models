@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
@@ -74,7 +74,7 @@ type QuickBookingProps = {
   modelName?: string | undefined;
 };
 
-function FieldLabel({ children }: { children: string }) {
+function FieldLabel({ children }: { children: ReactNode }) {
   return <span className="label-xs text-muted-foreground">{children}</span>;
 }
 
@@ -128,13 +128,13 @@ export function QuickBooking({ className = "", modelId, modelName }: QuickBookin
     const inertTargets = Array.from(document.querySelectorAll("header, main, footer"));
 
     document.body.style.overflow = "hidden";
-    document.body.dataset.quickBookingOpen = "true";
+    document.body.dataset["quickBookingOpen"] = "true";
     inertTargets.forEach((target) => target.setAttribute("inert", ""));
     window.setTimeout(() => firstRef.current?.focus(), 0);
 
     return () => {
       document.body.style.overflow = previousOverflow;
-      delete document.body.dataset.quickBookingOpen;
+      delete document.body.dataset["quickBookingOpen"];
       inertTargets.forEach((target) => target.removeAttribute("inert"));
     };
   }, [mounted, open]);

@@ -48,7 +48,7 @@
 ## Blockers
 
 - Security advisors are clean after P2-002. Performance advisors report only unused indexes on the empty database. P2-003 remains active for Auth role provisioning and end-to-end tests; local Docker remains unavailable.
-- `bunx tsc --noEmit` remains a separate baseline issue: 10 pre-existing strict errors in AskAssistant, QuickBooking, and assistantRetrieval. `bun run lint` and `bun run build` are still passing.
+- The strict TypeScript baseline is resolved: fixed the 10 pre-existing errors in AskAssistant, QuickBooking, and assistantRetrieval; `bunx tsc --noEmit`, `bun run lint`, and `bun run build` now pass (lint retains 9 existing warnings).
 - No deployment blocker remains. Product acceptance is pending review of the isolated Preview. The production keyword/tag admin and CMS backing remain future Phase 5/admin work; this iteration only adds the content boundary and documents the future requirement.
 - Identity-consistent hover photography remains in progress for the remaining models. No other-person photo may be substituted or duplicated; the Lin hover derivative only trims the supplied frame's baked black matte while preserving the subject.
 

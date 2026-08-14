@@ -23,8 +23,8 @@ export type AssistantRetrievalResult = {
 };
 
 type SearchIntent = {
-  gender?: Model["gender"];
-  city?: string;
+  gender: Model["gender"] | undefined;
+  city: string | undefined;
   requiresJapanese: boolean;
   japanMarket: boolean;
   requiredTags: string[];
@@ -80,7 +80,7 @@ function detectIntent(input: string): SearchIntent {
     ["singapore", "singapore"],
     ["沖繩", "okinawa"],
     ["okinawa", "okinawa"],
-  ].find(([term]) => query.includes(term))?.[1];
+  ].find((entry) => entry[0] !== undefined && query.includes(entry[0]))?.[1];
   const requiredTags = [
     ...(hasAny(query, ["show girl", "showgirl", "展場", "活動女孩"]) ? ["show-girl"] : []),
     ...(hasAny(query, ["美妝", "保養", "彩妝", "beauty", "skincare", "cosmetic"])
@@ -149,7 +149,7 @@ function candidateFor(model: Model, intent: SearchIntent, keywords: Keyword[]): 
     intent.city &&
     (model.city.toLowerCase().includes(intent.city) || model.tags.includes(intent.city))
   ) {
-    signalsEn.push(`${intent.city[0].toUpperCase()}${intent.city.slice(1)} market`);
+    signalsEn.push(`${intent.city.charAt(0).toUpperCase()}${intent.city.slice(1)} market`);
     signalsZh.push(`${cityLabelsZh[intent.city] ?? intent.city}市場`);
   }
   if (intent.requiresJapanese || (intent.japanMarket && model.languages.includes("Japanese"))) {

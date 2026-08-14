@@ -31,9 +31,9 @@ export function AskAssistant() {
 
   useEffect(() => {
     if (!open) return;
-    document.body.dataset.jAssistantOpen = "true";
+    document.body.dataset["jAssistantOpen"] = "true";
     return () => {
-      delete document.body.dataset.jAssistantOpen;
+      delete document.body.dataset["jAssistantOpen"];
     };
   }, [open]);
 
