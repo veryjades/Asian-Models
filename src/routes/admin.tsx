@@ -597,7 +597,7 @@ function AdminDashboard({
       if (existing) {
         const { error } = await client
           .from("media_assets")
-          .update({ file_url: path, type: mediaType, visibility: "private" })
+          .update({ file_url: path, type: mediaType, visibility: "public" })
           .eq("id", existing.id);
         if (error) throw new Error(error.message);
         return;
@@ -611,7 +611,7 @@ function AdminDashboard({
         file_url: path,
         type: mediaType,
         sort_order: sortOrder,
-        visibility: "private",
+        visibility: "public",
       });
       if (error) throw new Error(error.message);
     }
@@ -1234,8 +1234,529 @@ function AdminDashboard({
             </form>
           </main>
         </div>
+        <AdminOperationsPanel client={client} canEdit={canEdit} />
       </div>
     </div>
+  );
+}
+
+function AdminOperationsPanel({
+  client,
+  canEdit,
+}: {
+  client: SupabaseClient<Database>;
+  canEdit: boolean;
+}) {
+  const [tab, setTab] = useState<"inbox" | "about" | "news" | "knowledge">("inbox");
+  const [inquiries, setInquiries] = useState<Database["public"]["Tables"]["inquiries"]["Row"][]>(
+    [],
+  );
+  const [applications, setApplications] = useState<
+    Database["public"]["Tables"]["scout_applications"]["Row"][]
+  >([]);
+  const [notifications, setNotifications] = useState<
+    Database["public"]["Tables"]["admin_notifications"]["Row"][]
+  >([]);
+  const [settings, setSettings] = useState<
+    Database["public"]["Tables"]["site_settings"]["Row"] | null
+  >(null);
+  const [news, setNews] = useState<Database["public"]["Tables"]["news_posts"]["Row"][]>([]);
+  const [knowledge, setKnowledge] = useState<
+    Database["public"]["Tables"]["assistant_knowledge_documents"]["Row"][]
+  >([]);
+  const [busy, setBusy] = useState(false);
+  const [sendingNotification, setSendingNotification] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
+
+  const load = useCallback(async () => {
+    const [
+      inquiryResult,
+      applicationResult,
+      notificationResult,
+      settingsResult,
+      newsResult,
+      knowledgeResult,
+    ] = await Promise.all([
+      client.from("inquiries").select("*").order("created_at", { ascending: false }),
+      client.from("scout_applications").select("*").order("created_at", { ascending: false }),
+      client.from("admin_notifications").select("*").order("created_at", { ascending: false }),
+      client.from("site_settings").select("*").eq("id", "global").maybeSingle(),
+      client.from("news_posts").select("*").order("date", { ascending: false }),
+      client
+        .from("assistant_knowledge_documents")
+        .select("*")
+        .order("updated_at", { ascending: false }),
+    ]);
+    setInquiries(inquiryResult.data ?? []);
+    setApplications(applicationResult.data ?? []);
+    setNotifications(notificationResult.data ?? []);
+    setSettings(settingsResult.data ?? null);
+    setNews(newsResult.data ?? []);
+    setKnowledge(knowledgeResult.data ?? []);
+  }, [client]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const updateInquiryStatus = async (id: string, status: string) => {
+    if (!canEdit) return;
+    const { error } = await client.from("inquiries").update({ status }).eq("id", id);
+    if (error) setMessage(error.message);
+    else await load();
+  };
+
+  const updateApplicationStatus = async (id: string, status: string) => {
+    if (!canEdit) return;
+    const { error } = await client.from("scout_applications").update({ status }).eq("id", id);
+    if (error) setMessage(error.message);
+    else await load();
+  };
+
+  const sendNotification = async (id: string) => {
+    setSendingNotification(id);
+    const notification = notifications.find((row) => row.id === id);
+    if (!notification) {
+      setMessage("Notification record was not found.");
+      setSendingNotification(null);
+      return;
+    }
+    const { error } = await client.functions.invoke("notify-admin", {
+      body: { reference_id: notification.reference_id },
+    });
+    if (error) setMessage(error.message);
+    else setMessage("Notification dispatch attempted.");
+    await load();
+    setSendingNotification(null);
+  };
+
+  const saveSettings = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!canEdit || !settings) return;
+    setBusy(true);
+    setMessage("");
+    const form = new FormData(event.currentTarget);
+    const { error } = await client.from("site_settings").upsert({
+      id: "global",
+      admin_email: String(form.get("adminEmail") ?? "").trim(),
+      about_title_en: String(form.get("aboutTitleEn") ?? "").trim(),
+      about_title_zh: String(form.get("aboutTitleZh") ?? "").trim(),
+      about_body_en: String(form.get("aboutBodyEn") ?? "")
+        .split("\n")
+        .map((value) => value.trim())
+        .filter(Boolean),
+      about_body_zh: String(form.get("aboutBodyZh") ?? "")
+        .split("\n")
+        .map((value) => value.trim())
+        .filter(Boolean),
+      offices: settings.offices,
+    });
+    setBusy(false);
+    if (error) setMessage(error.message);
+    else {
+      setMessage("About and notification settings saved.");
+      await load();
+    }
+  };
+
+  const addNews = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!canEdit) return;
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    setBusy(true);
+    setMessage("");
+    const { error } = await client.from("news_posts").insert({
+      slug: String(form.get("slug") ?? "").trim(),
+      title_en: String(form.get("titleEn") ?? "").trim(),
+      title_zh: String(form.get("titleZh") ?? "").trim(),
+      excerpt_en: String(form.get("excerptEn") ?? "").trim(),
+      excerpt_zh: String(form.get("excerptZh") ?? "").trim(),
+      body_en: String(form.get("bodyEn") ?? "")
+        .split("\n")
+        .map((value) => value.trim())
+        .filter(Boolean),
+      body_zh: String(form.get("bodyZh") ?? "")
+        .split("\n")
+        .map((value) => value.trim())
+        .filter(Boolean),
+      cover_url: String(form.get("coverUrl") ?? "").trim() || null,
+      status: "published",
+      tags: String(form.get("tags") ?? "")
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean),
+    });
+    setBusy(false);
+    if (error) setMessage(error.message);
+    else {
+      formElement.reset();
+      setMessage("News published.");
+      await load();
+    }
+  };
+
+  const addKnowledge = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!canEdit) return;
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    setBusy(true);
+    setMessage("");
+    const { error } = await client.from("assistant_knowledge_documents").insert({
+      title_en: String(form.get("knowledgeTitleEn") ?? "").trim(),
+      title_zh: String(form.get("knowledgeTitleZh") ?? "").trim(),
+      content_en: String(form.get("knowledgeContentEn") ?? "").trim(),
+      content_zh: String(form.get("knowledgeContentZh") ?? "").trim(),
+      tags: String(form.get("knowledgeTags") ?? "")
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean),
+      source_type: "manual",
+      published: true,
+    });
+    setBusy(false);
+    if (error) setMessage(error.message);
+    else {
+      formElement.reset();
+      setMessage("JAgent knowledge published.");
+      await load();
+    }
+  };
+
+  const inputClass =
+    "mt-2 w-full border border-white/15 bg-slate-950 px-3 py-3 text-sm text-white outline-none focus:border-white/50";
+  return (
+    <section className="mt-10 border border-white/15 bg-white/[0.03] p-5 md:p-7">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="label-xs text-white/45">OPERATIONS / CONTENT CONTROL PLANE</p>
+          <h2 className="mt-2 text-3xl font-light">Requests, About, News & JAgent</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-white/50">
+            Every public form writes to Supabase. New requests also create a notification outbox row
+            for the administrator email.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => void load()}
+          className="label-xs border border-white/30 px-4 py-3"
+        >
+          Refresh
+        </button>
+      </div>
+      <div className="mt-6 flex flex-wrap gap-2 border-b border-white/15 pb-3">
+        {(["inbox", "about", "news", "knowledge"] as const).map((item) => (
+          <button
+            key={item}
+            type="button"
+            onClick={() => setTab(item)}
+            className={`label-xs px-3 py-2 ${tab === item ? "bg-white text-slate-950" : "border border-white/20 text-white/60"}`}
+          >
+            {item === "inbox"
+              ? "Inbox"
+              : item === "about"
+                ? "About + email"
+                : item === "news"
+                  ? "News"
+                  : "JAgent RAG"}
+          </button>
+        ))}
+      </div>
+      {message ? (
+        <p className="mt-4 border border-emerald-300/20 bg-emerald-300/10 p-3 text-sm text-emerald-100">
+          {message}
+        </p>
+      ) : null}
+      {tab === "inbox" ? (
+        <div className="mt-6 grid gap-8 lg:grid-cols-2">
+          <div>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-light">Client enquiries ({inquiries.length})</h3>
+              <span className="text-xs text-white/40">
+                {
+                  notifications.filter((row) => row.kind === "inquiry" && row.status === "pending")
+                    .length
+                }{" "}
+                pending email
+              </span>
+            </div>
+            <ul className="mt-4 divide-y divide-white/10 border border-white/10">
+              {inquiries.map((row) => (
+                <li key={row.id} className="space-y-2 p-4">
+                  <div className="flex flex-wrap justify-between gap-3">
+                    <strong className="text-sm">
+                      {row.name}
+                      {row.company ? ` · ${row.company}` : ""}
+                    </strong>
+                    <select
+                      disabled={!canEdit}
+                      value={row.status}
+                      onChange={(event) => void updateInquiryStatus(row.id, event.target.value)}
+                      className="border border-white/20 bg-slate-950 px-2 py-1 text-xs"
+                    >
+                      <option value="new">New</option>
+                      <option value="in_progress">In progress</option>
+                      <option value="replied">Replied</option>
+                      <option value="archived">Archived</option>
+                    </select>
+                  </div>
+                  <p className="text-xs text-white/50">
+                    {row.email} · {row.enquiry_type} · {new Date(row.created_at).toLocaleString()}
+                  </p>
+                  <p className="text-sm text-white/70">{row.message}</p>
+                </li>
+              ))}
+              {inquiries.length === 0 ? (
+                <li className="p-4 text-sm text-white/45">No enquiries yet.</li>
+              ) : null}
+            </ul>
+          </div>
+          <div>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-light">Model applications ({applications.length})</h3>
+              <span className="text-xs text-white/40">
+                {
+                  notifications.filter(
+                    (row) => row.kind === "application" && row.status === "pending",
+                  ).length
+                }{" "}
+                pending email
+              </span>
+            </div>
+            <ul className="mt-4 divide-y divide-white/10 border border-white/10">
+              {applications.map((row) => (
+                <li key={row.id} className="space-y-2 p-4">
+                  <div className="flex flex-wrap justify-between gap-3">
+                    <strong className="text-sm">
+                      {row.name} · {row.city}
+                    </strong>
+                    <select
+                      disabled={!canEdit}
+                      value={row.status}
+                      onChange={(event) => void updateApplicationStatus(row.id, event.target.value)}
+                      className="border border-white/20 bg-slate-950 px-2 py-1 text-xs"
+                    >
+                      <option value="new">New</option>
+                      <option value="reviewing">Reviewing</option>
+                      <option value="shortlisted">Shortlisted</option>
+                      <option value="rejected">Rejected</option>
+                      <option value="archived">Archived</option>
+                    </select>
+                  </div>
+                  <p className="text-xs text-white/50">
+                    {row.email} · {row.height ?? "height n/a"} ·{" "}
+                    {new Date(row.created_at).toLocaleString()}
+                  </p>
+                  <p className="text-sm text-white/70">{row.message ?? "No note."}</p>
+                  <p className="text-xs text-white/40">
+                    Attachments: {Array.isArray(row.attachments) ? row.attachments.length : 0}
+                  </p>
+                </li>
+              ))}
+              {applications.length === 0 ? (
+                <li className="p-4 text-sm text-white/45">No applications yet.</li>
+              ) : null}
+            </ul>
+          </div>
+          <div className="lg:col-span-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-light">
+                Administrator notification outbox ({notifications.length})
+              </h3>
+              <span className="text-xs text-white/40">Pending rows can be retried</span>
+            </div>
+            <ul className="mt-4 divide-y divide-white/10 border border-white/10">
+              {notifications.map((row) => (
+                <li key={row.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                  <div>
+                    <p className="text-sm">{row.subject}</p>
+                    <p className="mt-1 text-xs text-white/45">
+                      {row.recipient_email} · {new Date(row.created_at).toLocaleString()} ·{" "}
+                      {row.status}
+                    </p>
+                    {row.error ? (
+                      <p className="mt-1 text-xs text-amber-200/80">{row.error}</p>
+                    ) : null}
+                  </div>
+                  <button
+                    type="button"
+                    disabled={!canEdit || sendingNotification === row.id || row.status === "sent"}
+                    onClick={() => void sendNotification(row.id)}
+                    className="label-xs border border-white/30 px-3 py-2 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {sendingNotification === row.id
+                      ? "Sending…"
+                      : row.status === "sent"
+                        ? "Sent"
+                        : "Send / retry"}
+                  </button>
+                </li>
+              ))}
+              {notifications.length === 0 ? (
+                <li className="p-4 text-sm text-white/45">No notification rows yet.</li>
+              ) : null}
+            </ul>
+          </div>
+        </div>
+      ) : null}
+      {tab === "about" && settings ? (
+        <form onSubmit={saveSettings} className="mt-6 grid gap-5 md:grid-cols-2">
+          <label className="text-sm text-white/65">
+            Administrator email
+            <input
+              name="adminEmail"
+              type="email"
+              defaultValue={settings.admin_email}
+              className={inputClass}
+              required
+            />
+          </label>
+          <label className="text-sm text-white/65">
+            About title (English)
+            <input
+              name="aboutTitleEn"
+              defaultValue={settings.about_title_en}
+              className={inputClass}
+              required
+            />
+          </label>
+          <label className="text-sm text-white/65">
+            About title (中文)
+            <input
+              name="aboutTitleZh"
+              defaultValue={settings.about_title_zh}
+              className={inputClass}
+              required
+            />
+          </label>
+          <label className="text-sm text-white/65">
+            About copy (English, one paragraph per line)
+            <textarea
+              name="aboutBodyEn"
+              defaultValue={settings.about_body_en.join("\n")}
+              rows={6}
+              className={inputClass}
+            />
+          </label>
+          <label className="text-sm text-white/65">
+            About copy (中文，每行一段)
+            <textarea
+              name="aboutBodyZh"
+              defaultValue={settings.about_body_zh.join("\n")}
+              rows={6}
+              className={inputClass}
+            />
+          </label>
+          <button
+            disabled={!canEdit || busy}
+            className="label-xs w-fit bg-white px-5 py-3 text-slate-950 disabled:opacity-50"
+          >
+            {busy ? "Saving…" : "Save About + email"}
+          </button>
+        </form>
+      ) : null}
+      {tab === "news" ? (
+        <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_1.3fr]">
+          <form onSubmit={addNews} className="space-y-4">
+            <h3 className="text-xl font-light">Publish news</h3>
+            {[
+              ["slug", "Slug"],
+              ["titleEn", "Title (English)"],
+              ["titleZh", "Title (中文)"],
+              ["excerptEn", "Excerpt (English)"],
+              ["excerptZh", "Excerpt (中文)"],
+              ["coverUrl", "Cover URL"],
+              ["tags", "Tags (comma separated)"],
+            ].map(([name, label]) => (
+              <label key={name} className="block text-sm text-white/65">
+                {label}
+                <input name={name} className={inputClass} required={name !== "coverUrl"} />
+              </label>
+            ))}
+            <label className="block text-sm text-white/65">
+              Body (English, one paragraph per line)
+              <textarea name="bodyEn" rows={4} className={inputClass} required />
+            </label>
+            <label className="block text-sm text-white/65">
+              Body (中文，每行一段)
+              <textarea name="bodyZh" rows={4} className={inputClass} required />
+            </label>
+            <button
+              disabled={!canEdit || busy}
+              className="label-xs bg-white px-5 py-3 text-slate-950 disabled:opacity-50"
+            >
+              Publish
+            </button>
+          </form>
+          <div>
+            <h3 className="text-xl font-light">Published / draft stories ({news.length})</h3>
+            <ul className="mt-4 divide-y divide-white/10 border border-white/10">
+              {news.map((row) => (
+                <li key={row.id} className="p-4">
+                  <div className="flex justify-between gap-3">
+                    <strong>{row.title_en}</strong>
+                    <span className="text-xs text-white/45">{row.status}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-white/45">
+                    /{row.slug} · {row.date}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ) : null}
+      {tab === "knowledge" ? (
+        <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_1.3fr]">
+          <form onSubmit={addKnowledge} className="space-y-4">
+            <h3 className="text-xl font-light">Add JAgent knowledge</h3>
+            <label className="block text-sm text-white/65">
+              Title (English)
+              <input name="knowledgeTitleEn" className={inputClass} required />
+            </label>
+            <label className="block text-sm text-white/65">
+              Title (中文)
+              <input name="knowledgeTitleZh" className={inputClass} required />
+            </label>
+            <label className="block text-sm text-white/65">
+              Content (English)
+              <textarea name="knowledgeContentEn" rows={6} className={inputClass} required />
+            </label>
+            <label className="block text-sm text-white/65">
+              Content (中文)
+              <textarea name="knowledgeContentZh" rows={6} className={inputClass} required />
+            </label>
+            <label className="block text-sm text-white/65">
+              Tags
+              <input name="knowledgeTags" className={inputClass} />
+            </label>
+            <button
+              disabled={!canEdit || busy}
+              className="label-xs bg-white px-5 py-3 text-slate-950 disabled:opacity-50"
+            >
+              Publish to RAG
+            </button>
+          </form>
+          <div>
+            <h3 className="text-xl font-light">Knowledge documents ({knowledge.length})</h3>
+            <ul className="mt-4 divide-y divide-white/10 border border-white/10">
+              {knowledge.map((row) => (
+                <li key={row.id} className="p-4">
+                  <div className="flex justify-between gap-3">
+                    <strong>{row.title_en}</strong>
+                    <span className="text-xs text-white/45">
+                      {row.published ? "published" : "draft"}
+                    </span>
+                  </div>
+                  <p className="mt-2 line-clamp-3 text-sm text-white/60">{row.content_en}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ) : null}
+    </section>
   );
 }
 

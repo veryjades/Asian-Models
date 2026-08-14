@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "rea
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createInquiry } from "@/lib/supabase/submissions";
 
 type Option = {
   value: string;
@@ -112,7 +114,8 @@ export function QuickBooking({ className = "", modelId, modelName }: QuickBookin
   const { pick, t } = useI18n();
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
-  const [state, setState] = useState<"idle" | "sending" | "done">("idle");
+  const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
   const firstRef = useRef<HTMLInputElement>(null);
 
   const title = modelName
@@ -141,6 +144,7 @@ export function QuickBooking({ className = "", modelId, modelName }: QuickBookin
 
   function openDialog() {
     setState("idle");
+    setErrorMessage("");
     setOpen(true);
   }
 
@@ -148,7 +152,7 @@ export function QuickBooking({ className = "", modelId, modelName }: QuickBookin
     setOpen(false);
   }
 
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const request: QuickBookingRequest = {
@@ -182,10 +186,35 @@ export function QuickBooking({ className = "", modelId, modelName }: QuickBookin
     if (!request.contactName || !request.company || !request.email || !request.phone) return;
 
     setState("sending");
-    // TODO: persist to the agency database and forward to the service mailbox
-    // once the database and the deployed domain are connected.
-    console.info("quick booking request", request);
-    window.setTimeout(() => setState("done"), 500);
+    try {
+      const client = getSupabaseBrowserClient();
+      const { error } = await createInquiry(client, {
+        kind: "booking",
+        enquiry_type: request.bookingType,
+        name: request.contactName,
+        company: request.company,
+        email: request.email,
+        phone: request.phone,
+        subject: request.modelName ? `Booking request: ${request.modelName}` : "Booking request",
+        message: request.note || "Booking request submitted through Quick Booking.",
+        details: {
+          modelId: request.modelId ?? null,
+          modelName: request.modelName ?? null,
+          expectedDate: request.expectedDate,
+          timeSlot: request.timeSlot,
+          location: request.location,
+          usageMarket: request.usageMarket,
+          usagePeriod: request.usagePeriod,
+        },
+      });
+      if (error) throw error;
+      setState("done");
+    } catch (error) {
+      setState("error");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Unable to send your booking request.",
+      );
+    }
   }
 
   const dialog = open ? (
@@ -346,6 +375,11 @@ export function QuickBooking({ className = "", modelId, modelName }: QuickBookin
               >
                 {state === "sending" ? t("booking.sending") : t("booking.submit")}
               </button>
+              {state === "error" ? (
+                <p className="text-sm text-destructive" role="alert">
+                  {errorMessage}
+                </p>
+              ) : null}
             </form>
           )}
         </div>

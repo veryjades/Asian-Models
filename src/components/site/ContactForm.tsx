@@ -1,5 +1,7 @@
 import { useI18n } from "@/lib/i18n";
 import { useState, type FormEvent } from "react";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createInquiry } from "@/lib/supabase/submissions";
 
 /**
  * Enquiry types for the contact form. Stored value is the stable id, so the
@@ -44,14 +46,33 @@ function Field({
 
 export function ContactForm() {
   const { t, lang } = useI18n();
-  const [state, setState] = useState<"idle" | "sending" | "done">("idle");
+  const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    setErrorMessage("");
     setState("sending");
-    // The record below is written to the agency database once the project
-    // credentials are connected — no page change needed at that point.
-    window.setTimeout(() => setState("done"), 600);
+    try {
+      const client = getSupabaseBrowserClient();
+      const { error } = await createInquiry(client, {
+        kind: "contact",
+        enquiry_type: String(form.get("type") ?? "other"),
+        name: String(form.get("name") ?? "").trim(),
+        company: String(form.get("company") ?? "").trim() || null,
+        email: String(form.get("email") ?? "").trim(),
+        phone: String(form.get("phone") ?? "").trim() || null,
+        subject: String(form.get("subject") ?? "").trim() || null,
+        budget: String(form.get("budget") ?? "").trim() || null,
+        message: String(form.get("message") ?? "").trim(),
+      });
+      if (error) throw error;
+      setState("done");
+    } catch (error) {
+      setState("error");
+      setErrorMessage(error instanceof Error ? error.message : "Unable to send your enquiry.");
+    }
   }
 
   if (state === "done") {
@@ -107,6 +128,11 @@ export function ContactForm() {
           {state === "sending" ? t("contactForm.sending") : t("contactForm.submit")}
         </button>
       </div>
+      {state === "error" ? (
+        <p className="text-sm text-destructive" role="alert">
+          {errorMessage}
+        </p>
+      ) : null}
     </form>
   );
 }

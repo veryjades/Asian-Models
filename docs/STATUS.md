@@ -3,17 +3,26 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** Switch the application to the owner-created Supabase project and verify the Admin foundation there.
-**Last heartbeat:** 2026-08-15 +08:00 (new Supabase project invite/recovery delivery and local Admin availability re-verified)
+**Current task:** Complete the Admin content/operations control plane and verify the public Supabase data path.
+**Last heartbeat:** 2026-08-15 +08:00 (13-model seed, content tables, notification outbox, live function deployment, trigger probe, local route probes, and build verification)
 **Completion date:** 2026-08-10
 
 ## Current live backend
 
 - Supabase project: `jkhxtuwqmmdetjqymzso` (`Model's Project`, `veryjades's Org Free`, Mumbai `ap-south-1`). The earlier `cajkkxustehtzyymlopm` project is historical only.
-- SQL Editor verification on 2026-08-15: foundation tables, `model_video_links`, `model_social_links`, trusted `current_app_role()` policies, private `model-media` bucket, and zero seed rows are present.
+- SQL Editor verification on 2026-08-15: `model_count=13`, `news_count=3`, `settings_count=1`, `inquiries_count=0`, `applications_count=0`, and `notification_count=0`; foundation tables, content tables, trusted `current_app_role()` policies, and Storage buckets are present.
 - Auth URL configuration is set to `http://127.0.0.1:8090` with local and Preview wildcard redirects. `menscheck@gmail.com` has a live invitation row and `raw_app_meta_data.role=admin`; Auth Logs show `/invite` 200 → `/verify` 303 and a later `/recover` 200 → `/verify` 303. A duplicate recovery request correctly returned 429 due to email-rate protection.
 - Local `http://127.0.0.1:8090/admin` was restarted with the new environment and returned HTTP 200; the signed-out surface exposes email, password, sign-in, and first-time setup controls.
 - `.env.local` uses the new project URL and publishable browser key; it is ignored and no service-role credential is committed.
+
+## Current work-unit evidence (2026-08-15)
+
+- `supabase/migrations/20260815193000_seed_existing_models.sql` and `20260815194500_content_operations.sql` are applied in the owner project through SQL Editor. The live count query returned 13 models, 3 news posts, and 1 settings row.
+- `/admin` now includes Inbox, About + email, News, and JAgent RAG operations panels. Public Contact, Quick Booking, and Scouting submissions write to Supabase; an insert trigger creates an `admin_notifications` outbox row addressed to `site_settings.admin_email`.
+- A transactional live SQL probe inserted a temporary inquiry, confirmed the trigger-created outbox row, and rolled back both records; the live counts remain `inquiries_count=0` and `notification_count=0`.
+- `supabase/functions/notify-admin/index.ts` and public dispatch calls are committed locally. The function is deployed through the Supabase dashboard and the Admin retry action passes the notification reference id. Actual delivery still requires a provider secret (`RESEND_API_KEY`/`RESEND_FROM` or approved SMTP).
+- Local route probes returned HTTP 200 for `/`, `/admin`, `/models/women`, `/models/men`, `/models/new-faces`, `/models/talent`, `/keywords/women`, `/about`, and `/news`; `/models/women` contains Chen Yu-Xin and `/news` contains a seeded story.
+- `bunx tsc --noEmit` passed; `bun run lint` passed with 0 errors and 9 existing React-refresh warnings; `bun run build` passed; `git diff --check` passed.
 
 ## Completed items
 
@@ -73,7 +82,7 @@
 - The live Auth/Data API/Storage matrix is clean. Supabase Auth policy is project-configurable; the owner-authorized Email provider setting is currently minimum 6 characters with no required character classes. Security advisor still reports `auth_leaked_password_protection` because Supabase makes leaked-password checks available only on Pro and above; this is a plan limitation, not a failed setting. Performance advisors report only unused indexes on the empty database. Local Docker remains unavailable but is non-blocking.
 - Owner password-reset invitation is temporarily blocked by Supabase's email send rate limit (`429 over_email_send_rate_limit`); retry after the provider window clears.
 - The strict TypeScript baseline is resolved: fixed the 10 pre-existing errors in AskAssistant, QuickBooking, and assistantRetrieval; `bunx tsc --noEmit`, `bun run lint`, and `bun run build` now pass (lint retains 9 existing warnings).
-- No deployment blocker remains. Product acceptance is pending review of the isolated Preview. The production keyword/tag admin and CMS backing remain future Phase 5/admin work; this iteration only adds the content boundary and documents the future requirement.
+- Product acceptance is pending authenticated Admin CRUD/refresh verification and isolated Preview review. The live `notify-admin` function is deployed; provider secret configuration and authenticated delivery verification remain outstanding.
 - Identity-consistent hover photography remains in progress for the remaining models. No other-person photo may be substituted or duplicated; the Lin hover derivative only trims the supplied frame's baked black matte while preserving the subject.
 
 ## Phase 0 readiness
@@ -89,7 +98,7 @@
 
 ## Next action
 
-Run the final lint/build/advisor sweep, update PR #5 with the completed Phase 2
-evidence, and prepare the Phase 3 public-route connection review. Keep public
-routes cloud-agnostic until that review; UX-010's remaining stronger hover-pose
-sourcing stays tracked separately.
+Configure the owner-approved provider secret for `notify-admin`, then run
+authenticated Admin CRUD/refresh and delivery verification before the final
+Preview/PR #5 review. Keep public routes cloud-agnostic until that review;
+UX-010's remaining stronger hover-pose sourcing stays tracked separately.

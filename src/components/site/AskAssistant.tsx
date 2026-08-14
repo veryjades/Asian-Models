@@ -206,6 +206,18 @@ export function AskAssistant() {
                             )}
                           </p>
                         ) : null}
+                        {turn.retrieval?.relatedKnowledge.length ? (
+                          <div className="mt-3 border-t border-border pt-3 text-xs text-muted-foreground">
+                            <p className="label-xs text-foreground">
+                              {pick("From agency knowledge", "來自經紀公司知識庫")}
+                            </p>
+                            {turn.retrieval.relatedKnowledge.map((document) => (
+                              <p key={document.titleEn} className="mt-2">
+                                {pick(document.titleEn, document.titleZh)}
+                              </p>
+                            ))}
+                          </div>
+                        ) : null}
                         {turn.link && (
                           <Link
                             to={turn.link.to as never}

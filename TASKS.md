@@ -3,6 +3,13 @@
 **Current phase:** Phase 2 — Application Foundation
 **Last updated:** 2026-08-15
 
+## Master acceptance checklist
+
+All product and release requirements are tracked in [`docs/PROJECT_CHECKLIST.md`](docs/PROJECT_CHECKLIST.md).
+The checklist is the required cross-session memory for backend content, model
+data, JAgent/RAG, deployment, and QA; do not start a later item without
+updating the prior item's status and evidence.
+
 ## Phase 0 — COMPLETE
 
 All Phase 0 tasks below are complete. PR #2 merged into `main` as `875f9eb`.
@@ -27,6 +34,7 @@ All Phase 0 tasks below are complete. PR #2 merged into `main` as `875f9eb`.
 | B-002 | There is no automated test command or runner.                                                                   | Baseline absence and minimum strategy have been documented in P0-006; select/implement a framework only when a later phase authorizes it. | Future regression confidence, not the current Phase 0 baseline gate.                | Tech lead / product owner                 | Resolved for Phase 0 |
 | B-003 | GitHub PR creation initially returned 403 through the connector.                                                | CLI fallback created draft PR [#2](https://github.com/veryjades/Asian-Models/pull/2).                                                     | Required review/merge path is now available.                                        | Repository owner / reviewer               | Resolved             |
 | B-004 | `bunx tsc --noEmit` reported 10 strict TypeScript errors in AskAssistant, QuickBooking, and assistantRetrieval. | Fixed dataset access, React children typing, intent narrowing, and undefined-safe string handling; reran `bunx tsc --noEmit`.             | Static typecheck now passes; keep the focused fixes in the Phase 2 quality history. | Codex / repository owner                  | Resolved             |
+| B-005 | Administrator notification dispatch still needs a sender credential. | Configure a free-tier Resend/SMTP sender secret in the live Supabase project; the function itself is now deployed through the Supabase dashboard. | Outbox rows, retry UI, and live function dispatch are ready, but actual email delivery cannot be claimed until the external provider secret exists. | Repository owner / Supabase project admin | Open |
 
 ## Update protocol
 
@@ -65,6 +73,20 @@ Phase 1 architecture foundation is complete. No existing UI route is connected t
 | ADM-004 | Bootstrap the owner Admin account and issue a fresh password setup link.                             | Codex | Complete | ADM-003, P2-003  | In current project `jkhxtuwqmmdetjqymzso`, `menscheck@gmail.com` has a live invitation row and trusted server-side `app_metadata.role=admin`. Auth Logs verified `/invite` HTTP 200 followed by `/verify` HTTP 303; a later recovery request also returned `/recover` HTTP 200. No password is stored in the repository or browser code. |
 | ADM-005 | Align the live password policy and verify invite/recovery deep-link handling.                        | Codex | Complete | ADM-003, ADM-004 | Owner-authorized Supabase Email provider setting is saved at minimum 6 characters with no required character classes, making the requested six-digit password policy-compatible. Local browser QA navigated to a homepage invite hash and observed automatic redirect to `/admin?reset=1` with the auth hash preserved; the setup form rendered and no console errors were recorded.                                                                                                                                                                                                                                                                                                                        |
 | ADM-006 | Re-send the owner password-reset invitation after the provider rate window clears.                   | Codex | Blocked  | ADM-004, ADM-005 | A fresh recovery request on current project `jkhxtuwqmmdetjqymzso` returned `/recover` HTTP 200 and then `/verify` HTTP 303. A subsequent duplicate request returned `/recover` HTTP 429 (`email rate limit exceeded`), confirming Supabase delivery protection after the successful send. The existing setup path is ready; retry only after the provider window clears or a configured SMTP provider is available. |
+
+## Content and JAgent expansion — owner-authorized checklist
+
+| ID | Task | Owner | Status | Evidence / next action |
+| --- | --- | --- | --- | --- |
+| CMS-001 | Seed the existing 13-model roster into the current Supabase project. | Codex | Complete | Live SQL verification on 2026-08-15 returned `model_count=13` in project `jkhxtuwqmmdetjqymzso`. |
+| CMS-000 | Prove the Admin → Supabase → public-route data path for every content type. | Codex | In progress | Supabase repository adapter and public About/News/model routes are connected; authenticated edit/refresh proof for each content type remains the hard gate. |
+| CMS-002 | Add About page content management and published public binding. | Codex | In progress | `site_settings` schema/RLS, bilingual Admin editor, and `/about` Supabase query are implemented; live authenticated save/refresh verification remains. |
+| CMS-003 | Add News CRUD, media, publish state, tags, and public route binding. | Codex | In progress | `news_posts` schema/RLS, publish form, seed rows, and public repository binding are implemented; edit/delete and cover upload UI remain. |
+| JAG-001 | Add JAgent knowledge-document management and protected retrieval foundation. | Codex | In progress | Knowledge schema/RLS, Admin create/list UI, published-only retrieval, and source labels are implemented; edit/delete and server-side RPC/vector retrieval remain. |
+| JAG-002 | Connect JAgent to model/news/About context with source-aware fallback answers. | Codex | In progress | Repository-backed retrieval and knowledge-document context are wired; live Admin-created document retrieval and Chinese/English regression remain. |
+| OPS-001 | Persist client enquiries and model applications in an Admin inbox. | Codex | Complete | Contact, Quick Booking, and scouting forms write Supabase rows; `/admin` lists and status-updates both queues. |
+| OPS-002 | Enqueue and dispatch administrator email notifications. | Codex | In progress | DB trigger/outbox and `notify-admin` Edge Function are live; provider secret configuration and authenticated delivery verification remain. |
+| REL-001 | Complete the master checklist QA, Preview verification, and PR #5 readiness review. | Codex | In progress | Typecheck/lint/build and live row-count verification pass; authenticated CRUD, email delivery, full responsive/hover sweep, Preview deploy, commit, and PR update remain. |
 
 ## Experience-validation iteration — Mock assets
 

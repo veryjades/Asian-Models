@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useI18n } from "@/lib/i18n";
 import { VideoUploadField } from "@/components/site/VideoUploadField";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createScoutApplication, uploadScoutFiles } from "@/lib/supabase/submissions";
 
 export const Route = createFileRoute("/scouted")({
   head: () => ({
@@ -54,7 +56,8 @@ function Field({
 
 function ScoutedPage() {
   const { t } = useI18n();
-  const [state, setState] = useState<"idle" | "sending" | "done">("idle");
+  const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
   const [photoGate, setPhotoGate] = useState({
     halfBody: false,
     fullBody: false,
@@ -72,7 +75,7 @@ function ScoutedPage() {
     });
   }
 
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const halfBody = form.elements.namedItem("halfBodyPhoto") as HTMLInputElement | null;
@@ -85,10 +88,53 @@ function ScoutedPage() {
     }
 
     setPhotoError("");
+    setErrorMessage("");
     setState("sending");
-    // Submissions are wired to the agency database once the Supabase project
-    // credentials are connected; the form shape below is the stored record.
-    window.setTimeout(() => setState("done"), 600);
+    try {
+      const formData = new FormData(form);
+      const client = getSupabaseBrowserClient();
+      const { data, error } = await createScoutApplication(client, {
+        name: String(formData.get("name") ?? "").trim(),
+        age: Number(formData.get("age") ?? 0) || null,
+        city: String(formData.get("city") ?? "").trim(),
+        email: String(formData.get("email") ?? "").trim(),
+        phone: String(formData.get("phone") ?? "").trim() || null,
+        height: String(formData.get("height") ?? "").trim() || null,
+        measurements: String(formData.get("measurements") ?? "").trim() || null,
+        instagram: String(formData.get("instagram") ?? "").trim() || null,
+        social_links: String(formData.get("socialLinks") ?? "").trim() || null,
+        message: String(formData.get("message") ?? "").trim() || null,
+      });
+      if (error || !data) throw error ?? new Error("Application could not be saved.");
+
+      const uploads = [
+        { kind: "half-body", file: halfBody?.files?.[0] },
+        { kind: "full-body", file: fullBody?.files?.[0] },
+        {
+          kind: "additional",
+          file: (form.elements.namedItem("additionalPhoto") as HTMLInputElement | null)?.files?.[0],
+        },
+        {
+          kind: "model-card",
+          file: (form.elements.namedItem("modelCard") as HTMLInputElement | null)?.files?.[0],
+        },
+      ].filter((item): item is { kind: string; file: File } => Boolean(item.file));
+      const videoFile = (form.elements.namedItem("videoFile") as HTMLInputElement | null)
+        ?.files?.[0];
+      if (videoFile) uploads.push({ kind: "video", file: videoFile });
+      const attachments = await uploadScoutFiles(client, data.id, uploads);
+      const { error: updateError } = await client
+        .from("scout_applications")
+        .update({ attachments })
+        .eq("id", data.id);
+      if (updateError) throw updateError;
+      setState("done");
+    } catch (error) {
+      setState("error");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Unable to submit your application.",
+      );
+    }
   }
 
   return (
@@ -189,6 +235,11 @@ function ScoutedPage() {
               >
                 {state === "sending" ? t("scout.sending") : t("scout.submit")}
               </button>
+              {state === "error" ? (
+                <p className="mt-3 text-sm text-destructive" role="alert">
+                  {errorMessage}
+                </p>
+              ) : null}
             </div>
           </form>
         )}

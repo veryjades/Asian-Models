@@ -1,5 +1,6 @@
 import { contentRepository } from "./repository";
 import type { Keyword, Model, NewsPost } from "./types";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 /**
  * Lightweight, cloud-agnostic retrieval for J Assistant.
@@ -18,6 +19,12 @@ export type AssistantRetrievalResult = {
   candidates: AssistantCandidate[];
   matchedKeywords: Keyword[];
   relatedNews: NewsPost[];
+  relatedKnowledge: Array<{
+    titleEn: string;
+    titleZh: string;
+    contentEn: string;
+    contentZh: string;
+  }>;
   answerEn: string;
   answerZh: string;
 };
@@ -194,13 +201,61 @@ export async function retrieveModelRecommendations(
   input: string,
 ): Promise<AssistantRetrievalResult | null> {
   const intent = detectIntent(input);
-  if (!intent.hasSearchIntent) return null;
 
   const [models, keywords, news] = await Promise.all([
     contentRepository.listModels(),
     contentRepository.listKeywords(),
     contentRepository.listNews(),
   ]);
+  let relatedKnowledge: AssistantRetrievalResult["relatedKnowledge"] = [];
+  try {
+    const { data } = await getSupabaseBrowserClient()
+      .from("assistant_knowledge_documents")
+      .select("title_en, title_zh, content_en, content_zh, tags")
+      .eq("published", true)
+      .limit(30);
+    const terms = input
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((term) => term.length > 1);
+    relatedKnowledge = (data ?? [])
+      .map((row) => ({
+        row,
+        score: terms.reduce(
+          (score, term) =>
+            score +
+            (row.title_en.toLowerCase().includes(term) ||
+            row.content_en.toLowerCase().includes(term) ||
+            row.tags.some((tag) => tag.toLowerCase().includes(term))
+              ? 1
+              : 0),
+          0,
+        ),
+      }))
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 2)
+      .map(({ row }) => ({
+        titleEn: row.title_en,
+        titleZh: row.title_zh,
+        contentEn: row.content_en,
+        contentZh: row.content_zh,
+      }));
+  } catch {
+    relatedKnowledge = [];
+  }
+  if (!intent.hasSearchIntent) {
+    if (!relatedKnowledge.length) return null;
+    const first = relatedKnowledge[0]!;
+    return {
+      candidates: [],
+      matchedKeywords: [],
+      relatedNews: [],
+      relatedKnowledge,
+      answerEn: first.contentEn,
+      answerZh: first.contentZh,
+    };
+  }
   const matchedKeywords = keywords.filter((keyword) => intent.requiredTags.includes(keyword.slug));
   const candidates = models
     .filter((model) => modelMatches(model, intent))
@@ -221,6 +276,7 @@ export async function retrieveModelRecommendations(
       candidates: [],
       matchedKeywords,
       relatedNews: [],
+      relatedKnowledge,
       answerEn:
         "I couldn't find an exact match in the current board. Please share the market, language, and campaign type and I’ll narrow the active roster.",
       answerZh:
@@ -232,6 +288,7 @@ export async function retrieveModelRecommendations(
     candidates,
     matchedKeywords,
     relatedNews,
+    relatedKnowledge,
     answerEn: `I found ${candidates.length} matching ${candidates.length === 1 ? "model" : "models"} from the current roster.`,
     answerZh: `我從目前名單中找到 ${candidates.length} 位符合條件的模特兒。`,
   };
