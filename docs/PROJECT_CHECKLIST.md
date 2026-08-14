@@ -35,7 +35,7 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 ## 3. Content CMS
 
 - [~] Add editable About page content (bilingual copy, offices, contact metadata, publish state). Schema, RLS, editor, and public binding exist; authenticated save verification remains.
-- [~] Add News CRUD (slug, date, bilingual title/excerpt/body, cover media, tags, publish state, ordering). Publish/list is implemented; edit/delete and cover upload UI remain.
+- [~] Add News CRUD (slug, date, bilingual title/excerpt/body, cover media, tags, publish state, ordering). Publish/list/delete are implemented; edit and cover upload UI remain.
 - [ ] Add News media upload/replace/delete with the same crop and private-storage rules.
 - [x] Bind public About and News routes to published Supabase content with a safe seed fallback. Live counts: `news_count=3`, `settings_count=1`; local `/about` and `/news` return 200.
 - [ ] **Hard gate:** an About or News item created/published in Admin must appear on the matching public route from Supabase after refresh.
@@ -44,7 +44,7 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 
 ## 4. JAgent / RAG
 
-- [~] Add Admin knowledge-document CRUD (title, bilingual content, source, tags, locale, publish state). Create/list is implemented; edit/delete and source URL fields remain.
+- [~] Add Admin knowledge-document CRUD (title, bilingual content, source, tags, locale, publish state). Create/list/delete are implemented; edit and source URL fields remain.
 - [~] Add protected retrieval function using full-text search and an optional embedding column for future vectors. The current adapter performs published-document retrieval; a server-side RPC/vector path remains.
 - [x] Make anonymous JAgent retrieval use only published knowledge and public model/news records. RLS and published-only query are in place.
 - [ ] **Hard gate:** a published knowledge document added in Admin must be retrievable by JAgent without a code or deploy change.

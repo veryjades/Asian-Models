@@ -1234,7 +1234,11 @@ function AdminDashboard({
             </form>
           </main>
         </div>
-        <AdminOperationsPanel client={client} canEdit={canEdit} />
+        <AdminOperationsPanel
+          client={client}
+          canEdit={canEdit}
+          canDelete={identity.role === "admin"}
+        />
       </div>
     </div>
   );
@@ -1243,9 +1247,11 @@ function AdminDashboard({
 function AdminOperationsPanel({
   client,
   canEdit,
+  canDelete,
 }: {
   client: SupabaseClient<Database>;
   canEdit: boolean;
+  canDelete: boolean;
 }) {
   const [tab, setTab] = useState<"inbox" | "about" | "news" | "knowledge">("inbox");
   const [inquiries, setInquiries] = useState<Database["public"]["Tables"]["inquiries"]["Row"][]>(
@@ -1420,6 +1426,26 @@ function AdminOperationsPanel({
     else {
       formElement.reset();
       setMessage("JAgent knowledge published.");
+      await load();
+    }
+  };
+
+  const deleteNews = async (id: string) => {
+    if (!canDelete) return;
+    const { error } = await client.from("news_posts").delete().eq("id", id);
+    if (error) setMessage(error.message);
+    else {
+      setMessage("News item deleted.");
+      await load();
+    }
+  };
+
+  const deleteKnowledge = async (id: string) => {
+    if (!canDelete) return;
+    const { error } = await client.from("assistant_knowledge_documents").delete().eq("id", id);
+    if (error) setMessage(error.message);
+    else {
+      setMessage("Knowledge document deleted.");
       await load();
     }
   };
@@ -1694,9 +1720,19 @@ function AdminOperationsPanel({
             <ul className="mt-4 divide-y divide-white/10 border border-white/10">
               {news.map((row) => (
                 <li key={row.id} className="p-4">
-                  <div className="flex justify-between gap-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
                     <strong>{row.title_en}</strong>
-                    <span className="text-xs text-white/45">{row.status}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-white/45">{row.status}</span>
+                      <button
+                        type="button"
+                        disabled={!canDelete || busy}
+                        onClick={() => void deleteNews(row.id)}
+                        className="text-xs text-red-200/75 underline disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                   <p className="mt-1 text-xs text-white/45">
                     /{row.slug} · {row.date}
@@ -1743,11 +1779,21 @@ function AdminOperationsPanel({
             <ul className="mt-4 divide-y divide-white/10 border border-white/10">
               {knowledge.map((row) => (
                 <li key={row.id} className="p-4">
-                  <div className="flex justify-between gap-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
                     <strong>{row.title_en}</strong>
-                    <span className="text-xs text-white/45">
-                      {row.published ? "published" : "draft"}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-white/45">
+                        {row.published ? "published" : "draft"}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={!canDelete || busy}
+                        onClick={() => void deleteKnowledge(row.id)}
+                        className="text-xs text-red-200/75 underline disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                   <p className="mt-2 line-clamp-3 text-sm text-white/60">{row.content_en}</p>
                 </li>
