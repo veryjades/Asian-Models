@@ -22,7 +22,7 @@
 
 - Foundation review and migration validation are complete. No public route is connected to Supabase until the Phase 2 policy tests pass.
 - The authorised D-008/D-009 mock-asset experience iteration documents source/licensing requirements and now includes a reusable safe-presentation component.
-- Draft PR [#5](https://github.com/veryjades/Asian-Models/pull/5) contains the mock-asset guide and image-presentation foundation; it targets `feature/phase-1-foundation` and remains unmerged.
+- Draft PR [#5](https://github.com/veryjades/Asian-Models/pull/5) contains the mock-asset guide and image-presentation foundation; it targets `feature/mock-assets` and remains open/unmerged.
 - The Golden Mock Asset Set is complete: 18 reviewed fictional adult assets for three desktop heroes, five Women/Men portrait/full-body pairs, two New Faces digitals, and three portfolio scenes. See `docs/GOLDEN_MOCK_ASSET_SET.md`.
 - Isolated Preview review passed for desktop and a 390px viewport: three hero CTAs route to their intended boards; desktop arrows change slides; the Women board and Chen Yu-Xin profile load their mapped fictional media. Preview: `https://asian-models-gxon1hn2t-asian-models.vercel.app`.
 - Homepage asset audit found Golden assets in the Hero and Featured Models sections, but legacy `model-05`, `model-02`, and `model-03` covers in News. The minimal replacement maps each News post to a compositionally suitable existing Golden portfolio asset; no new media or dependency was needed. Build and lint passed before Preview validation.
@@ -51,6 +51,7 @@
 - Extended policy probe script executed against the linked project: invalid role fallback, viewer client-write denial, and admin insert/delete transaction all behaved as expected.
 - Asset mapping audit found no media path shared across different model slugs; repeated paths are limited to the same model's gallery/digital usage. The only black-edge legacy asset (`src/assets/model-03.jpg`) is not referenced by the content seed.
 - Local Playwright QA on 2026-08-15 loaded `/models/women`, `/keywords/women`, and `/models/women/chen-yu-xin` with HTTP 200 and no console/page errors; Women board rendered 5 paired cards, and Chen hover switched primary opacity `0` → hover opacity `1` with fixed card geometry.
+- Latest Vercel Preview for commit `8b0f38a` is READY at `https://asian-models-pjvur4jd3-asian-models.vercel.app` with branch alias `https://asian-models-git-feature-mock-assets-asian-models.vercel.app`; deployment access is SSO-protected, so route/hover evidence remains from the local Playwright pass.
 - `.env.example` now points to the approved public project URL; the publishable key remains a local-only placeholder and no service-role secret is committed.
 - The J Assistant control no longer collides with the Vercel Preview Toolbar: its trigger is positioned clear of the toolbar and its opened conversation temporarily hides that toolbar. The latest Preview was clicked directly; it opened J Assistant and returned four candidate profiles for `我要找男模`. The 390px surface had no horizontal overflow or console errors.
 
