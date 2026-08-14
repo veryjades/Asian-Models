@@ -39,6 +39,7 @@
 - J Assistant now performs deterministic, repository-backed candidate retrieval instead of telling visitors to browse on their own. It combines reviewed gender, language, market, tag, portfolio, and News signals, and renders a direct profile plus model-specific Quick Booking action for each recommendation. `docs/ASSISTANT_RETRIEVAL.md` records the current boundary and the later Supabase/pgvector replacement path; the five required Chinese queries were executed against the actual content set.
 - Execution started for UX-010: removed the Hina/Kim cross-person hover imports and mixed-identity gallery entries from the new-faces seed. Those cards now render only their verified primary digital until a genuine same-person second frame is reviewed.
 - Supabase project `asian-models` is provisioned and `ACTIVE_HEALTHY` in `ap-southeast-1` (ref `cajkkxustehtzyymlopm`, URL `https://cajkkxustehtzyymlopm.supabase.co`). No migration, Auth, Storage, or RLS grant has been applied; those remain Phase 2 work.
+- Supabase read-only smoke check passed: migration list and public table list are empty, and both security and performance advisors returned no lints. No DDL was executed.
 - The J Assistant control no longer collides with the Vercel Preview Toolbar: its trigger is positioned clear of the toolbar and its opened conversation temporarily hides that toolbar. The latest Preview was clicked directly; it opened J Assistant and returned four candidate profiles for `我要找男模`. The 390px surface had no horizontal overflow or console errors.
 
 ## Blockers
