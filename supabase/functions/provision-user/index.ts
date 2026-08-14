@@ -18,6 +18,22 @@ function requiredEnv(name: string): string {
   return value;
 }
 
+function readKey(jsonEnvName: string, legacyEnvName: string): string {
+  const jsonValue = Deno.env.get(jsonEnvName);
+  if (jsonValue) {
+    try {
+      const keys = JSON.parse(jsonValue) as Record<string, unknown>;
+      if (typeof keys["default"] === "string" && keys["default"]) return keys["default"];
+    } catch {
+      // Fall through to the legacy variable for projects before key migration.
+    }
+  }
+
+  const legacyValue = Deno.env.get(legacyEnvName);
+  if (!legacyValue) throw new Error(`${jsonEnvName} or ${legacyEnvName} is not configured.`);
+  return legacyValue;
+}
+
 Deno.serve(async (request) => {
   if (request.method !== "POST") return json({ error: "Method not allowed." }, 405);
 
@@ -40,8 +56,8 @@ Deno.serve(async (request) => {
 
   try {
     const url = requiredEnv("SUPABASE_URL");
-    const anonKey = requiredEnv("SUPABASE_ANON_KEY");
-    const serviceRoleKey = requiredEnv("SUPABASE_SERVICE_ROLE_KEY");
+    const anonKey = readKey("SUPABASE_PUBLISHABLE_KEYS", "SUPABASE_ANON_KEY");
+    const serviceRoleKey = readKey("SUPABASE_SECRET_KEYS", "SUPABASE_SERVICE_ROLE_KEY");
     const userClient = createClient(url, anonKey, {
       global: { headers: { Authorization: authorization } },
       auth: { autoRefreshToken: false, persistSession: false },

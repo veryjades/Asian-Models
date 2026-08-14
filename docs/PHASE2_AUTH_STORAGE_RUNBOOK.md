@@ -13,12 +13,13 @@
 - Never put a service-role key in `VITE_*`, browser code, `.env.example`, or a client bundle.
 - After changing `app_metadata`, force a session refresh before testing the new role because existing JWT claims can be stale.
 
-The deployed `provision-user` function (`verify_jwt = true`) accepts
+The deployed `provision-user` function (version 2, `verify_jwt = true`) accepts
 `POST { user_id, role }`, requires the caller's server-confirmed
 `app_metadata.role = admin`, merges existing target metadata, and writes only
 the validated role. It returns no user metadata and never exposes the
-service-role key. Missing bearer tokens return 401; anonymous/non-admin JWTs
-return 403.
+service-role key. It reads the current JSON key variables when available and
+falls back to legacy key variables during rotation. Missing bearer tokens
+return 401; anonymous/non-admin JWTs return 403; invalid roles return 400.
 
 ## Browser Auth boundary
 
