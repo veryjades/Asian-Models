@@ -4,7 +4,7 @@
 **Status:** IN_PROGRESS
 **Current phase:** Phase 1 — Architecture Foundation
 **Current task:** Validate Chen Yu-Xin's bold paired card hover and complete the remaining identity-consistent pairs.
-**Last heartbeat:** 2026-08-13 +08:00
+**Last heartbeat:** 2026-08-15 +08:00
 **Completion date:** 2026-08-10
 
 ## Completed items
@@ -37,6 +37,7 @@
 - Chen Yu-Xin's category and keyword cards now use `women-aya-look-02.webp` as the reviewed same-person, same-studio, same-wardrobe hover frame. Its changed shoulders, torso, arm line, stance, and leg separation make the shutter transition visually distinct while the two image layers keep identical geometry. Deployed Chrome pointer QA confirmed `:hover`, primary opacity `0`, hover-layer opacity `1`, and the shutter animation; category, keyword, and profile routes passed at desktop and 390px with no horizontal overflow or console errors. The profile still exposes its existing portrait, editorial gallery, and digitals.
 - Supplied hover assets now expose three reviewed editorial pairs: Chen Yu-Xin, Aoi Takahashi, and Lin Wei-Jie. Tanya Lim and Han Min-jae retain same-person full-body extensions while stronger pose variants are sourced. The audit removed Lin's unrelated beach image, Hina's identity-mismatched hover/gallery images, and cross-person legacy gallery images from six talent profiles. Profile gallery media now uses a clipped `cover` frame to prevent letterboxing. Remaining cards intentionally have no `hoverPortrait` until genuine same-person pose frames are available.
 - J Assistant now performs deterministic, repository-backed candidate retrieval instead of telling visitors to browse on their own. It combines reviewed gender, language, market, tag, portfolio, and News signals, and renders a direct profile plus model-specific Quick Booking action for each recommendation. `docs/ASSISTANT_RETRIEVAL.md` records the current boundary and the later Supabase/pgvector replacement path; the five required Chinese queries were executed against the actual content set.
+- Execution started for UX-010: removed the Hina/Kim cross-person hover imports and mixed-identity gallery entries from the new-faces seed. Those cards now render only their verified primary digital until a genuine same-person second frame is reviewed.
 - The J Assistant control no longer collides with the Vercel Preview Toolbar: its trigger is positioned clear of the toolbar and its opened conversation temporarily hides that toolbar. The latest Preview was clicked directly; it opened J Assistant and returned four candidate profiles for `我要找男模`. The 390px surface had no horizontal overflow or console errors.
 
 ## Blockers
