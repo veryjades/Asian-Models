@@ -87,8 +87,11 @@ function AdminRoute() {
       const nextClient = getSupabaseBrowserClient();
       setClient(nextClient);
       const recoveryHash = new URLSearchParams(window.location.hash.slice(1)).get("type");
+      const recoveryType = recoveryHash ?? new URLSearchParams(window.location.search).get("type");
       const recoveryQuery = new URLSearchParams(window.location.search).get("reset");
-      setPasswordSetup(recoveryHash === "recovery" || recoveryQuery === "1");
+      setPasswordSetup(
+        recoveryType === "recovery" || recoveryType === "invite" || recoveryQuery === "1",
+      );
       const auth = createAuthAdapter(nextClient);
 
       const refreshIdentity = async () => {
@@ -185,10 +188,6 @@ function AdminPasswordSetup({
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (password.length < 12) {
-      setMessage({ tone: "error", text: "Password must be at least 12 characters." });
-      return;
-    }
     if (password !== confirmation) {
       setMessage({ tone: "error", text: "Passwords do not match." });
       return;
@@ -217,7 +216,8 @@ function AdminPasswordSetup({
         <p className="label-xs text-white/50">J&J / ADMIN</p>
         <h1 className="mt-4 text-3xl font-light">Set your workspace password</h1>
         <p className="mt-4 text-sm leading-7 text-white/65">
-          Use a new password of at least 12 characters. Do not reuse your email address.
+          Use a new password that meets the workspace policy. Supabase Auth validates the configured
+          minimum and character requirements when you save it.
         </p>
         <form className="mt-8 space-y-5" onSubmit={submit}>
           <label className="block text-sm text-white/70">

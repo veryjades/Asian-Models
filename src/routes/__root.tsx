@@ -132,6 +132,24 @@ function RootComponent() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isAdminSurface = pathname.startsWith("/admin");
 
+  useEffect(() => {
+    // Supabase invite/recovery links can fall back to the configured Site URL
+    // (the homepage) when an older email or template omits the deep link. Keep
+    // the auth hash/query intact, but route those links to the password setup
+    // screen so the user never lands on an unrelated public page.
+    const hashParams = new URLSearchParams(window.location.hash.slice(1));
+    const queryParams = new URLSearchParams(window.location.search);
+    const authType = hashParams.get("type") ?? queryParams.get("type");
+    const isPasswordSetupLink = authType === "recovery" || authType === "invite";
+
+    if (!isPasswordSetupLink || window.location.pathname.startsWith("/admin")) return;
+
+    const target = new URL(window.location.href);
+    target.pathname = "/admin";
+    target.searchParams.set("reset", "1");
+    window.location.replace(target.toString());
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
