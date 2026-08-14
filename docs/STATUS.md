@@ -1,9 +1,9 @@
 # Asian Stars Agency — Status
 
-**Phase:** Phase 1 — Architecture Foundation (with authorised mock-asset experience iteration)
+**Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
-**Current phase:** Phase 1 — Architecture Foundation
-**Current task:** Validate Chen Yu-Xin's bold paired card hover and complete the remaining identity-consistent pairs.
+**Current phase:** Phase 2 — Application Foundation
+**Current task:** Define concrete Auth, Storage, and RLS policy tests before browser exposure.
 **Last heartbeat:** 2026-08-15 +08:00
 **Completion date:** 2026-08-10
 
@@ -16,11 +16,11 @@
 - Test baseline inspected: no test files, runner, or `test` script exists. The minimum recommended future approach is unit coverage for pure content/repository/i18n behavior before route/workflow integration tests.
 - Package manager resolved: Bun 1.x is canonical; setup is `bun install --frozen-lockfile`, with a pinned Bun version required in CI. npm was used only because Bun is unavailable in this environment.
 - PR [#2](https://github.com/veryjades/Asian-Models/pull/2) merged into `main` as `875f9eb`.
-- ADR-001, Supabase configuration, `.env.example`, initial migration, typed client/adapter, and RLS policy plan are established on `feature/phase-1-foundation`.
+- ADR-001, Supabase configuration, `.env.example`, initial migration, typed client/adapter, and RLS policy plan are established and the migration is applied to the linked Phase 2 project.
 
 ## In-progress items
 
-- Foundation review and migration validation are pending. No Phase 1 UI or product work is in progress.
+- Foundation review and migration validation are complete. No public route is connected to Supabase until the Phase 2 policy tests pass.
 - The authorised D-008/D-009 mock-asset experience iteration documents source/licensing requirements and now includes a reusable safe-presentation component.
 - Draft PR [#5](https://github.com/veryjades/Asian-Models/pull/5) contains the mock-asset guide and image-presentation foundation; it targets `feature/phase-1-foundation` and remains unmerged.
 - The Golden Mock Asset Set is complete: 18 reviewed fictional adult assets for three desktop heroes, five Women/Men portrait/full-body pairs, two New Faces digitals, and three portfolio scenes. See `docs/GOLDEN_MOCK_ASSET_SET.md`.
@@ -38,13 +38,14 @@
 - Supplied hover assets now expose three reviewed editorial pairs: Chen Yu-Xin, Aoi Takahashi, and Lin Wei-Jie. Tanya Lim and Han Min-jae retain same-person full-body extensions while stronger pose variants are sourced. The audit removed Lin's unrelated beach image, Hina's identity-mismatched hover/gallery images, and cross-person legacy gallery images from six talent profiles. Profile gallery media now uses a clipped `cover` frame to prevent letterboxing. Remaining cards intentionally have no `hoverPortrait` until genuine same-person pose frames are available.
 - J Assistant now performs deterministic, repository-backed candidate retrieval instead of telling visitors to browse on their own. It combines reviewed gender, language, market, tag, portfolio, and News signals, and renders a direct profile plus model-specific Quick Booking action for each recommendation. `docs/ASSISTANT_RETRIEVAL.md` records the current boundary and the later Supabase/pgvector replacement path; the five required Chinese queries were executed against the actual content set.
 - Execution started for UX-010: removed the Hina/Kim cross-person hover imports and mixed-identity gallery entries from the new-faces seed. Those cards now render only their verified primary digital until a genuine same-person second frame is reviewed.
-- Supabase project `asian-models` is provisioned and `ACTIVE_HEALTHY` in `ap-southeast-1` (ref `cajkkxustehtzyymlopm`, URL `https://cajkkxustehtzyymlopm.supabase.co`). No migration, Auth, Storage, or RLS grant has been applied; those remain Phase 2 work.
-- Supabase read-only smoke check passed: migration list and public table list are empty, and both security and performance advisors returned no lints. No DDL was executed.
+- Supabase project `asian-models` is provisioned and `ACTIVE_HEALTHY` in `ap-southeast-1` (ref `cajkkxustehtzyymlopm`, URL `https://cajkkxustehtzyymlopm.supabase.co`). Auth, Storage, browser grants, and role policies remain pending P2-002/P2-003.
+- Supabase pre-migration smoke check passed before Phase 2; the migration was then applied and the post-migration table/advisor verification is recorded below.
+- Phase 2 approved by the project owner. Migration `20260814163450_initial_platform_foundation` is now applied to `cajkkxustehtzyymlopm`; five public tables are present with RLS enabled, and `src/lib/supabase/database.types.ts` has been regenerated from the live schema.
 - The J Assistant control no longer collides with the Vercel Preview Toolbar: its trigger is positioned clear of the toolbar and its opened conversation temporarily hides that toolbar. The latest Preview was clicked directly; it opened J Assistant and returned four candidate profiles for `我要找男模`. The 390px surface had no horizontal overflow or console errors.
 
 ## Blockers
 
-- The Supabase project is healthy, but the initial migration is intentionally un-applied until Phase 2 approval; local Docker is also unavailable.
+- Security advisors report INFO findings because the five RLS-enabled tables have no policies yet; this is the active P2-002 task. Performance INFO findings only report unused indexes on the empty database. Local Docker remains unavailable.
 - No deployment blocker remains. Product acceptance is pending review of the isolated Preview. The production keyword/tag admin and CMS backing remain future Phase 5/admin work; this iteration only adds the content boundary and documents the future requirement.
 - Identity-consistent hover photography remains in progress for the remaining models. No other-person photo may be substituted or duplicated; the Lin hover derivative only trims the supplied frame's baked black matte while preserving the subject.
 
@@ -52,9 +53,9 @@
 
 **Phase 0: COMPLETE.** PR [#2](https://github.com/veryjades/Asian-Models/pull/2) is merged and its checks remain green.
 
-## Phase 1 prerequisites
+## Phase 2 prerequisites
 
-- Phase 1 foundation PR must be reviewed before any migration is applied or the application is connected to Supabase.
+- Phase 1 foundation is applied and verified. Before connecting application routes, P2-002 must define and test Auth claims, Storage paths, and RLS policies.
 - Product/domain scope, user journeys, content ownership, and acceptance criteria must be approved and recorded before implementation.
 - A Phase 1 architecture note must be created under `docs/architecture/` if the approved design requires one.
 - Supabase, AI, Messenger/Facebook webhook, Admin, and backend implementation remain prohibited until their planned phases.

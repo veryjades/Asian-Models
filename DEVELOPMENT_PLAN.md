@@ -1,23 +1,23 @@
 # Asian Stars Agency — Development Plan
 
-**Current phase:** Phase 1 — Architecture Foundation
+**Current phase:** Phase 2 — Application Foundation
 **Phase owner:** Codex implementation agent  
 **Control rule:** A phase can advance only after its completion conditions are evidenced in `TASKS.md` and the next phase's prerequisites are met.
 
 ## Phase roadmap
 
-| Phase | Scope | Completion conditions | Do not start before this phase |
-| --- | --- | --- | --- |
-| 0 | Baseline engineering audit | Dependency/tooling path documented; build and lint status captured; test coverage/absence captured; actionable baseline defects are tracked. | Supabase, AI, Messenger/Facebook, admin features, production data migration. |
-| 1 | Architecture foundation | ADR, Supabase configuration, migration history, typed client/adapter boundary, and RLS plan are reviewed; no existing UI is connected. | Cloud migration apply, Auth flows, Storage buckets, role provisioning, AI, Messenger, Admin UI, or new product workflows. |
-| 2 | Application foundation | Apply the approved schema to a linked project; configure Auth, Storage boundaries, and Admin/Editor/Viewer enforcement after their detailed plans are approved. | End-user product features that depend on unfinished permissions or schema. |
-| 3 | Public experience and content migration | Public routes, content model, media handling, accessibility, and migration plan meet agreed acceptance criteria. | AI-assisted flows, Facebook webhooks, admin operations beyond the approved foundation. |
-| 4 | Enquiry and operational workflows | Booking/contact/application workflows persist safely, notify correctly, and have audit/error handling. | AI automation and webhook processing. |
-| 5 | Admin operations | Admin/Editor/Viewer interfaces enforce the approved authorization model and support agreed content/lead operations. | New roles or unapproved permission expansion. |
-| 6 | AI capability | Provider abstraction, Azure OpenAI integration (if selected), safety/privacy controls, evaluation cases, and fallback behavior are verified. | Direct provider coupling or production AI actions without evaluation. |
-| 7 | Facebook/Messenger integration | Deep-link path is verified; webhook scope, Meta approval, verification, idempotency, and monitoring are approved before webhook implementation. | Webhook/event ingestion before approval and security design. |
-| 8 | Production readiness | Security review, observability, backups/recovery, performance, accessibility, legal/privacy checks, and release runbook are complete. | Production release before readiness gate. |
-| 9 | Launch and iteration | Production launch checklist is complete; ownership, support, analytics, and post-launch measurement are operating. | Unreviewed changes directly in production. |
+| Phase | Scope                                   | Completion conditions                                                                                                                                           | Do not start before this phase                                                                                            |
+| ----- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 0     | Baseline engineering audit              | Dependency/tooling path documented; build and lint status captured; test coverage/absence captured; actionable baseline defects are tracked.                    | Supabase, AI, Messenger/Facebook, admin features, production data migration.                                              |
+| 1     | Architecture foundation                 | ADR, Supabase configuration, migration history, typed client/adapter boundary, and RLS plan are reviewed; no existing UI is connected.                          | Cloud migration apply, Auth flows, Storage buckets, role provisioning, AI, Messenger, Admin UI, or new product workflows. |
+| 2     | Application foundation                  | Apply the approved schema to a linked project; configure Auth, Storage boundaries, and Admin/Editor/Viewer enforcement after their detailed plans are approved. | End-user product features that depend on unfinished permissions or schema.                                                |
+| 3     | Public experience and content migration | Public routes, content model, media handling, accessibility, and migration plan meet agreed acceptance criteria.                                                | AI-assisted flows, Facebook webhooks, admin operations beyond the approved foundation.                                    |
+| 4     | Enquiry and operational workflows       | Booking/contact/application workflows persist safely, notify correctly, and have audit/error handling.                                                          | AI automation and webhook processing.                                                                                     |
+| 5     | Admin operations                        | Admin/Editor/Viewer interfaces enforce the approved authorization model and support agreed content/lead operations.                                             | New roles or unapproved permission expansion.                                                                             |
+| 6     | AI capability                           | Provider abstraction, Azure OpenAI integration (if selected), safety/privacy controls, evaluation cases, and fallback behavior are verified.                    | Direct provider coupling or production AI actions without evaluation.                                                     |
+| 7     | Facebook/Messenger integration          | Deep-link path is verified; webhook scope, Meta approval, verification, idempotency, and monitoring are approved before webhook implementation.                 | Webhook/event ingestion before approval and security design.                                                              |
+| 8     | Production readiness                    | Security review, observability, backups/recovery, performance, accessibility, legal/privacy checks, and release runbook are complete.                           | Production release before readiness gate.                                                                                 |
+| 9     | Launch and iteration                    | Production launch checklist is complete; ownership, support, analytics, and post-launch measurement are operating.                                              | Unreviewed changes directly in production.                                                                                |
 
 ## Phase 0 gate — current work
 
@@ -62,6 +62,21 @@ and reusable image rendering components, then validate them on a Preview
 deployment. It must not wire UI to Supabase, alter the data architecture, add
 an AI product runtime, provision cloud resources, or expand into unrelated
 public-feature work.
+
+## Phase 2 gate — current work
+
+### Completion conditions
+
+- The approved foundation migration is applied to the linked Supabase project and generated types match the live schema.
+- Auth configuration, Storage bucket/path boundaries, and Admin/Editor/Viewer role claims are documented and tested.
+- RLS policies and explicit Data API grants match the approved audience matrix; unauthenticated and each authenticated role have verification evidence.
+- Existing public routes remain cloud-agnostic until the policy and adapter tests pass.
+
+### Explicitly prohibited while Phase 2 is active
+
+- Exposing `service_role` or any secret in browser code or committed environment files.
+- Connecting public forms/routes to tables before RLS and Data API grant tests pass.
+- Adding AI, Messenger/Facebook webhooks, pricing, or production automation outside the phase scope.
 
 ## Control documents
 
