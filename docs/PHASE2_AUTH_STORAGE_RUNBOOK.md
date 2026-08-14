@@ -21,6 +21,11 @@ service-role key. It reads the current JSON key variables when available and
 falls back to legacy key variables during rotation. Missing bearer tokens
 return 401; anonymous/non-admin JWTs return 403; invalid roles return 400.
 
+The linked Free-plan project uses a 12-character minimum password and requires
+lowercase, uppercase, digit, and symbol characters. Supabase's leaked-password
+check is Pro-plan-only, so the security advisor warning is documented as a
+plan limitation rather than a missing RLS/Auth implementation.
+
 ## Browser Auth boundary
 
 `src/lib/supabase/auth.ts` is the only browser-facing Auth adapter. It exposes

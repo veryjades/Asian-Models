@@ -32,7 +32,7 @@
 
 ## Verification evidence
 
-- Supabase policy advisors: no RLS or Storage policy lints after migration. One external Auth configuration warning remains: leaked-password protection is disabled (`auth_leaked_password_protection`); it is outside the SQL policy boundary and requires Dashboard persistence.
+- Supabase policy advisors: no RLS or Storage policy lints after migration. Free-plan Auth hardening is configured and verified with a 12-character minimum plus lowercase/uppercase/digit/symbol requirements. The remaining `auth_leaked_password_protection` warning is a documented plan limitation: Supabase exposes leaked-password checks on Pro and above, outside the SQL policy boundary.
 - Viewer probe: `SELECT` returned zero rows on the empty table; an attempted insert was rejected by RLS.
 - Editor probe: a transaction-scoped insert succeeded and was rolled back; no probe data remains.
 - Extended SQL probes also verified invalid roles fall back to `viewer`, viewer client writes are rejected, and an admin model insert/delete succeeds inside a rollback transaction.
@@ -48,8 +48,10 @@ requirements are complete. The remaining work is the separately tracked UX-010
 asset review and the later Phase 3 decision to connect public routes; no new
 RLS or Storage policy change is required for this gate.
 
-Before production Auth exposure, enable and persist leaked-password protection
-in Authentication → Attack Protection. Supabase documents the setting at
+If the project later moves to Pro, enable leaked-password protection in
+Authentication → Attack Protection. The current Free-plan mitigation is the
+verified 12-character minimum and strongest character requirements. Supabase
+documents the plan-gated setting at
 https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection.
 
 The browser-side implementation is now bounded in `src/lib/supabase/auth.ts`:

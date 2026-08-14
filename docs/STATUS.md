@@ -58,7 +58,7 @@
 
 ## Blockers
 
-- The live Auth/Data API/Storage matrix is clean. Security advisor has one remaining external configuration warning: leaked-password protection is disabled (`auth_leaked_password_protection`); the Dashboard toggle did not persist after reload and must be enabled by the project owner. Performance advisors report only unused indexes on the empty database. Local Docker remains unavailable but is non-blocking.
+- The live Auth/Data API/Storage matrix is clean. Free-plan Auth hardening is configured and verified: minimum password length is 12 and the required character set is lowercase, uppercase, digits, and symbols. Security advisor still reports `auth_leaked_password_protection` because Supabase makes leaked-password checks available only on Pro and above; this is a plan limitation, not a failed setting. Performance advisors report only unused indexes on the empty database. Local Docker remains unavailable but is non-blocking.
 - The strict TypeScript baseline is resolved: fixed the 10 pre-existing errors in AskAssistant, QuickBooking, and assistantRetrieval; `bunx tsc --noEmit`, `bun run lint`, and `bun run build` now pass (lint retains 9 existing warnings).
 - No deployment blocker remains. Product acceptance is pending review of the isolated Preview. The production keyword/tag admin and CMS backing remain future Phase 5/admin work; this iteration only adds the content boundary and documents the future requirement.
 - Identity-consistent hover photography remains in progress for the remaining models. No other-person photo may be substituted or duplicated; the Lin hover derivative only trims the supplied frame's baked black matte while preserving the subject.
