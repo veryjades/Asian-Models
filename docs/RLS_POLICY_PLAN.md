@@ -38,6 +38,7 @@
 - Anonymous probe: `anon` received `permission denied` on `public.models` because no table grant exists.
 - All five public tables report `rls_enabled = true`; the policy catalog contains table and Storage policies for the authenticated role.
 - Live SQL snapshot on 2026-08-15: 5/5 public tables with RLS, 20 public policies, 4 `model-media` Storage policies, private bucket with 50 MiB limit and the four approved MIME types. `auth.users` currently has 0 rows, so real-session verification is not yet executable without disposable test accounts.
+- Anonymous Data API smoke request to `/rest/v1/models` returned `401` with `permission denied for table models`. Anonymous Storage list returned `200 []` only because the private bucket has no objects; this is intentionally recorded as inconclusive until a controlled authenticated test object exists.
 
 ## Remaining verification requirements
 

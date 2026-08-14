@@ -46,6 +46,7 @@
 - The private Storage boundary is also implemented in `src/lib/supabase/media.ts`: fixed bucket, validated `models/<id>/`/`portfolios/<id>/` paths, traversal rejection, and MIME/50 MiB guards before Storage RLS.
 - Local adapter probes passed for trusted-role fallback, auth-state subscription, safe Storage paths, traversal rejection, and WebP MIME validation; these do not replace live Auth-session tests.
 - Live SQL snapshot confirms 5 RLS tables, 20 public policies, 4 model-media Storage policies, a private 50 MiB bucket with the approved MIME allow-list, and 0 Auth users; the remaining gate is therefore specifically disposable viewer/editor/admin session creation and API verification.
+- Anonymous Data API smoke check returned `401 permission denied`; Storage list returned an empty `200` because there are no objects, so anonymous Storage denial remains unverified rather than being overstated as passed.
 - `.env.example` now points to the approved public project URL; the publishable key remains a local-only placeholder and no service-role secret is committed.
 - The J Assistant control no longer collides with the Vercel Preview Toolbar: its trigger is positioned clear of the toolbar and its opened conversation temporarily hides that toolbar. The latest Preview was clicked directly; it opened J Assistant and returned four candidate profiles for `我要找男模`. The 390px surface had no horizontal overflow or console errors.
 
