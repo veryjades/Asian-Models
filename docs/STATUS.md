@@ -55,6 +55,7 @@
 - Latest verified Phase 2 Vercel branch Preview is READY at `https://asian-models-git-feature-mock-assets-asian-models.vercel.app`; deployment access is SSO-protected, so route/hover evidence remains from the local Playwright pass.
 - `.env.example` now points to the approved public project URL; the publishable key remains a local-only placeholder and no service-role secret is committed.
 - The J Assistant control no longer collides with the Vercel Preview Toolbar: its trigger is positioned clear of the toolbar and its opened conversation temporarily hides that toolbar. The latest Preview was clicked directly; it opened J Assistant and returned four candidate profiles for `我要找男模`. The 390px surface had no horizontal overflow or console errors.
+- Owner-authorized Admin UI preparation is complete at `/admin`: Auth sign-in, trusted Admin/Editor role gate, model create/update form, primary photo upload, optional second hover photo upload, private Storage paths, and `media_assets.sort_order` 0/1 persistence are implemented without service-role exposure. Local browser QA showed the configured sign-in state, no console errors, and no horizontal overflow. Full operational admin scope remains Phase 5.
 
 ## Blockers
 
