@@ -35,12 +35,11 @@
 - Supabase security advisors: no lints after policy migration.
 - Viewer probe: `SELECT` returned zero rows on the empty table; an attempted insert was rejected by RLS.
 - Editor probe: a transaction-scoped insert succeeded and was rolled back; no probe data remains.
+- Anonymous probe: `anon` received `permission denied` on `public.models` because no table grant exists.
 - All five public tables report `rls_enabled = true`; the policy catalog contains table and Storage policies for the authenticated role.
 
-## Implementation requirements for a later policy task
+## Remaining verification requirements
 
-1. Explicitly grant only the table operations needed by the browser audience.
-2. Create `SELECT` policies alongside any `UPDATE` policy, and use both `USING` and `WITH CHECK` for updates.
-3. Test each role and unauthenticated request against the policy matrix.
-4. Define bucket names, object path ownership, MIME limits, and visibility before adding Storage policies.
-5. Record the role-provisioning process and token-refresh behavior before relying on role claims.
+1. Create real Auth sessions for viewer, editor, and admin and repeat the role probes.
+2. Verify anonymous requests through the Data API and Storage API, not only SQL role probes.
+3. Record the role-provisioning process and token-refresh behavior before relying on role claims.
