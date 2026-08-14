@@ -28,30 +28,35 @@
 - `editor` can select and insert/update models, portfolios, media assets, clients, bookings, and objects under `models/<id>/` or `portfolios/<id>/`; deletes remain admin-only.
 - `admin` has the editor permissions plus deletes for application tables and approved Storage objects.
 - Storage bucket: private `model-media`, 50 MiB object limit, MIME allow-list `image/jpeg`, `image/png`, `image/webp`, `video/mp4`.
-- Migration: `20260814164022_phase2_security_policies` (local source: `supabase/migrations/20260815170000_phase2_security_policies.sql`).
+- Migration: `20260815170000_phase2_security_policies.sql` (applied to the linked project).
 
 ## Verification evidence
 
-- Supabase security advisors: no lints after policy migration.
+- Supabase policy advisors: no RLS or Storage policy lints after migration. One external Auth configuration warning remains: leaked-password protection is disabled (`auth_leaked_password_protection`); it is outside the SQL policy boundary and requires Dashboard persistence.
 - Viewer probe: `SELECT` returned zero rows on the empty table; an attempted insert was rejected by RLS.
 - Editor probe: a transaction-scoped insert succeeded and was rolled back; no probe data remains.
 - Extended SQL probes also verified invalid roles fall back to `viewer`, viewer client writes are rejected, and an admin model insert/delete succeeds inside a rollback transaction.
 - Anonymous probe: `anon` received `permission denied` on `public.models` because no table grant exists.
 - All five public tables report `rls_enabled = true`; the policy catalog contains table and Storage policies for the authenticated role.
-- Live SQL snapshot on 2026-08-15: 5/5 public tables with RLS, 20 public policies, 4 `model-media` Storage policies, private bucket with 50 MiB limit and the four approved MIME types. `auth.users` currently has 0 rows, so real-session verification is not yet executable without disposable test accounts.
-- Anonymous Data API smoke request to `/rest/v1/models` returned `401` with `permission denied for table models`. Anonymous Storage list returned `200 []` only because the private bucket has no objects; this is intentionally recorded as inconclusive until a controlled authenticated test object exists.
+- Live SQL snapshot on 2026-08-15: 5/5 public tables with RLS, 20 public policies, 4 `model-media` Storage policies, private bucket with a 50 MiB limit and the four approved MIME types. Three disposable Auth sessions were created for the live matrix and all probe accounts/rows were cleaned afterward.
+- Live Data API/Storage matrix: viewer model/portfolio/media reads succeeded while client/booking reads and writes were denied; editor insert/update succeeded and delete was denied; admin deletes succeeded. Viewer download succeeded and upload was denied; editor upload/update succeeded and delete was denied; admin delete succeeded. Anonymous table access returned `401/permission denied`; anonymous download of a controlled private object returned `400 Object not found`. All probe objects were removed.
 
-## Remaining verification requirements
+## Phase 2 verification result
 
-1. Create real Auth sessions for viewer, editor, and admin and repeat the role probes.
-2. Verify anonymous requests through the Data API and Storage API, not only SQL role probes.
-3. Record the role-provisioning process and token-refresh behavior before relying on role claims.
+The live Auth-session, Data API, Storage API, role-provisioning, and token-refresh
+requirements are complete. The remaining work is the separately tracked UX-010
+asset review and the later Phase 3 decision to connect public routes; no new
+RLS or Storage policy change is required for this gate.
+
+Before production Auth exposure, enable and persist leaked-password protection
+in Authentication → Attack Protection. Supabase documents the setting at
+https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection.
 
 The browser-side implementation is now bounded in `src/lib/supabase/auth.ts`:
 it uses `getUser()` for the server-confirmed identity, reads only
 `app_metadata.role`, and never accepts a role or service credential from the
-browser. Public routes remain disconnected until the three live-session checks
-above are completed.
+browser. Public routes remain disconnected until the Phase 3 connection review
+is approved.
 
 `src/lib/supabase/media.ts` provides the matching private Storage boundary:
 fixed `model-media` bucket, validated owner paths, and client-side MIME/size

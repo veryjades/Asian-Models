@@ -1,7 +1,7 @@
 # Phase 2 Auth and Storage Runbook
 
 **Project:** `asian-models` (`cajkkxustehtzyymlopm`)
-**Status:** P2-003 in progress
+**Status:** P2-003 complete
 
 ## Role provisioning
 
@@ -60,17 +60,18 @@ operation.
 4. Verify an anonymous request receives no table or Storage data.
 5. Run Supabase security advisors after each policy or bucket change.
 
-## Live-session execution matrix
+## Live-session execution matrix — executed 2026-08-15
 
-Run these checks with three disposable users created in the Supabase Auth
-Dashboard. Assign each role in **User > App metadata** (not User metadata),
-then sign out and sign back in so the JWT contains the changed claim.
+Three disposable users were created in the Supabase Auth Dashboard. Roles were
+assigned through trusted `app_metadata` (admin bootstrap plus the server-only
+`provision-user` function for editor/viewer), then sessions were refreshed so
+the JWT contained the expected claim. No credentials are stored in the repo.
 
-| Session | Expected database result | Expected Storage result |
-| --- | --- | --- |
-| viewer | `SELECT` models/portfolios/media succeeds; clients/bookings reads and all writes fail | list/download approved paths succeeds; upload/update/delete fail |
-| editor | models/portfolios/media/client/booking reads and insert/update succeed; deletes fail | list/download/upload/update approved paths succeed; delete fails |
-| admin | editor access plus approved deletes | list/download/upload/update/delete approved paths succeed |
+| Session | Live result |
+| --- | --- |
+| viewer | Model/portfolio/media reads succeeded; client/booking reads and all writes were denied. Download succeeded; upload was denied. |
+| editor | Model/portfolio/media/client/booking insert/update succeeded; deletes were denied. Upload/update succeeded; delete was denied. |
+| admin | Approved application-row deletes and Storage object deletion succeeded. |
 
 For each session, verify the browser adapter in `src/lib/supabase/auth.ts`
 returns the expected role from `getUser()`, then run
@@ -80,9 +81,9 @@ function applies the same fallback. Finally, repeat one anonymous Data API
 request and one anonymous Storage API request with the publishable key and
 confirm both are denied.
 
-The SQL policy probes already run against the empty database are recorded in
-`docs/RLS_POLICY_PLAN.md`; they are not a substitute for real Auth-session
-tests, which remain the next P2-003 evidence.
+The controlled live-session probes are recorded in `docs/RLS_POLICY_PLAN.md`;
+all probe rows and objects were removed after verification. The public routes
+remain cloud-agnostic until the Phase 3 connection review.
 
 Local boundary probes passed on 2026-08-15: the Auth adapter returned the
 trusted editor identity, downgraded a tampered role to viewer, and registered

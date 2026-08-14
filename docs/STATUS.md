@@ -3,7 +3,7 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** Implement Auth role provisioning and end-to-end role tests before browser exposure.
+**Current task:** Close the live Auth/Storage evidence gate and prepare the reviewed Phase 3 handoff.
 **Last heartbeat:** 2026-08-15 +08:00
 **Completion date:** 2026-08-10
 
@@ -38,16 +38,17 @@
 - Supplied hover assets now expose three reviewed editorial pairs: Chen Yu-Xin, Aoi Takahashi, and Lin Wei-Jie. Tanya Lim and Han Min-jae retain same-person full-body extensions while stronger pose variants are sourced. The audit removed Lin's unrelated beach image, Hina's identity-mismatched hover/gallery images, and cross-person legacy gallery images from six talent profiles. Profile gallery media now uses a clipped `cover` frame to prevent letterboxing. Remaining cards intentionally have no `hoverPortrait` until genuine same-person pose frames are available.
 - J Assistant now performs deterministic, repository-backed candidate retrieval instead of telling visitors to browse on their own. It combines reviewed gender, language, market, tag, portfolio, and News signals, and renders a direct profile plus model-specific Quick Booking action for each recommendation. `docs/ASSISTANT_RETRIEVAL.md` records the current boundary and the later Supabase/pgvector replacement path; the five required Chinese queries were executed against the actual content set.
 - Execution started for UX-010: removed the Hina/Kim cross-person hover imports and mixed-identity gallery entries from the new-faces seed. Those cards now render only their verified primary digital until a genuine same-person second frame is reviewed.
-- Supabase project `asian-models` is provisioned and `ACTIVE_HEALTHY` in `ap-southeast-1` (ref `cajkkxustehtzyymlopm`, URL `https://cajkkxustehtzyymlopm.supabase.co`). Storage, browser grants, and database role policies are applied by P2-002; Auth role provisioning and end-to-end session checks remain P2-003 work.
+- Supabase project `asian-models` is provisioned and `ACTIVE_HEALTHY` in `ap-southeast-1` (ref `cajkkxustehtzyymlopm`, URL `https://cajkkxustehtzyymlopm.supabase.co`). Storage, browser grants, database role policies, Auth role provisioning, and live session checks are complete for Phase 2.
 - Supabase pre-migration smoke check passed before Phase 2; the migration was then applied and the post-migration table/advisor verification is recorded below.
-- Phase 2 approved by the project owner. Migration `20260814163450_initial_platform_foundation` is now applied to `cajkkxustehtzyymlopm`; five public tables are present with RLS enabled, and `src/lib/supabase/database.types.ts` has been regenerated from the live schema.
-- P2-002 is complete: migration `20260814164022_phase2_security_policies` adds trusted `app_metadata.role` evaluation, authenticated-only grants, Admin/Editor/Viewer policies, private `model-media` Storage bucket/path policies, and was verified by security advisors plus viewer/editor transaction probes.
-- P2-003 implementation progressed: `src/lib/supabase/auth.ts` now provides a browser-safe Auth adapter using server-confirmed `getUser()`, trusted `app_metadata.role`, sign-in/sign-out, session lookup, and auth-state subscriptions; it does not provision users or expose service credentials.
+- Phase 2 approved by the project owner. The initial foundation migration is applied to `cajkkxustehtzyymlopm`; five public tables are present with RLS enabled, and `src/lib/supabase/database.types.ts` matches the live schema.
+- P2-002 is complete: `supabase/migrations/20260815170000_phase2_security_policies.sql` adds trusted `app_metadata.role` evaluation, authenticated-only grants, Admin/Editor/Viewer policies, private `model-media` Storage bucket/path policies, and was verified by security advisors plus live role probes.
+- P2-003 is complete: `src/lib/supabase/auth.ts` provides a browser-safe Auth adapter using server-confirmed `getUser()`, trusted `app_metadata.role`, sign-in/sign-out, session lookup, and auth-state subscriptions; it does not provision users or expose service credentials.
 - Server-only role provisioning is deployed as Supabase Edge Function `provision-user` (version 2, `verify_jwt=true`): missing auth returns 401, a publishable/non-admin JWT returns 403, and invalid roles return 400 in live smoke checks; the function preserves existing metadata, writes only the validated `app_metadata.role`, and accepts both rotated JSON key variables and legacy key variables server-side.
 - The private Storage boundary is also implemented in `src/lib/supabase/media.ts`: fixed bucket, validated `models/<id>/`/`portfolios/<id>/` paths, traversal rejection, and MIME/50 MiB guards before Storage RLS.
 - Local adapter probes passed for trusted-role fallback, auth-state subscription, safe Storage paths, traversal rejection, and WebP MIME validation; these do not replace live Auth-session tests.
-- Live SQL snapshot confirms 5 RLS tables, 20 public policies, 4 model-media Storage policies, a private 50 MiB bucket with the approved MIME allow-list, and 0 Auth users; the remaining gate is therefore specifically disposable viewer/editor/admin session creation and API verification.
-- Anonymous Data API smoke check returned `401 permission denied`; Storage list returned an empty `200` because there are no objects, so anonymous Storage denial remains unverified rather than being overstated as passed.
+- Live-session gate completed on 2026-08-15 with three disposable Auth accounts (viewer/editor/admin). The Edge Function provisioned viewer/editor with HTTP 200, the admin claim was bootstrapped server-side, and refreshed JWT claims matched each role.
+- The live database matrix passed: editor insert/update succeeded for models, portfolios, media assets, clients, and bookings; viewer model/portfolio/media reads succeeded while client/booking reads and writes were denied; editor deletes were denied; admin deletes succeeded. All probe rows were removed.
+- The live Storage matrix passed: viewer download succeeded and upload was denied; editor upload/update succeeded and delete was denied; admin delete succeeded. Anonymous download returned `400 Object not found` for a controlled private object and anonymous Data API access returned `401/permission denied`. All probe objects were removed.
 - Extended policy probe script executed against the linked project: invalid role fallback, viewer client-write denial, and admin insert/delete transaction all behaved as expected.
 - Asset mapping audit found no media path shared across different model slugs; repeated paths are limited to the same model's gallery/digital usage. The only black-edge legacy asset (`src/assets/model-03.jpg`) is not referenced by the content seed.
 - Local Playwright QA on 2026-08-15 loaded `/models/women`, `/keywords/women`, and `/models/women/chen-yu-xin` with HTTP 200 and no console/page errors; Women board rendered 5 paired cards, and Chen hover switched primary opacity `0` → hover opacity `1` with fixed card geometry.
@@ -57,7 +58,7 @@
 
 ## Blockers
 
-- Security advisors are clean after P2-002. Performance advisors report only unused indexes on the empty database. P2-003 remains active for Auth role provisioning and end-to-end tests; local Docker remains unavailable.
+- The live Auth/Data API/Storage matrix is clean. Security advisor has one remaining external configuration warning: leaked-password protection is disabled (`auth_leaked_password_protection`); the Dashboard toggle did not persist after reload and must be enabled by the project owner. Performance advisors report only unused indexes on the empty database. Local Docker remains unavailable but is non-blocking.
 - The strict TypeScript baseline is resolved: fixed the 10 pre-existing errors in AskAssistant, QuickBooking, and assistantRetrieval; `bunx tsc --noEmit`, `bun run lint`, and `bun run build` now pass (lint retains 9 existing warnings).
 - No deployment blocker remains. Product acceptance is pending review of the isolated Preview. The production keyword/tag admin and CMS backing remain future Phase 5/admin work; this iteration only adds the content boundary and documents the future requirement.
 - Identity-consistent hover photography remains in progress for the remaining models. No other-person photo may be substituted or duplicated; the Lin hover derivative only trims the supplied frame's baked black matte while preserving the subject.
@@ -75,8 +76,7 @@
 
 ## Next action
 
-Create disposable viewer/editor/admin Auth users in the Supabase Dashboard,
-seed one controlled `model-media` object through the approved workflow, and run
-the live session/Data API/Storage matrix. Keep public routes cloud-agnostic and
-PR #5 draft/open/not merged until that evidence is complete; UX-010's remaining
-stronger hover-pose sourcing stays tracked separately.
+Run the final lint/build/advisor sweep, update PR #5 with the completed Phase 2
+evidence, and prepare the Phase 3 public-route connection review. Keep public
+routes cloud-agnostic until that review; UX-010's remaining stronger hover-pose
+sourcing stays tracked separately.
