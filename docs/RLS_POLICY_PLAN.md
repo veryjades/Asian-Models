@@ -37,6 +37,7 @@
 - Editor probe: a transaction-scoped insert succeeded and was rolled back; no probe data remains.
 - Anonymous probe: `anon` received `permission denied` on `public.models` because no table grant exists.
 - All five public tables report `rls_enabled = true`; the policy catalog contains table and Storage policies for the authenticated role.
+- Live SQL snapshot on 2026-08-15: 5/5 public tables with RLS, 20 public policies, 4 `model-media` Storage policies, private bucket with 50 MiB limit and the four approved MIME types. `auth.users` currently has 0 rows, so real-session verification is not yet executable without disposable test accounts.
 
 ## Remaining verification requirements
 
