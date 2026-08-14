@@ -63,18 +63,18 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 
 ## 6. QA and release gate
 
-- [ ] Verify `/models/women`, `/models/men`, `/models/new-faces`, `/models/talent`.
-- [ ] Verify `/keywords/*`, `/about`, `/news`, News detail, model profiles, and `/admin`.
-- [ ] Hover QA: clear pose/body-language change, no scale-only effect, no geometry shift, no black edges.
-- [ ] Mobile QA at 390px and desktop QA; no horizontal overflow or console errors.
-- [ ] Verify Auth, Storage, RLS, Data API grants, and cleanup of test rows/objects.
+- [~] Verify `/models/women`, `/models/men`, `/models/new-faces`, `/models/talent`. Local HTTP probes pass; visual and authenticated data-path review remains.
+- [~] Verify `/keywords/*`, `/about`, `/news`, News detail, model profiles, and `/admin`. Local route probes pass; full visual/refresh review remains.
+- [~] Hover QA: Chen's paired transition passed earlier pointer QA; remaining model pairs, no scale-only effect, geometry, and black-edge sweep remain.
+- [~] Mobile QA at 390px and desktop QA; earlier 390px surfaces passed, but the current Admin/content release still needs the final full sweep.
+- [x] Verify Auth, Storage, RLS, Data API grants, and cleanup of test rows/objects. Live role/storage matrix and the current trigger transaction probe passed; test records/objects were removed or rolled back.
 - [x] Run `bunx tsc --noEmit`, `bun run lint`, `bun run build`, and `git diff --check`. Typecheck/build/diff check pass; lint passes with 9 existing React-refresh warnings and 0 errors.
-- [ ] Deploy Preview, inspect routes in the deployed build, and record URL/commit.
-- [ ] Update PR #5 with checklist evidence and remaining blockers only.
+- [~] Deploy Preview, inspect routes in the deployed build, and record URL/commit. The branch Preview responds 200; current-commit route/hover inspection remains.
+- [x] Update PR #5 with checklist evidence and remaining blockers only. Pushed `c9d514a` and posted the update on the open draft PR.
 
 ## 7. Project operations
 
-- [ ] Keep this checklist, `TASKS.md`, and `docs/STATUS.md` synchronized after each work session.
+- [x] Keep this checklist, `TASKS.md`, and `docs/STATUS.md` synchronized after each work session.
 - [ ] Keep the Asana launch plan aligned with these acceptance gates and completion percentages.
 - [ ] Keep Notion/launch documentation linked to the same source-of-truth checklist.
 
