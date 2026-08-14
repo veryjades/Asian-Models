@@ -9,7 +9,7 @@
 
 ## Completed items
 
-- Project-control documents and agent protocol are active on `feature/baseline`.
+- Project-control documents and agent protocol are active on `feature/mock-assets`; historical Phase 0 baseline details remain in `TASKS.md`.
 - The baseline lint audit found 46 Prettier errors in 17 existing files and no other error-level lint rules; those files were formatted with the repository configuration.
 - `npm run lint` now exits 0 with 0 errors and 9 existing React-refresh warnings.
 - `npm run build` completes successfully; Vite/Nitro warnings are non-fatal.
@@ -38,7 +38,7 @@
 - Supplied hover assets now expose three reviewed editorial pairs: Chen Yu-Xin, Aoi Takahashi, and Lin Wei-Jie. Tanya Lim and Han Min-jae retain same-person full-body extensions while stronger pose variants are sourced. The audit removed Lin's unrelated beach image, Hina's identity-mismatched hover/gallery images, and cross-person legacy gallery images from six talent profiles. Profile gallery media now uses a clipped `cover` frame to prevent letterboxing. Remaining cards intentionally have no `hoverPortrait` until genuine same-person pose frames are available.
 - J Assistant now performs deterministic, repository-backed candidate retrieval instead of telling visitors to browse on their own. It combines reviewed gender, language, market, tag, portfolio, and News signals, and renders a direct profile plus model-specific Quick Booking action for each recommendation. `docs/ASSISTANT_RETRIEVAL.md` records the current boundary and the later Supabase/pgvector replacement path; the five required Chinese queries were executed against the actual content set.
 - Execution started for UX-010: removed the Hina/Kim cross-person hover imports and mixed-identity gallery entries from the new-faces seed. Those cards now render only their verified primary digital until a genuine same-person second frame is reviewed.
-- Supabase project `asian-models` is provisioned and `ACTIVE_HEALTHY` in `ap-southeast-1` (ref `cajkkxustehtzyymlopm`, URL `https://cajkkxustehtzyymlopm.supabase.co`). Auth, Storage, browser grants, and role policies remain pending P2-002/P2-003.
+- Supabase project `asian-models` is provisioned and `ACTIVE_HEALTHY` in `ap-southeast-1` (ref `cajkkxustehtzyymlopm`, URL `https://cajkkxustehtzyymlopm.supabase.co`). Storage, browser grants, and database role policies are applied by P2-002; Auth role provisioning and end-to-end session checks remain P2-003 work.
 - Supabase pre-migration smoke check passed before Phase 2; the migration was then applied and the post-migration table/advisor verification is recorded below.
 - Phase 2 approved by the project owner. Migration `20260814163450_initial_platform_foundation` is now applied to `cajkkxustehtzyymlopm`; five public tables are present with RLS enabled, and `src/lib/supabase/database.types.ts` has been regenerated from the live schema.
 - P2-002 is complete: migration `20260814164022_phase2_security_policies` adds trusted `app_metadata.role` evaluation, authenticated-only grants, Admin/Editor/Viewer policies, private `model-media` Storage bucket/path policies, and was verified by security advisors plus viewer/editor transaction probes.
