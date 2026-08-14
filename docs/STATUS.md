@@ -4,14 +4,15 @@
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
 **Current task:** Switch the application to the owner-created Supabase project and verify the Admin foundation there.
-**Last heartbeat:** 2026-08-15 +08:00 (new Supabase project schema, Auth invite, role, and local env verified)
+**Last heartbeat:** 2026-08-15 +08:00 (new Supabase project invite/recovery delivery and local Admin availability re-verified)
 **Completion date:** 2026-08-10
 
 ## Current live backend
 
 - Supabase project: `jkhxtuwqmmdetjqymzso` (`Model's Project`, `veryjades's Org Free`, Mumbai `ap-south-1`). The earlier `cajkkxustehtzyymlopm` project is historical only.
 - SQL Editor verification on 2026-08-15: foundation tables, `model_video_links`, `model_social_links`, trusted `current_app_role()` policies, private `model-media` bucket, and zero seed rows are present.
-- Auth URL configuration is set to `http://127.0.0.1:8090` with local and Preview wildcard redirects. `menscheck@gmail.com` has a live invitation row and `raw_app_meta_data.role=admin`.
+- Auth URL configuration is set to `http://127.0.0.1:8090` with local and Preview wildcard redirects. `menscheck@gmail.com` has a live invitation row and `raw_app_meta_data.role=admin`; Auth Logs show `/invite` 200 → `/verify` 303 and a later `/recover` 200 → `/verify` 303. A duplicate recovery request correctly returned 429 due to email-rate protection.
+- Local `http://127.0.0.1:8090/admin` was restarted with the new environment and returned HTTP 200; the signed-out surface exposes email, password, sign-in, and first-time setup controls.
 - `.env.local` uses the new project URL and publishable browser key; it is ignored and no service-role credential is committed.
 
 ## Completed items
