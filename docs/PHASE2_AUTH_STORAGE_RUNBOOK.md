@@ -13,6 +13,20 @@
 - Never put a service-role key in `VITE_*`, browser code, `.env.example`, or a client bundle.
 - After changing `app_metadata`, force a session refresh before testing the new role because existing JWT claims can be stale.
 
+## Browser Auth boundary
+
+`src/lib/supabase/auth.ts` is the only browser-facing Auth adapter. It exposes
+session lookup, server-confirmed `getUser()` identity lookup, password sign-in,
+sign-out, and auth-state subscriptions. It derives the UI role from the
+trusted `app_metadata.role` claim and defaults invalid or missing values to
+`viewer`, matching the database function. It does not create users or assign
+roles; those operations stay in the Supabase Dashboard or a server/Edge
+workflow that holds the service-role secret.
+
+The adapter is exported from `src/lib/supabase/index.ts` and is intentionally
+not mounted by public routes until the real-session checklist below has been
+completed.
+
 ## Storage boundary
 
 - Bucket: private `model-media`.
@@ -23,6 +37,12 @@
 - Editor: read, upload, and update approved paths.
 - Admin: full management, including delete.
 - There is no anonymous bucket access.
+
+`src/lib/supabase/media.ts` is the browser-safe Storage adapter. It fixes the
+bucket name, permits only `models/<id>/` and `portfolios/<id>/` paths, rejects
+traversal/slash-containing segments, and checks the MIME/50 MiB limits before
+upload or update. Supabase Storage RLS remains authoritative for every
+operation.
 
 ## Verification checklist
 
@@ -35,3 +55,8 @@
 The SQL policy probes already run against the empty database are recorded in
 `docs/RLS_POLICY_PLAN.md`; they are not a substitute for real Auth-session
 tests, which remain the next P2-003 evidence.
+
+Local boundary probes passed on 2026-08-15: the Auth adapter returned the
+trusted editor identity, downgraded a tampered role to viewer, and registered
+an auth-state subscription; the Storage adapter accepted a valid path and
+WebP payload while rejecting traversal and slash-containing path segments.

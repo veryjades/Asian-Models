@@ -43,3 +43,13 @@
 1. Create real Auth sessions for viewer, editor, and admin and repeat the role probes.
 2. Verify anonymous requests through the Data API and Storage API, not only SQL role probes.
 3. Record the role-provisioning process and token-refresh behavior before relying on role claims.
+
+The browser-side implementation is now bounded in `src/lib/supabase/auth.ts`:
+it uses `getUser()` for the server-confirmed identity, reads only
+`app_metadata.role`, and never accepts a role or service credential from the
+browser. Public routes remain disconnected until the three live-session checks
+above are completed.
+
+`src/lib/supabase/media.ts` provides the matching private Storage boundary:
+fixed `model-media` bucket, validated owner paths, and client-side MIME/size
+guards before the database-enforced Storage policies run.
