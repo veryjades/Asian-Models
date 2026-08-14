@@ -25,6 +25,45 @@ rollback;
 
 begin;
 set local role authenticated;
+set local request.jwt.claims = '{"app_metadata":{"role":"tampered"}}';
+
+select public.current_app_role() as invalid_role_falls_back_to_viewer;
+
+rollback;
+
+begin;
+set local role authenticated;
+set local request.jwt.claims = '{"app_metadata":{"role":"viewer"}}';
+
+do $$
+begin
+  begin
+    insert into public.clients (company_name, contact_name, email)
+    values ('__viewer_policy_probe__', 'Viewer Probe', 'viewer-probe@example.invalid');
+    raise exception 'viewer client write unexpectedly succeeded';
+  exception
+    when insufficient_privilege then
+      raise notice 'viewer client insert correctly rejected by RLS';
+  end;
+end;
+$$;
+
+rollback;
+
+begin;
+set local role authenticated;
+set local request.jwt.claims = '{"app_metadata":{"role":"admin"}}';
+
+insert into public.models (name, display_name, gender, category)
+values ('__admin_policy_probe__', 'Admin Probe', 'test', 'test');
+
+delete from public.models where name = '__admin_policy_probe__';
+select 'admin delete succeeded inside rollback transaction' as admin_delete_result;
+
+rollback;
+
+begin;
+set local role authenticated;
 set local request.jwt.claims = '{"app_metadata":{"role":"editor"}}';
 
 insert into public.models (name, display_name, gender, category)
