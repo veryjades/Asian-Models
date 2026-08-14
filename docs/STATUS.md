@@ -3,9 +3,16 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** Close the live Auth/Storage evidence gate and prepare the reviewed Phase 3 handoff.
-**Last heartbeat:** 2026-08-15 +08:00 (reset invitation retry and password-form policy correction)
+**Current task:** Switch the application to the owner-created Supabase project and verify the Admin foundation there.
+**Last heartbeat:** 2026-08-15 +08:00 (new Supabase project schema, Auth invite, role, and local env verified)
 **Completion date:** 2026-08-10
+
+## Current live backend
+
+- Supabase project: `jkhxtuwqmmdetjqymzso` (`Model's Project`, `veryjades's Org Free`, Mumbai `ap-south-1`). The earlier `cajkkxustehtzyymlopm` project is historical only.
+- SQL Editor verification on 2026-08-15: foundation tables, `model_video_links`, `model_social_links`, trusted `current_app_role()` policies, private `model-media` bucket, and zero seed rows are present.
+- Auth URL configuration is set to `http://127.0.0.1:8090` with local and Preview wildcard redirects. `menscheck@gmail.com` has a live invitation row and `raw_app_meta_data.role=admin`.
+- `.env.local` uses the new project URL and publishable browser key; it is ignored and no service-role credential is committed.
 
 ## Completed items
 
@@ -16,7 +23,7 @@
 - Test baseline inspected: no test files, runner, or `test` script exists. The minimum recommended future approach is unit coverage for pure content/repository/i18n behavior before route/workflow integration tests.
 - Package manager resolved: Bun 1.x is canonical; setup is `bun install --frozen-lockfile`, with a pinned Bun version required in CI. npm was used only because Bun is unavailable in this environment.
 - PR [#2](https://github.com/veryjades/Asian-Models/pull/2) merged into `main` as `875f9eb`.
-- ADR-001, Supabase configuration, `.env.example`, initial migration, typed client/adapter, and RLS policy plan are established and the migration is applied to the linked Phase 2 project.
+- ADR-001, Supabase configuration, `.env.example`, initial migration, typed client/adapter, and RLS policy plan are established; the current live-project verification is recorded above.
 
 ## In-progress items
 
@@ -38,9 +45,9 @@
 - Supplied hover assets now expose three reviewed editorial pairs: Chen Yu-Xin, Aoi Takahashi, and Lin Wei-Jie. Tanya Lim and Han Min-jae retain same-person full-body extensions while stronger pose variants are sourced. The audit removed Lin's unrelated beach image, Hina's identity-mismatched hover/gallery images, and cross-person legacy gallery images from six talent profiles. Profile gallery media now uses a clipped `cover` frame to prevent letterboxing. Remaining cards intentionally have no `hoverPortrait` until genuine same-person pose frames are available.
 - J Assistant now performs deterministic, repository-backed candidate retrieval instead of telling visitors to browse on their own. It combines reviewed gender, language, market, tag, portfolio, and News signals, and renders a direct profile plus model-specific Quick Booking action for each recommendation. `docs/ASSISTANT_RETRIEVAL.md` records the current boundary and the later Supabase/pgvector replacement path; the five required Chinese queries were executed against the actual content set.
 - Execution started for UX-010: removed the Hina/Kim cross-person hover imports and mixed-identity gallery entries from the new-faces seed. Those cards now render only their verified primary digital until a genuine same-person second frame is reviewed.
-- Supabase project `asian-models` is provisioned and `ACTIVE_HEALTHY` in `ap-southeast-1` (ref `cajkkxustehtzyymlopm`, URL `https://cajkkxustehtzyymlopm.supabase.co`). Storage, browser grants, database role policies, Auth role provisioning, and live session checks are complete for Phase 2.
+- Historical Phase 2 evidence was first collected against `cajkkxustehtzyymlopm`; it is retained for audit and is no longer the application target.
 - Supabase pre-migration smoke check passed before Phase 2; the migration was then applied and the post-migration table/advisor verification is recorded below.
-- Phase 2 approved by the project owner. The initial foundation migration is applied to `cajkkxustehtzyymlopm`; five public tables are present with RLS enabled, and `src/lib/supabase/database.types.ts` matches the live schema.
+- Phase 2 was approved by the project owner. The current project has the foundation and security migrations applied; the browser SQL verification is recorded in the Current live backend section.
 - P2-002 is complete: `supabase/migrations/20260815170000_phase2_security_policies.sql` adds trusted `app_metadata.role` evaluation, authenticated-only grants, Admin/Editor/Viewer policies, private `model-media` Storage bucket/path policies, and was verified by security advisors plus live role probes.
 - P2-003 is complete: `src/lib/supabase/auth.ts` provides a browser-safe Auth adapter using server-confirmed `getUser()`, trusted `app_metadata.role`, sign-in/sign-out, session lookup, and auth-state subscriptions; it does not provision users or expose service credentials.
 - Server-only role provisioning is deployed as Supabase Edge Function `provision-user` (version 2, `verify_jwt=true`): missing auth returns 401, a publishable/non-admin JWT returns 403, and invalid roles return 400 in live smoke checks; the function preserves existing metadata, writes only the validated `app_metadata.role`, and accepts both rotated JSON key variables and legacy key variables server-side.
