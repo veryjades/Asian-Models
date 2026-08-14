@@ -4,7 +4,7 @@
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
 **Current task:** Complete the Admin content/operations control plane and verify the public Supabase data path.
-**Last heartbeat:** 2026-08-15 +08:00 (13-model seed, content tables, notification outbox, live function deployment, trigger probe, local route probes, and build verification)
+**Last heartbeat:** 2026-08-15 +08:00 (13-model seed, content tables, Admin CRUD controls, notification outbox, live function deployment, trigger probe, local route probes, and build verification)
 **Completion date:** 2026-08-10
 
 ## Current live backend
