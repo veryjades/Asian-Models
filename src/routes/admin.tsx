@@ -965,7 +965,17 @@ function AdminDashboard({
               in the private model-media bucket and are written through the existing RLS boundary.
             </p>
           </div>
-          <div className="flex items-center gap-4 text-sm text-white/55">
+          <div className="flex flex-wrap items-center justify-end gap-3 text-sm text-white/55">
+            {canEdit && (
+              <button
+                type="button"
+                onClick={newModel}
+                aria-label="新增模特檔案 / New model profile"
+                className="border border-white/70 bg-white px-4 py-3 text-xs font-medium tracking-[0.12em] text-slate-950 transition-colors hover:bg-transparent hover:text-white"
+              >
+                ＋ 新增模特檔案
+              </button>
+            )}
             <span>{identity.email ?? "Authenticated user"}</span>
             <span className="border border-white/20 px-2 py-1 text-xs uppercase tracking-[0.18em]">
               {identity.role}
@@ -999,9 +1009,13 @@ function AdminDashboard({
               <button
                 type="button"
                 onClick={newModel}
+                aria-label="新增模特檔案 / New model profile"
                 className="label-xs w-full border border-white/50 px-4 py-3 text-left hover:bg-white hover:text-slate-950"
               >
-                + New model profile
+                ＋ 新增模特檔案
+                <span className="mt-1 block text-[10px] normal-case tracking-normal text-white/45">
+                  New model profile
+                </span>
               </button>
             )}
             <div className="border border-white/15">
@@ -1051,7 +1065,7 @@ function AdminDashboard({
                 <h2 className="mt-2 text-3xl font-light">
                   {selectedModelId
                     ? draft.displayName || "Untitled profile"
-                    : "Create a model profile"}
+                    : "新增模特檔案 / Create a model profile"}
                 </h2>
               </div>
               <Link to="/" className="label-xs text-white/45 hover:text-white">
