@@ -1,6 +1,6 @@
 # Keyword / Tag System
 
-**Status:** prototype data boundary for the public-experience iteration  
+**Status:** prototype data boundary for the public-experience iteration
 **Scope:** content discovery taxonomy only; no production admin or CMS has been built in this iteration.
 
 ## Purpose

@@ -56,7 +56,7 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 ## 5. Admin UX and permissions
 
 - [x] Admin sign-in, first-time password setup, recovery route, and Admin/Editor/Viewer gate.
-- [~] Admin navigation exposes Models, About, News, JAgent Knowledge, media, and account actions. The operations control plane is present below the model editor; a dedicated navigation shell remains.
+- [~] Admin navigation exposes Models, Inbox, About, News, JAgent Knowledge, media, and Admin-only Access as top-level sections. The implementation is present; authenticated role-by-role navigation regression remains.
 - [~] Admin and Editor can create/update content; only Admin can delete or manage roles. Admin-only invitation, role-change, and guarded-delete controls are live and verified; authenticated Editor write and Admin CRUD refresh proof remains.
 - [ ] Viewer can read published content only and cannot write or access private media.
 - [~] All forms have validation, loading, success/error states, and refresh persistence. Public forms and admin content forms have these states; authenticated end-to-end refresh verification remains.
@@ -68,14 +68,14 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 - [~] Hover QA: Chen's paired transition passed earlier pointer QA; remaining model pairs, no scale-only effect, geometry, and black-edge sweep remain.
 - [~] Mobile QA at 390px and desktop QA; earlier 390px surfaces passed, but the current Admin/content release still needs the final full sweep.
 - [x] Verify Auth, Storage, RLS, Data API grants, and cleanup of test rows/objects. Live role/storage matrix and the current trigger transaction probe passed; test records/objects were removed or rolled back.
-- [x] Run `bunx tsc --noEmit`, `bun run lint`, `bun run build`, and `git diff --check`. Typecheck/build/diff check pass; lint passes with 9 existing React-refresh warnings and 0 errors.
+- [x] Run `bunx tsc --noEmit`, `bun run lint`, `bun run build`, and `git diff --check` for the exact work unit. GOV-001 corrected the six Markdown whitespace groups; all commands and `git diff --check origin/main` exit 0 on `feature/release-governance` (lint: 0 errors, 9 existing warnings). The same checks are now encoded in pinned-Bun GitHub CI and must pass again on the pushed commit.
 - [~] Deploy Preview, inspect routes in the deployed build, and record URL/commit. The branch Preview responds 200; current-commit route/hover inspection remains.
-- [x] Update PR #5 with checklist evidence and remaining blockers only. Pushed `c9d514a` and posted the update on the open draft PR.
+- [~] Reconcile PR #4/#5 before review. PR #5 is an 84-commit draft targeting the still-open draft PR #4 branch, has no reviewer approval, and currently reports only Vercel checks. Its title/scope and CI evidence must be corrected before it can be treated as release-ready.
 
 ## 7. Project operations
 
 - [x] Keep this checklist, `TASKS.md`, and `docs/STATUS.md` synchronized after each work session.
-- [ ] Keep the Asana launch plan aligned with these acceptance gates and completion percentages.
+- [ ] Keep the Asana launch plan aligned with these acceptance gates and completion percentages. The recorded 2/17 status was not independently reverified during GOV-001 because the project requires authentication.
 - [ ] Keep Notion/launch documentation linked to the same source-of-truth checklist.
 
 ## 8. Enquiries, applications, and administrator notifications

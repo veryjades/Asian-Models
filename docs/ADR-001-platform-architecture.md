@@ -1,7 +1,7 @@
 # ADR-001: Platform Architecture Foundation
 
-**Status:** Accepted  
-**Date:** 2026-08-10  
+**Status:** Accepted
+**Date:** 2026-08-10
 **Phase:** Phase 1 — Architecture Foundation
 
 ## Context

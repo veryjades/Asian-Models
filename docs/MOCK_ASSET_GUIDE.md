@@ -13,7 +13,7 @@ mock identity, biography, booking statistic, or campaign as factual.
 
 ## Approved visual direction
 
-**Brand:** Asian Stars Agency  
+**Brand:** Asian Stars Agency
 **Positioning:** premium Asian model agency
 
 - **Women:** Asian fashion models; editorial, beauty campaign, luxury
@@ -178,4 +178,3 @@ head or feet, distorted anatomy, plastic skin, or AI artefacts.
    change should be necessary.
 4. Mark the mock manifest entry `replaced`; retain prompt/provenance history
    for audit but remove the bundled mock file only through a reviewed PR.
-
