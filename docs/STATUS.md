@@ -3,8 +3,8 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** Merge PR #6; Admin write/email/production remain blocked.
-**Last heartbeat:** 2026-08-15 +08:00 (GOV-003 live re-verification; published About anon read restored)
+**Current task:** Admin JWT save/refresh, email secret, and production remain blocked.
+**Last heartbeat:** 2026-08-15 +08:00 (PR #6 merged; published About anon read restored)
 **Phase 0 completion date:** 2026-08-10
 
 ## Current live backend
@@ -95,7 +95,7 @@ historical.
 
 ## Blockers
 
-- Governance gate: [PR #7](https://github.com/veryjades/Asian-Models/pull/7) is merged into `feature/phase-1-foundation`. [PR #6](https://github.com/veryjades/Asian-Models/pull/6) still needs merge into `feature/mock-assets`; GitHub blocks self-approval. Do not retarget PR #5 to `main` until PR #4 is reviewed and merged. `main` protection requires CI plus one human approval.
+- Governance gate: [PR #6](https://github.com/veryjades/Asian-Models/pull/6) is merged into `feature/mock-assets` as `2db6fd6`. [PR #7](https://github.com/veryjades/Asian-Models/pull/7) is merged into `feature/phase-1-foundation`. Do not retarget PR #5 to `main` until PR #4 is reviewed and merged. `main` protection requires CI plus one human approval.
 - Production remains blocked: DNS/SSL, monitoring/Sentry, backup, email delivery, PR #4/#5 review chain, and current-commit Preview QA are incomplete. Do not promote production.
 - Email delivery is blocked (B-005): live Edge Function Secrets show **No custom secrets created**. `RESEND_API_KEY` / `RESEND_FROM` cannot be invented; creating a Resend account would need owner OTP.
 - Admin→public About save/refresh is unverified. Preview `/admin` is visually signed in (Access tab, 13 profiles, 3 News), but About save/refresh returned `permission denied for table site_settings`. Live grants still give `authenticated` full table DML; the failing request behaved as `anon`. Viewer/Editor deny matrix was not re-run.
@@ -115,7 +115,6 @@ historical.
 
 ## Next action
 
-Merge [PR #6](https://github.com/veryjades/Asian-Models/pull/6) into
-`feature/mock-assets`. Re-test About save from a Preview session that actually
-sends an Admin JWT. Do not generate images, invent email keys, or promote
-production.
+Re-test About save from a Preview `/admin` session that actually sends an Admin
+JWT. Do not generate images, invent email keys, retarget PR #5 to `main`, or
+promote production.
