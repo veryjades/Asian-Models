@@ -143,4 +143,3 @@ is still required for actual email delivery.
 4. Add JAgent source URL, edit/delete, and server-side retrieval verification.
 5. Run the role matrix, public refresh checks, responsive/hover QA, and release
    gates.
-
