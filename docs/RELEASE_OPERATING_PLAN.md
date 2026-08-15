@@ -1,7 +1,7 @@
 # Asian Models — Release Operating Plan
 
-**Current date:** 2026-08-15  
-**Current phase:** Phase 2 — Application Foundation  
+**Current date:** 2026-08-15
+**Current phase:** Phase 2 — Application Foundation
 **Asana project:** [模特經紀網站發佈計畫](https://app.asana.com/1/1217499298982275/project/1217499223559383)
 
 This document is the layer above individual implementation tasks. Asana owns schedule, owners,
@@ -47,8 +47,24 @@ architecture decisions and evidence.
 
 ## Current release position
 
-- Asana currently reports **2/17 tasks complete (12%)**; 15 release-gate tasks remain open.
-- Completed Asana gates: Supabase Auth/Storage/RLS and Admin UI login/roles/permissions.
+- The last recorded Asana snapshot reports **2/17 tasks complete (12%)** and 15 open release-gate tasks. GOV-001 could not independently reverify this authenticated project.
+- The recorded completed Asana gates are Supabase Auth/Storage/RLS and Admin UI login/roles/permissions; treat them as historical until the project is opened and reconciled.
 - The repository already contains additional Admin content controls, model media mapping, public QA, and the section-first Admin workspace, but those items remain open in Asana until their acceptance evidence is formally closed.
-- PR #5 is open/draft on `feature/mock-assets`; latest verified commit is `d96084c`.
+- PR #5 is open/draft from `feature/mock-assets` into `feature/phase-1-foundation`; verified HEAD is `c84ee24`. It contains 84 commits and 96 changed files, has no reviewer approval, and currently exposes only Vercel checks.
+- PR #4 is the still-open draft dependency from `feature/phase-1-foundation` into `main`; it has no checks or reviews. The PR chain must be repaired without rebasing, force-pushing, amending, or otherwise rewriting published history.
 - No image-generation work is in the release plan. Remaining second-frame assets are intended to be uploaded through Admin.
+
+## PR chain recovery
+
+1. Add pinned Bun CI for frozen install, TypeScript, lint, and build on pull requests.
+2. Land the governance reconciliation on a focused branch and review its complete diff.
+3. Validate PR #4 as the foundation dependency; do not merge it until CI and reviewer approval exist.
+4. Retitle and rewrite PR #5 so its description matches the actual public UX, Supabase, Admin, CMS, RAG, and notification scope.
+5. Keep PR #5 stacked on PR #4 until PR #4 is approved and merged. After that merge, change PR #5's base to `main`; do not rebase or force-push the published branch.
+6. Require current-commit CI, Preview evidence, and reviewer approval before either merge.
+
+## Evidence classification
+
+- **Verified in GOV-001:** local Git state, branch/HEAD/remotes, PR #4/#5 metadata, GitHub checks/reviews, repository files, and branch whitespace results.
+- **Documented but not independently reverified:** Supabase live counts/policies/Auth logs, authenticated CRUD, Asana progress, Vercel route behavior, and browser QA.
+- **Blocked on authenticated access or external configuration:** platform dashboards, actual email delivery, production DNS/SSL, monitoring, backup/recovery, and production promotion.

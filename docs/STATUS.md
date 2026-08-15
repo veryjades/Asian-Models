@@ -3,11 +3,15 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** Complete the Admin content/operations control plane and verify the public Supabase data path.
-**Last heartbeat:** 2026-08-15 +08:00 (public content grants, bilingual model backfill, Admin mapping, reset recovery handling, invitation roles, and build verification)
-**Completion date:** 2026-08-10
+**Current task:** Merge PR #6; Admin write/email/production remain blocked.
+**Last heartbeat:** 2026-08-15 +08:00 (GOV-003 live re-verification; published About anon read restored)
+**Phase 0 completion date:** 2026-08-10
 
 ## Current live backend
+
+GOV-003 re-verified the live project from the authenticated dashboards and
+publishable-key REST on 2026-08-15. Claims below are current unless marked
+historical.
 
 - Supabase project: `jkhxtuwqmmdetjqymzso` (`Model's Project`, `veryjades's Org Free`, Mumbai `ap-south-1`). The earlier `cajkkxustehtzyymlopm` project is historical only.
 - SQL Editor verification on 2026-08-15: `model_count=13`, `news_count=3`, `settings_count=1`, `inquiries_count=0`, `applications_count=0`, and `notification_count=0`; foundation tables, content tables, trusted `current_app_role()` policies, and Storage buckets are present.
@@ -28,7 +32,7 @@
 - `supabase/functions/notify-admin/index.ts` and public dispatch calls are committed locally. The function is deployed through the Supabase dashboard and the Admin retry action passes the notification reference id. Actual delivery still requires a provider secret (`RESEND_API_KEY`/`RESEND_FROM` or approved SMTP).
 - Local route probes returned HTTP 200 for `/`, `/admin`, `/models/women`, `/models/men`, `/models/new-faces`, `/models/talent`, `/keywords/women`, `/about`, and `/news`; `/models/women` contains Chen Yu-Xin and `/news` contains a seeded story.
 - Model board/profile/keyword loaders now revalidate stale React Query data so a newly published active model appears after returning to the public surface instead of remaining in an old client cache. The live project currently still contains exactly 13 model rows; no new model row was present during this verification.
-- `bunx tsc --noEmit` passed; `bun run lint` passed with 0 errors and 9 existing React-refresh warnings; `bun run build` passed; `git diff --check` passed.
+- GOV-003 applied additive `20260815213000_public_about_settings.sql` live: anon public-column About read returns HTTP 200; `admin_email` and `select=*` remain 401. Admin About save from Preview still failed as `anon`. Edge Function Secrets have no custom secrets. News remains 3 published rows.
 
 ## Completed items
 
@@ -37,7 +41,7 @@
 - `npm run lint` now exits 0 with 0 errors and 9 existing React-refresh warnings.
 - `npm run build` completes successfully; Vite/Nitro warnings are non-fatal.
 - Test baseline inspected: no test files, runner, or `test` script exists. The minimum recommended future approach is unit coverage for pure content/repository/i18n behavior before route/workflow integration tests.
-- Package manager resolved: Bun 1.x is canonical; setup is `bun install --frozen-lockfile`, with a pinned Bun version required in CI. npm was used only because Bun is unavailable in this environment.
+- Package manager resolved: Bun 1.x is canonical; Bun 1.3.14 is now available locally. Setup is `bun install --frozen-lockfile`; CI still requires an explicit version pin. npm use belongs only to the historical Phase 0 baseline.
 - PR [#2](https://github.com/veryjades/Asian-Models/pull/2) merged into `main` as `875f9eb`.
 - ADR-001, Supabase configuration, `.env.example`, initial migration, typed client/adapter, and RLS policy plan are established; the current live-project verification is recorded above.
 
@@ -45,7 +49,7 @@
 
 - Foundation review and migration validation are complete. Public model/media/video/social reads are now connected to Supabase behind the approved RLS and visibility boundary; Admin writes remain authenticated.
 - The authorised D-008/D-009 mock-asset experience iteration documents source/licensing requirements and now includes a reusable safe-presentation component.
-- Draft PR [#5](https://github.com/veryjades/Asian-Models/pull/5) contains the mock-asset guide and image-presentation foundation; it targets `feature/mock-assets` and remains open/unmerged.
+- Draft PR [#5](https://github.com/veryjades/Asian-Models/pull/5) is an 84-commit, 96-file stacked change from `feature/mock-assets` into `feature/phase-1-foundation`, not a mock-assets-only PR. Its title and description are stale. It has no reviewer approval and only Vercel checks. Its dependency, draft PR [#4](https://github.com/veryjades/Asian-Models/pull/4), targets `main` and also has no checks or reviews.
 - The Golden Mock Asset Set is complete: 18 reviewed fictional adult assets for three desktop heroes, five Women/Men portrait/full-body pairs, two New Faces digitals, and three portfolio scenes. See `docs/GOLDEN_MOCK_ASSET_SET.md`.
 - Isolated Preview review passed for desktop and a 390px viewport: three hero CTAs route to their intended boards; desktop arrows change slides; the Women board and Chen Yu-Xin profile load their mapped fictional media. Preview: `https://asian-models-gxon1hn2t-asian-models.vercel.app`.
 - Homepage asset audit found Golden assets in the Hero and Featured Models sections, but legacy `model-05`, `model-02`, and `model-03` covers in News. The minimal replacement maps each News post to a compositionally suitable existing Golden portfolio asset; no new media or dependency was needed. Build and lint passed before Preview validation.
@@ -91,11 +95,12 @@
 
 ## Blockers
 
-- The live Auth/Data API/Storage matrix is clean. Supabase Auth policy is project-configurable; the owner-authorized Email provider setting is currently minimum 6 characters with no required character classes. Security advisor still reports `auth_leaked_password_protection` because Supabase makes leaked-password checks available only on Pro and above; this is a plan limitation, not a failed setting. Performance advisors report only unused indexes on the empty database. Local Docker remains unavailable but is non-blocking.
-- Owner password-reset invitation is temporarily blocked by Supabase's email send rate limit (`429 over_email_send_rate_limit`); retry after the provider window clears.
-- The strict TypeScript baseline is resolved: fixed the 10 pre-existing errors in AskAssistant, QuickBooking, and assistantRetrieval; `bunx tsc --noEmit`, `bun run lint`, and `bun run build` now pass (lint retains 9 existing warnings).
-- Product acceptance is pending authenticated Admin CRUD/refresh verification and isolated Preview review. The live `notify-admin` function is deployed; provider secret configuration and authenticated delivery verification remain outstanding.
-- Identity-consistent hover photography remains in progress for the remaining models. No other-person photo may be substituted or duplicated; the Lin hover derivative only trims the supplied frame's baked black matte while preserving the subject.
+- Governance gate: [PR #7](https://github.com/veryjades/Asian-Models/pull/7) is merged into `feature/phase-1-foundation`. [PR #6](https://github.com/veryjades/Asian-Models/pull/6) still needs merge into `feature/mock-assets`; GitHub blocks self-approval. Do not retarget PR #5 to `main` until PR #4 is reviewed and merged. `main` protection requires CI plus one human approval.
+- Production remains blocked: DNS/SSL, monitoring/Sentry, backup, email delivery, PR #4/#5 review chain, and current-commit Preview QA are incomplete. Do not promote production.
+- Email delivery is blocked (B-005): live Edge Function Secrets show **No custom secrets created**. `RESEND_API_KEY` / `RESEND_FROM` cannot be invented; creating a Resend account would need owner OTP.
+- Admin→public About save/refresh is unverified. Preview `/admin` is visually signed in (Access tab, 13 profiles, 3 News), but About save/refresh returned `permission denied for table site_settings`. Live grants still give `authenticated` full table DML; the failing request behaved as `anon`. Viewer/Editor deny matrix was not re-run.
+- Public media path is blocked by empty storage: 0 `media_assets` rows and 0 `model-media` objects. Remaining hover pairs are deferred and are not a launch blocker.
+- The owner-authorized Email provider setting is currently minimum 6 characters with no required character classes. Security advisor still reports `auth_leaked_password_protection` because Supabase makes leaked-password checks available only on Pro and above.
 
 ## Phase 0 readiness
 
@@ -103,14 +108,14 @@
 
 ## Phase 2 prerequisites
 
-- Phase 1 foundation is applied and verified. Before connecting application routes, P2-002 must define and test Auth claims, Storage paths, and RLS policies.
-- Product/domain scope, user journeys, content ownership, and acceptance criteria must be approved and recorded before implementation.
+- Phase 1 foundation is recorded as applied and verified. P2-002 documents the Auth claims, Storage paths, and RLS policy matrix; D-015/D-016 authorize the bounded content/public-media connection already present.
+- Product/domain scope, user journeys, content ownership, and acceptance criteria must remain recorded before any further implementation.
 - A Phase 1 architecture note must be created under `docs/architecture/` if the approved design requires one.
-- Supabase, AI, Messenger/Facebook webhook, Admin, and backend implementation remain prohibited until their planned phases.
+- AI, Messenger/Facebook webhook, pricing, and production automation remain prohibited. Existing Supabase/Admin/content exceptions are limited to D-012 through D-017 and must not silently expand.
 
 ## Next action
 
-Run authenticated Admin create/edit/refresh against the live project, upload one
-published model-media object to prove the end-to-end asset path, then complete
-the provider-secret delivery check and final Preview/PR #5 review. No image
-generation is in scope; remaining hover-pose sourcing stays tracked separately.
+Merge [PR #6](https://github.com/veryjades/Asian-Models/pull/6) into
+`feature/mock-assets`. Re-test About save from a Preview session that actually
+sends an Admin JWT. Do not generate images, invent email keys, or promote
+production.

@@ -268,6 +268,7 @@ export type Database = {
         Row: {
           id: string;
           admin_email: string;
+          about_published: boolean;
           about_title_en: string;
           about_title_zh: string;
           about_body_en: string[];
@@ -278,6 +279,7 @@ export type Database = {
         Insert: {
           id?: string;
           admin_email?: string;
+          about_published?: boolean;
           about_title_en?: string;
           about_title_zh?: string;
           about_body_en?: string[];
@@ -288,6 +290,7 @@ export type Database = {
         Update: {
           id?: string;
           admin_email?: string;
+          about_published?: boolean;
           about_title_en?: string;
           about_title_zh?: string;
           about_body_en?: string[];

@@ -16,7 +16,7 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 - [x] Configure Auth Site URL and local/Preview redirect URLs.
 - [x] Create the owner Auth account and verify trusted `app_metadata.role=admin`.
 - [x] Verify invitation/recovery delivery in Auth Logs (`/invite`, `/recover`, `/verify`).
-- [ ] Verify Vercel Preview environment variables point to the new Supabase project.
+- [x] Verify Vercel Preview environment variables point to the new Supabase project. GOV-003 confirmed the public Preview env for `jkhxtuwqmmdetjqymzso` and a READY `c84ee24` redeploy.
 - [ ] Confirm custom domain, DNS, SSL, and deployment protection/SSO behavior.
 
 ## 2. Model records and media
@@ -34,7 +34,7 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 
 ## 3. Content CMS
 
-- [~] Add editable About page content (bilingual copy, offices, contact metadata, publish state). Schema, RLS, editor, and public binding exist; authenticated save verification remains.
+- [~] Add editable About page content (bilingual copy, offices, contact metadata, publish state). Live anon column-read of published About returns HTTP 200; Admin save/refresh still failed as `anon`.
 - [~] Add News CRUD (slug, date, bilingual title/excerpt/body, cover media, tags, publish state, ordering). Publish/list/delete are implemented; edit and cover upload UI remain.
 - [ ] Add News media upload/replace/delete with the same crop and private-storage rules.
 - [x] Bind public About and News routes to published Supabase content with a safe seed fallback. Live counts: `news_count=3`, `settings_count=1`; local `/about` and `/news` return 200.
@@ -56,7 +56,7 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 ## 5. Admin UX and permissions
 
 - [x] Admin sign-in, first-time password setup, recovery route, and Admin/Editor/Viewer gate.
-- [~] Admin navigation exposes Models, About, News, JAgent Knowledge, media, and account actions. The operations control plane is present below the model editor; a dedicated navigation shell remains.
+- [~] Admin navigation exposes Models, Inbox, About, News, JAgent Knowledge, media, and Admin-only Access as top-level sections. The implementation is present; authenticated role-by-role navigation regression remains.
 - [~] Admin and Editor can create/update content; only Admin can delete or manage roles. Admin-only invitation, role-change, and guarded-delete controls are live and verified; authenticated Editor write and Admin CRUD refresh proof remains.
 - [ ] Viewer can read published content only and cannot write or access private media.
 - [~] All forms have validation, loading, success/error states, and refresh persistence. Public forms and admin content forms have these states; authenticated end-to-end refresh verification remains.
@@ -68,14 +68,14 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 - [~] Hover QA: Chen's paired transition passed earlier pointer QA; remaining model pairs, no scale-only effect, geometry, and black-edge sweep remain.
 - [~] Mobile QA at 390px and desktop QA; earlier 390px surfaces passed, but the current Admin/content release still needs the final full sweep.
 - [x] Verify Auth, Storage, RLS, Data API grants, and cleanup of test rows/objects. Live role/storage matrix and the current trigger transaction probe passed; test records/objects were removed or rolled back.
-- [x] Run `bunx tsc --noEmit`, `bun run lint`, `bun run build`, and `git diff --check`. Typecheck/build/diff check pass; lint passes with 9 existing React-refresh warnings and 0 errors.
+- [x] Run `bunx tsc --noEmit`, `bun run lint`, `bun run build`, and `git diff --check` for the exact work unit. GOV-001 corrected the six Markdown whitespace groups; all commands and `git diff --check origin/main` exit 0 on `feature/release-governance` (lint: 0 errors, 9 existing warnings). The same checks are now encoded in pinned-Bun GitHub CI and must pass again on the pushed commit.
 - [~] Deploy Preview, inspect routes in the deployed build, and record URL/commit. The branch Preview responds 200; current-commit route/hover inspection remains.
-- [x] Update PR #5 with checklist evidence and remaining blockers only. Pushed `c9d514a` and posted the update on the open draft PR.
+- [~] Reconcile PR #4/#5 before review. PR #5 metadata now describes its actual stacked scope; PR #7 CI is merged; PR #6 still needs merge into `feature/mock-assets`. Do not retarget PR #5 to `main` until PR #4 is reviewed and merged.
 
 ## 7. Project operations
 
 - [x] Keep this checklist, `TASKS.md`, and `docs/STATUS.md` synchronized after each work session.
-- [ ] Keep the Asana launch plan aligned with these acceptance gates and completion percentages.
+- [~] Keep the Asana launch plan aligned with these acceptance gates and completion percentages. GOV-003 confirmed project 模特經紀網站發佈計畫 is 2/17 complete (12%) with status 存在風險.
 - [ ] Keep Notion/launch documentation linked to the same source-of-truth checklist.
 
 ## 8. Enquiries, applications, and administrator notifications
@@ -85,4 +85,4 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 - [x] Database triggers enqueue one `admin_notifications` row addressed to `site_settings.admin_email` (`menscheck@gmail.com` by default); a live transactional probe confirmed the row and rolled back its temporary test records.
 - [x] Admin Inbox lists enquiries, applications, and notification status, and allows Editor/Admin status updates.
 - [x] Edge Function `notify-admin` is implemented in the repository, deployed through the Supabase dashboard, and called by public forms after insert; the Admin retry action sends the notification reference id.
-- [!] Actual email delivery requires a configured provider secret (`RESEND_API_KEY` and `RESEND_FROM`, or an approved SMTP sender). No provider credential exists in this workspace, so no email is claimed as sent.
+- [!] Actual email delivery requires a configured provider secret (`RESEND_API_KEY` and `RESEND_FROM`, or an approved SMTP sender). Live Edge Function Secrets show no custom secrets; no email is claimed as sent.
