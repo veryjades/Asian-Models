@@ -59,6 +59,8 @@ type WorkspaceUser = {
 };
 type AccessState = "loading" | "config" | "signed-out" | "forbidden" | "ready";
 type PreviewState = { primary: string | undefined; hover: string | undefined };
+type AdminSection = "models" | "inbox" | "about" | "news" | "knowledge" | "access";
+type OperationsSection = Exclude<AdminSection, "models">;
 
 const EMPTY_DRAFT: ModelDraft = {
   slug: "",
@@ -534,6 +536,7 @@ function AdminDashboard({
   onSignedOut: () => void;
 }) {
   const canEdit = identity.role === "admin" || identity.role === "editor";
+  const [activeSection, setActiveSection] = useState<AdminSection>("models");
   const [models, setModels] = useState<ModelRow[]>([]);
   const [selectedModelId, setSelectedModelId] = useState<string | null>(null);
   const [draft, setDraft] = useState<ModelDraft>(EMPTY_DRAFT);
@@ -559,6 +562,8 @@ function AdminDashboard({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [previousModelId, setPreviousModelId] = useState<string | null>(null);
 
   const loadModels = useCallback(async () => {
     setLoading(true);
@@ -636,6 +641,8 @@ function AdminDashboard({
   }, [client, mediaRows, selectedModelId]);
 
   const selectModel = async (model: ModelRow) => {
+    setCreateModalOpen(false);
+    setPreviousModelId(null);
     setSelectedModelId(model.id);
     const heightStat = readJsonString(model.stats, "height").replace(/\s*cm$/i, "");
     setDraft({
@@ -678,6 +685,7 @@ function AdminDashboard({
   };
 
   const newModel = () => {
+    setPreviousModelId(selectedModelId);
     setSelectedModelId(null);
     setDraft(EMPTY_DRAFT);
     setMediaRows([]);
@@ -687,7 +695,36 @@ function AdminDashboard({
     setHoverFile(null);
     setAdditionalFiles([]);
     setNotice(null);
+    setCreateModalOpen(true);
   };
+
+  const cancelNewModel = () => {
+    setCreateModalOpen(false);
+    setPrimaryFile(null);
+    setHoverFile(null);
+    setAdditionalFiles([]);
+    setNotice(null);
+    const previous = previousModelId ? models.find((model) => model.id === previousModelId) : null;
+    setPreviousModelId(null);
+    if (previous) {
+      void selectModel(previous);
+    } else {
+      setSelectedModelId(null);
+      setDraft(EMPTY_DRAFT);
+      setMediaRows([]);
+      setVideoLinks([]);
+      setSocialLinks([]);
+    }
+  };
+
+  useEffect(() => {
+    if (!createModalOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [createModalOpen]);
 
   const persistMedia = async (modelId: string, file: File, sortOrder: number, replace = false) => {
     const mime = file.type as ModelMediaMimeType;
@@ -831,6 +868,7 @@ function AdminDashboard({
   const saveModel = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canEdit) return;
+    const creating = !selectedModelId;
     const name = draft.name.trim();
     const displayName = draft.displayName.trim();
     const category = draft.category.trim();
@@ -924,6 +962,8 @@ function AdminDashboard({
         nextSortOrder += 1;
       }
       setSelectedModelId(saved.id);
+      setPreviousModelId(null);
+      if (creating) setCreateModalOpen(false);
       setPrimaryFile(null);
       setHoverFile(null);
       setAdditionalFiles([]);
@@ -952,6 +992,15 @@ function AdminDashboard({
     () => models.filter((model) => model.status === "active").length,
     [models],
   );
+  const isCreating = !selectedModelId;
+  const adminSections: Array<readonly [AdminSection, string, string]> = [
+    ["models", "模特檔案", "Models"],
+    ["inbox", "需求收件匣", "Inbox"],
+    ["about", "關於我們", "About"],
+    ["news", "新聞", "News"],
+    ["knowledge", "JAgent 知識庫", "JAgent RAG"],
+    ...(identity.role === "admin" ? [["access", "管理員與協作者", "Access"] as const] : []),
+  ];
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -966,16 +1015,6 @@ function AdminDashboard({
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-3 text-sm text-white/55">
-            {canEdit && (
-              <button
-                type="button"
-                onClick={newModel}
-                aria-label="新增模特檔案 / New model profile"
-                className="border border-white/70 bg-white px-4 py-3 text-xs font-medium tracking-[0.12em] text-slate-950 transition-colors hover:bg-transparent hover:text-white"
-              >
-                ＋ 新增模特檔案
-              </button>
-            )}
             <span>{identity.email ?? "Authenticated user"}</span>
             <span className="border border-white/20 px-2 py-1 text-xs uppercase tracking-[0.18em]">
               {identity.role}
@@ -993,7 +1032,31 @@ function AdminDashboard({
           </div>
         </header>
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <nav
+          aria-label="Admin sections"
+          className="mt-6 flex flex-wrap gap-2 border-y border-white/15 py-3"
+        >
+          {adminSections.map(([value, label, english]) => (
+            <button
+              key={value}
+              type="button"
+              aria-current={activeSection === value ? "page" : undefined}
+              onClick={() => setActiveSection(value)}
+              className={`px-4 py-3 text-left text-xs tracking-[0.1em] transition-colors ${
+                activeSection === value
+                  ? "bg-white text-slate-950"
+                  : "border border-white/20 text-white/65 hover:border-white/60 hover:text-white"
+              }`}
+            >
+              <span className="block">{label}</span>
+              <span className="mt-1 block text-[10px] tracking-normal opacity-60">{english}</span>
+            </button>
+          ))}
+        </nav>
+
+        <div
+          className={`mt-8 grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)] ${activeSection === "models" ? "" : "hidden"}`}
+        >
           <aside className="space-y-5">
             <div className="grid grid-cols-2 gap-px border border-white/15 bg-white/15">
               <div className="bg-slate-950 p-4">
@@ -1056,21 +1119,49 @@ function AdminDashboard({
             </div>
           </aside>
 
-          <main>
+          {createModalOpen && (
+            <div className="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm" aria-hidden="true" />
+          )}
+          <main
+            role={createModalOpen ? "dialog" : undefined}
+            aria-modal={createModalOpen ? true : undefined}
+            aria-labelledby={createModalOpen ? "new-model-dialog-title" : undefined}
+            className={
+              createModalOpen
+                ? "fixed inset-4 z-50 overflow-y-auto border border-white/20 bg-slate-950 p-5 shadow-2xl md:inset-8 md:p-8"
+                : !selectedModelId
+                  ? "hidden"
+                  : undefined
+            }
+          >
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p className="label-xs text-white/45">
-                  {selectedModelId ? "EDIT PROFILE" : "NEW PROFILE"}
+                  {selectedModelId ? "EDIT PROFILE" : "NEW PROFILE / 新增檔案"}
                 </p>
-                <h2 className="mt-2 text-3xl font-light">
+                <h2
+                  id={createModalOpen ? "new-model-dialog-title" : undefined}
+                  className="mt-2 text-3xl font-light"
+                >
                   {selectedModelId
                     ? draft.displayName || "Untitled profile"
                     : "新增模特檔案 / Create a model profile"}
                 </h2>
               </div>
-              <Link to="/" className="label-xs text-white/45 hover:text-white">
-                View public site ↗
-              </Link>
+              <div className="flex items-center gap-4">
+                {createModalOpen && (
+                  <button
+                    type="button"
+                    onClick={cancelNewModel}
+                    className="label-xs border border-white/35 px-4 py-3 text-white/70 hover:border-white hover:text-white"
+                  >
+                    取消新增
+                  </button>
+                )}
+                <Link to="/" className="label-xs text-white/45 hover:text-white">
+                  View public site ↗
+                </Link>
+              </div>
             </div>
             {notice && (
               <div
@@ -1526,36 +1617,58 @@ function AdminDashboard({
                     disabled={saving}
                     className="label-xs bg-white px-6 py-4 text-slate-950 transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {saving ? "Saving…" : "Save profile + media"}
+                    {saving
+                      ? isCreating
+                        ? "新增中…"
+                        : "Saving…"
+                      : isCreating
+                        ? "確認新增模特檔案"
+                        : "Save profile + media"}
                   </button>
                 )}
               </div>
             </form>
           </main>
+          {!selectedModelId && !createModalOpen && (
+            <main className="border border-white/15 bg-white/[0.03] p-7 md:p-10">
+              <p className="label-xs text-white/45">MODEL PROFILES / 模特檔案</p>
+              <h2 className="mt-3 text-3xl font-light">選擇模特檔案開始編輯</h2>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-white/55">
+                從左側選取現有模特檔案，或按「＋ 新增模特檔案」開啟一個完全空白的建立視窗。
+                其他內容功能請使用上方的需求收件匣、關於我們、新聞、JAgent
+                知識庫與管理員／協作者分頁。
+              </p>
+            </main>
+          )}
         </div>
-        <AdminOperationsPanel
-          client={client}
-          canEdit={canEdit}
-          canDelete={identity.role === "admin"}
-          canManageAccess={identity.role === "admin"}
-        />
+        {activeSection !== "models" && (
+          <AdminOperationsPanel
+            activeTab={activeSection}
+            client={client}
+            canEdit={canEdit}
+            canDelete={identity.role === "admin"}
+            canManageAccess={identity.role === "admin"}
+          />
+        )}
       </div>
     </div>
   );
 }
 
 function AdminOperationsPanel({
+  activeTab,
   client,
   canEdit,
   canDelete,
   canManageAccess,
 }: {
+  activeTab: OperationsSection;
   client: SupabaseClient<Database>;
   canEdit: boolean;
   canDelete: boolean;
   canManageAccess: boolean;
 }) {
-  const [tab, setTab] = useState<"inbox" | "about" | "news" | "knowledge" | "access">("inbox");
+  const tab = activeTab;
   const [inquiries, setInquiries] = useState<Database["public"]["Tables"]["inquiries"]["Row"][]>(
     [],
   );
@@ -1835,15 +1948,22 @@ function AdminOperationsPanel({
 
   const inputClass =
     "mt-2 w-full border border-white/15 bg-slate-950 px-3 py-3 text-sm text-white outline-none focus:border-white/50";
-  const operationTabs = canManageAccess
-    ? (["inbox", "about", "news", "knowledge", "access"] as const)
-    : (["inbox", "about", "news", "knowledge"] as const);
+  const sectionHeading =
+    tab === "inbox"
+      ? "需求收件匣 / Inbox"
+      : tab === "about"
+        ? "關於我們 / About"
+        : tab === "news"
+          ? "新聞 / News"
+          : tab === "knowledge"
+            ? "JAgent 知識庫 / RAG"
+            : "管理員與協作者 / Access";
   return (
     <section className="mt-10 border border-white/15 bg-white/[0.03] p-5 md:p-7">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="label-xs text-white/45">OPERATIONS / CONTENT CONTROL PLANE</p>
-          <h2 className="mt-2 text-3xl font-light">Requests, About, News & JAgent</h2>
+          <h2 className="mt-2 text-3xl font-light">{sectionHeading}</h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-white/50">
             Every public form writes to Supabase. New requests also create a notification outbox row
             for the administrator email.
@@ -1856,26 +1976,6 @@ function AdminOperationsPanel({
         >
           Refresh
         </button>
-      </div>
-      <div className="mt-6 flex flex-wrap gap-2 border-b border-white/15 pb-3">
-        {operationTabs.map((item) => (
-          <button
-            key={item}
-            type="button"
-            onClick={() => setTab(item)}
-            className={`label-xs px-3 py-2 ${tab === item ? "bg-white text-slate-950" : "border border-white/20 text-white/60"}`}
-          >
-            {item === "inbox"
-              ? "Inbox"
-              : item === "about"
-                ? "About + email"
-                : item === "news"
-                  ? "News"
-                  : item === "knowledge"
-                    ? "JAgent RAG"
-                    : "Access / invitations"}
-          </button>
-        ))}
       </div>
       {message ? (
         <p className="mt-4 border border-emerald-300/20 bg-emerald-300/10 p-3 text-sm text-emerald-100">
