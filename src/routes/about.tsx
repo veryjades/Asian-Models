@@ -76,7 +76,9 @@ function AboutPage() {
     <div>
       <div className="halftone h-24 w-full opacity-50" aria-hidden="true" />
       <div className="mx-auto max-w-[1600px] px-5 pb-10 md:px-10">
-        <h1 className="text-3xl font-light md:text-4xl">{t("about.title")}</h1>
+        <h1 className="text-3xl font-light md:text-4xl">
+          {pick(settings?.about_title_en ?? "", settings?.about_title_zh ?? "") || t("about.title")}
+        </h1>
         <div className="mt-10 grid gap-12 lg:grid-cols-[1.2fr_1fr]">
           <div className="space-y-5 text-sm leading-relaxed text-muted-foreground md:text-base">
             {(lang === "zh" ? bodyZh : bodyEn).map((paragraph) => (
