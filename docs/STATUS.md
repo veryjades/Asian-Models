@@ -3,8 +3,8 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** Admin JWT save/refresh, email secret, and production remain blocked.
-**Last heartbeat:** 2026-08-15 +08:00 (PR #6 merged; published About anon read restored)
+**Current task:** Owner Admin sign-in needed for About save/refresh; production remains blocked.
+**Last heartbeat:** 2026-08-15 +08:00 (Admin JWT fail-closed; stale session was a deleted probe account)
 **Phase 0 completion date:** 2026-08-10
 
 ## Current live backend
@@ -32,7 +32,7 @@ historical.
 - `supabase/functions/notify-admin/index.ts` and public dispatch calls are committed locally. The function is deployed through the Supabase dashboard and the Admin retry action passes the notification reference id. Actual delivery still requires a provider secret (`RESEND_API_KEY`/`RESEND_FROM` or approved SMTP).
 - Local route probes returned HTTP 200 for `/`, `/admin`, `/models/women`, `/models/men`, `/models/new-faces`, `/models/talent`, `/keywords/women`, `/about`, and `/news`; `/models/women` contains Chen Yu-Xin and `/news` contains a seeded story.
 - Model board/profile/keyword loaders now revalidate stale React Query data so a newly published active model appears after returning to the public surface instead of remaining in an old client cache. The live project currently still contains exactly 13 model rows; no new model row was present during this verification.
-- GOV-003 applied additive `20260815213000_public_about_settings.sql` live: anon public-column About read returns HTTP 200; `admin_email` and `select=*` remain 401. Admin About save from Preview still failed as `anon`. Edge Function Secrets have no custom secrets. News remains 3 published rows.
+- GOV-003 applied additive `20260815213000_public_about_settings.sql` live: anon public-column About read returns HTTP 200; `admin_email` and `select=*` remain 401. Preview About save failed because the signed-in UI was a deleted disposable QA admin with no JWT. Edge Function Secrets have no custom secrets. News remains 3 published rows.
 
 ## Completed items
 
@@ -98,7 +98,7 @@ historical.
 - Governance gate: [PR #6](https://github.com/veryjades/Asian-Models/pull/6) is merged into `feature/mock-assets` as `2db6fd6`. [PR #7](https://github.com/veryjades/Asian-Models/pull/7) is merged into `feature/phase-1-foundation`. Do not retarget PR #5 to `main` until PR #4 is reviewed and merged. `main` protection requires CI plus one human approval.
 - Production remains blocked: DNS/SSL, monitoring/Sentry, backup, email delivery, PR #4/#5 review chain, and current-commit Preview QA are incomplete. Do not promote production.
 - Email delivery is blocked (B-005): live Edge Function Secrets show **No custom secrets created**. `RESEND_API_KEY` / `RESEND_FROM` cannot be invented; creating a Resend account would need owner OTP.
-- Admin→public About save/refresh is unverified. Preview `/admin` is visually signed in (Access tab, 13 profiles, 3 News), but About save/refresh returned `permission denied for table site_settings`. Live grants still give `authenticated` full table DML; the failing request behaved as `anon`. Viewer/Editor deny matrix was not re-run.
+- Admin→public About save/refresh is unverified. Preview `/admin` kept a stale React identity after the disposable QA admin was deleted; `getUser()` returned Auth session missing and localStorage had no auth token, so upsert ran as `anon`. The fail-closed JWT guard is in `feature/admin-auth-jwt`. A live owner password sign-in is still required; do not reset the password. Viewer/Editor deny matrix was not re-run.
 - Public media path is blocked by empty storage: 0 `media_assets` rows and 0 `model-media` objects. Remaining hover pairs are deferred and are not a launch blocker.
 - The owner-authorized Email provider setting is currently minimum 6 characters with no required character classes. Security advisor still reports `auth_leaked_password_protection` because Supabase makes leaked-password checks available only on Pro and above.
 
@@ -115,6 +115,6 @@ historical.
 
 ## Next action
 
-Re-test About save from a Preview `/admin` session that actually sends an Admin
-JWT. Do not generate images, invent email keys, retarget PR #5 to `main`, or
-promote production.
+Sign in to Preview `/admin` as the owner with a live JWT, then retry About
+save/refresh. Do not reset the password, generate images, invent email keys,
+retarget PR #5 to `main`, or promote production.
