@@ -2,11 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import {
-  createAuthAdapter,
-  requireAuthenticatedSession,
-  type AuthIdentity,
-} from "@/lib/supabase/auth";
+import { createAuthAdapter, type AuthIdentity } from "@/lib/supabase/auth";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   createModelMediaAdapter,
@@ -1867,13 +1863,6 @@ function AdminOperationsPanel({
     if (!canEdit || !settings) return;
     setBusy(true);
     setMessage("");
-    const auth = await requireAuthenticatedSession(client);
-    if (auth.error || !auth.session) {
-      setBusy(false);
-      setMessage(auth.error?.message ?? "Auth session missing. Sign in again.");
-      onSessionExpired();
-      return;
-    }
     const form = new FormData(event.currentTarget);
     const { error } = await client.from("site_settings").upsert({
       id: "global",
@@ -1892,11 +1881,15 @@ function AdminOperationsPanel({
       offices: settings.offices,
     });
     setBusy(false);
-    if (error) setMessage(error.message);
-    else {
-      setMessage("About and notification settings saved.");
-      await load();
+    if (error) {
+      setMessage(error.message);
+      if (/permission denied|jwt|session missing|not authenticated/i.test(error.message)) {
+        onSessionExpired();
+      }
+      return;
     }
+    setMessage("About and notification settings saved.");
+    await load();
   };
 
   const addNews = async (event: FormEvent<HTMLFormElement>) => {

@@ -54,6 +54,23 @@ function createBrowserAuthStorage(): Storage {
   return createMemoryStorage();
 }
 
+/**
+ * Serialise Auth internals. The default navigator.locks implementation can
+ * hang in embedded browsers when getUser() overlaps a focus revalidate, which
+ * left Admin Save stuck on "Saving…".
+ */
+function createSerialAuthLock() {
+  let chain = Promise.resolve();
+  return async <R>(_name: string, _acquireTimeout: number, fn: () => Promise<R>) => {
+    const run = chain.then(fn, fn);
+    chain = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    return run;
+  };
+}
+
 function createPublicClient(persist: boolean): SupabaseClient<Database> {
   return createClient<Database>(
     requirePublicEnv("VITE_SUPABASE_URL"),
@@ -65,6 +82,7 @@ function createPublicClient(persist: boolean): SupabaseClient<Database> {
             autoRefreshToken: true,
             detectSessionInUrl: true,
             storage: createBrowserAuthStorage(),
+            lock: createSerialAuthLock(),
           }
         : {
             persistSession: false,
