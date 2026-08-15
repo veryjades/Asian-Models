@@ -50,6 +50,30 @@ export interface AuthAdapter {
  * Browser-safe Auth boundary. It never accepts or exposes a service-role key;
  * account creation and role assignment stay in the Dashboard/server workflow.
  */
+/**
+ * Confirm a live user JWT before Admin writes. A stale React identity is not
+ * enough: deleted or expired sessions must fail closed instead of writing as anon.
+ */
+export async function requireAuthenticatedSession(client: SupabaseClient<Database>) {
+  const { data: userData, error: userError } = await client.auth.getUser();
+  if (userError || !userData.user) {
+    return {
+      user: null,
+      session: null,
+      error: userError ?? new Error("Auth session missing. Sign in again."),
+    };
+  }
+  const { data: sessionData, error: sessionError } = await client.auth.getSession();
+  if (sessionError || !sessionData.session?.access_token) {
+    return {
+      user: null,
+      session: null,
+      error: sessionError ?? new Error("Auth session missing. Sign in again."),
+    };
+  }
+  return { user: userData.user, session: sessionData.session, error: null };
+}
+
 export function createAuthAdapter(client: SupabaseClient<Database>): AuthAdapter {
   return {
     getSession: async () => {

@@ -34,7 +34,7 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 
 ## 3. Content CMS
 
-- [~] Add editable About page content (bilingual copy, offices, contact metadata, publish state). Live anon column-read of published About returns HTTP 200; Admin save/refresh still failed as `anon`.
+- [~] Add editable About page content (bilingual copy, offices, contact metadata, publish state). Live anon column-read of published About returns HTTP 200. Admin save/refresh is blocked until a live owner JWT is present; a stale deleted QA-admin UI previously wrote as `anon`.
 - [~] Add News CRUD (slug, date, bilingual title/excerpt/body, cover media, tags, publish state, ordering). Publish/list/delete are implemented; edit and cover upload UI remain.
 - [ ] Add News media upload/replace/delete with the same crop and private-storage rules.
 - [x] Bind public About and News routes to published Supabase content with a safe seed fallback. Live counts: `news_count=3`, `settings_count=1`; local `/about` and `/news` return 200.

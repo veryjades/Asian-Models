@@ -2,7 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { createAuthAdapter, type AuthIdentity } from "@/lib/supabase/auth";
+import {
+  createAuthAdapter,
+  requireAuthenticatedSession,
+  type AuthIdentity,
+} from "@/lib/supabase/auth";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   createModelMediaAdapter,
@@ -140,6 +144,10 @@ function AdminRoute() {
   const [access, setAccess] = useState<AccessState>("loading");
   const [notice, setNotice] = useState<Notice | null>(null);
   const [passwordSetup, setPasswordSetup] = useState(false);
+  const handleSignedOut = useCallback(() => {
+    setIdentity(null);
+    setAccess("signed-out");
+  }, []);
 
   useEffect(() => {
     let disposed = false;
@@ -172,7 +180,10 @@ function AdminRoute() {
         const { data, error } = await auth.getIdentity();
         if (disposed) return;
         if (error) {
-          setNotice({ tone: "error", text: error.message });
+          setIdentity(null);
+          if (!/session missing/i.test(error.message)) {
+            setNotice({ tone: "error", text: error.message });
+          }
           setAccess("signed-out");
           return;
         }
@@ -192,6 +203,19 @@ function AdminRoute() {
         if (event === "PASSWORD_RECOVERY") setPasswordSetup(true);
         void refreshIdentity();
       }).unsubscribe;
+      const revalidate = () => {
+        if (document.visibilityState === "hidden") return;
+        void refreshIdentity();
+      };
+      window.addEventListener("focus", revalidate);
+      document.addEventListener("visibilitychange", revalidate);
+
+      return () => {
+        disposed = true;
+        unsubscribe?.();
+        window.removeEventListener("focus", revalidate);
+        document.removeEventListener("visibilitychange", revalidate);
+      };
     } catch (error) {
       if (!disposed) {
         setNotice({
@@ -261,13 +285,7 @@ function AdminRoute() {
   }
 
   if (!client || !identity) return <AdminLoading />;
-  return (
-    <AdminDashboard
-      client={client}
-      identity={identity}
-      onSignedOut={() => setAccess("signed-out")}
-    />
-  );
+  return <AdminDashboard client={client} identity={identity} onSignedOut={handleSignedOut} />;
 }
 
 function AdminPasswordSetup({
@@ -1648,6 +1666,7 @@ function AdminDashboard({
             canEdit={canEdit}
             canDelete={identity.role === "admin"}
             canManageAccess={identity.role === "admin"}
+            onSessionExpired={onSignedOut}
           />
         )}
       </div>
@@ -1661,12 +1680,14 @@ function AdminOperationsPanel({
   canEdit,
   canDelete,
   canManageAccess,
+  onSessionExpired,
 }: {
   activeTab: OperationsSection;
   client: SupabaseClient<Database>;
   canEdit: boolean;
   canDelete: boolean;
   canManageAccess: boolean;
+  onSessionExpired: () => void;
 }) {
   const tab = activeTab;
   const [inquiries, setInquiries] = useState<Database["public"]["Tables"]["inquiries"]["Row"][]>(
@@ -1718,7 +1739,16 @@ function AdminOperationsPanel({
     setSettings(settingsResult.data ?? null);
     setNews(newsResult.data ?? []);
     setKnowledge(knowledgeResult.data ?? []);
-  }, [client]);
+    const authLost = [settingsResult, inquiryResult, applicationResult].some((result) =>
+      /session missing|jwt|permission denied for table site_settings/i.test(
+        result.error?.message ?? "",
+      ),
+    );
+    if (authLost) {
+      setMessage("Auth session missing. Sign in again.");
+      onSessionExpired();
+    }
+  }, [client, onSessionExpired]);
 
   useEffect(() => {
     void load();
@@ -1837,6 +1867,13 @@ function AdminOperationsPanel({
     if (!canEdit || !settings) return;
     setBusy(true);
     setMessage("");
+    const auth = await requireAuthenticatedSession(client);
+    if (auth.error || !auth.session) {
+      setBusy(false);
+      setMessage(auth.error?.message ?? "Auth session missing. Sign in again.");
+      onSessionExpired();
+      return;
+    }
     const form = new FormData(event.currentTarget);
     const { error } = await client.from("site_settings").upsert({
       id: "global",
