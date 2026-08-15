@@ -70,7 +70,7 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 - [x] Verify Auth, Storage, RLS, Data API grants, and cleanup of test rows/objects. Live role/storage matrix and the current trigger transaction probe passed; test records/objects were removed or rolled back.
 - [x] Run `bunx tsc --noEmit`, `bun run lint`, `bun run build`, and `git diff --check` for the exact work unit. GOV-001 corrected the six Markdown whitespace groups; all commands and `git diff --check origin/main` exit 0 on `feature/release-governance` (lint: 0 errors, 9 existing warnings). The same checks are now encoded in pinned-Bun GitHub CI and must pass again on the pushed commit.
 - [~] Deploy Preview, inspect routes in the deployed build, and record URL/commit. The branch Preview responds 200; current-commit route/hover inspection remains.
-- [~] Reconcile PR #4/#5 before review. PR #5 is an 84-commit draft targeting the still-open draft PR #4 branch, has no reviewer approval, and currently reports only Vercel checks. Its title/scope and CI evidence must be corrected before it can be treated as release-ready.
+- [~] Reconcile PR #4/#5 before review. PR #5 metadata now describes its actual stacked scope; PR #6/#7 add passing pinned-Bun CI without rewriting history, and `main` protection requires that CI plus one approval. Human review/merge of PR #6/#7 and then PR #4 remains before PR #5 can safely retarget `main`.
 
 ## 7. Project operations
 
