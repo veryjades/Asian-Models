@@ -86,6 +86,7 @@
 - New model creation now opens that form in a scrollable modal with an empty draft, explicit `確認新增模特檔案` submit action, and `取消新增`; successful creation closes the modal and selects the new record for media follow-up.
 - Admin navigation is now section-first: Models, Inbox, About, News, JAgent RAG, and (Admin-only) Access each have a top-level tab; the workspace opens on the Models list rather than dropping directly into a create form.
 - Local browser regression after the tab refactor passed: a full reload has no parser/runtime errors; Access lists the live owner with the Admin role selector, and Models opens a blank create modal with confirm/cancel controls.
+- The cross-phase release process is documented in `docs/RELEASE_OPERATING_PLAN.md`, mapping Asana, GitHub, Supabase, Vercel, Browser/Playwright, DNS/SSL, monitoring, and email ownership from planning through launch.
 - A fresh owner reset invitation was attempted from the live `/admin` form and again from Supabase Auth Users → “Send password recovery”; both returned `429: email rate limit exceeded` (`over_email_send_rate_limit`). Supabase Authentication → Rate Limits exposes no adjustable email-send control on this project. Therefore no new invitation was sent. The application path remains ready for a retry after the provider window clears or a configured SMTP provider is available.
 
 ## Blockers
