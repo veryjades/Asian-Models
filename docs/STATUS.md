@@ -4,13 +4,16 @@
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
 **Current task:** Complete the Admin content/operations control plane and verify the public Supabase data path.
-**Last heartbeat:** 2026-08-15 +08:00 (13-model seed, content tables, Admin CRUD controls, notification outbox, live function deployment, trigger probe, local route probes, and build verification)
+**Last heartbeat:** 2026-08-15 +08:00 (public content grants, bilingual model backfill, Admin mapping, media adapter, notification outbox, and build verification)
 **Completion date:** 2026-08-10
 
 ## Current live backend
 
 - Supabase project: `jkhxtuwqmmdetjqymzso` (`Model's Project`, `veryjades's Org Free`, Mumbai `ap-south-1`). The earlier `cajkkxustehtzyymlopm` project is historical only.
 - SQL Editor verification on 2026-08-15: `model_count=13`, `news_count=3`, `settings_count=1`, `inquiries_count=0`, `applications_count=0`, and `notification_count=0`; foundation tables, content tables, trusted `current_app_role()` policies, and Storage buckets are present.
+- Public Data API verification on 2026-08-15 returned HTTP 200 for `models`, `media_assets`, `model_video_links`, and `model_social_links` using the publishable key. `models` returned all 13 active records; the three media/link tables are currently empty, so the public adapter is connected but no live uploaded asset exists to render yet.
+- Migration `20260815210000_public_content_grants.sql` is applied in the live project: active model rows and `visibility='public'` media/video/social rows are readable anonymously; authenticated Admin/Editor reads remain role-gated; `model-media` is public for published objects while writes/deletes remain Storage-RLS protected.
+- Migration `20260815211000_backfill_model_localization.sql` is committed and its full bilingual backfill was executed in SQL Editor batches. REST verification returned 13/13 rows with non-null `name_zh`, `city_zh`, `bio_en`, and `bio_zh`; the repository still keeps seed fallback for resilience.
 - Auth URL configuration is set to `http://127.0.0.1:8090` with local and Preview wildcard redirects. `menscheck@gmail.com` has a live invitation row and `raw_app_meta_data.role=admin`; Auth Logs show `/invite` 200 → `/verify` 303 and a later `/recover` 200 → `/verify` 303. A duplicate recovery request correctly returned 429 due to email-rate protection.
 - Local `http://127.0.0.1:8090/admin` was restarted with the new environment and returned HTTP 200; the signed-out surface exposes email, password, sign-in, and first-time setup controls.
 - `.env.local` uses the new project URL and publishable browser key; it is ignored and no service-role credential is committed.
@@ -37,7 +40,7 @@
 
 ## In-progress items
 
-- Foundation review and migration validation are complete. No public route is connected to Supabase until the Phase 2 policy tests pass.
+- Foundation review and migration validation are complete. Public model/media/video/social reads are now connected to Supabase behind the approved RLS and visibility boundary; Admin writes remain authenticated.
 - The authorised D-008/D-009 mock-asset experience iteration documents source/licensing requirements and now includes a reusable safe-presentation component.
 - Draft PR [#5](https://github.com/veryjades/Asian-Models/pull/5) contains the mock-asset guide and image-presentation foundation; it targets `feature/mock-assets` and remains open/unmerged.
 - The Golden Mock Asset Set is complete: 18 reviewed fictional adult assets for three desktop heroes, five Women/Men portrait/full-body pairs, two New Faces digitals, and three portfolio scenes. See `docs/GOLDEN_MOCK_ASSET_SET.md`.
@@ -73,7 +76,7 @@
 - `.env.example` now points to the approved public project URL; the publishable key remains a local-only placeholder and no service-role secret is committed.
 - The J Assistant control no longer collides with the Vercel Preview Toolbar: its trigger is positioned clear of the toolbar and its opened conversation temporarily hides that toolbar. The latest Preview was clicked directly; it opened J Assistant and returned four candidate profiles for `我要找男模`. The 390px surface had no horizontal overflow or console errors.
 - Owner-authorized Admin UI preparation is complete at `/admin`: Auth sign-in, trusted Admin/Editor role gate, model create/update form, primary photo upload, optional second hover photo upload, private Storage paths, and `media_assets.sort_order` 0/1 persistence are implemented without service-role exposure. Local browser QA showed the configured sign-in state, no console errors, and no horizontal overflow. Full operational admin scope remains Phase 5.
-- Admin media manager extension is complete: `model_video_links` and `model_social_links` are live with RLS; `/admin` accepts unlimited gallery media including MP4, validated YouTube URLs, HTTPS social links, and Admin-only deletion. Public route consumption remains intentionally unconnected until the Phase 3 data/mapping review.
+- Admin media manager extension is complete: `model_video_links` and `model_social_links` are live with RLS; `/admin` accepts unlimited gallery media including MP4, validated YouTube URLs, HTTPS social links, and Admin-only deletion. `src/lib/content/repository.ts` now consumes published media, YouTube, and social rows from the same project and maps sort order 0/1 to primary/hover without changing card geometry.
 - Admin recovery delivery is verified: `src/lib/supabase/auth.ts` supports reset/update password operations and `/admin` renders a first-time setup form that delegates password policy to Supabase Auth. Supabase Auth URL Configuration is set to `http://127.0.0.1:8090` with local and Preview wildcard redirects; the Dashboard confirmed all three URLs were added. The existing `menscheck@gmail.com` account is email-confirmed and has the server-side `app_metadata.role=admin`. The root route now catches invite/recovery links that land on the homepage and redirects to `/admin?reset=1` while preserving the auth hash; local browser QA rendered the setup form with no console errors. The live Email provider policy is owner-authorized minimum 6 characters with no required character classes. No password is stored in the repository or browser code.
 - A fresh owner reset invitation was attempted from the live `/admin` form and again from Supabase Auth Users → “Send password recovery”; both returned `429: email rate limit exceeded` (`over_email_send_rate_limit`). Supabase Authentication → Rate Limits exposes no adjustable email-send control on this project. Therefore no new invitation was sent. The application path remains ready for a retry after the provider window clears or a configured SMTP provider is available.
 
@@ -98,7 +101,7 @@
 
 ## Next action
 
-Configure the owner-approved provider secret for `notify-admin`, then run
-authenticated Admin CRUD/refresh and delivery verification before the final
-Preview/PR #5 review. Keep public routes cloud-agnostic until that review;
-UX-010's remaining stronger hover-pose sourcing stays tracked separately.
+Run authenticated Admin create/edit/refresh against the live project, upload one
+published model-media object to prove the end-to-end asset path, then complete
+the provider-secret delivery check and final Preview/PR #5 review. No image
+generation is in scope; remaining hover-pose sourcing stays tracked separately.

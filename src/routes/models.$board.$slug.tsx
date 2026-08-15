@@ -35,7 +35,14 @@ export const Route = createFileRoute("/models/$board/$slug")({
   loader: async ({ context, params }) => {
     const board = params.board as BoardId;
     const model = await context.queryClient.ensureQueryData(modelQuery(board, params.slug));
-    return { board, slug: params.slug, name: model.name, city: model.city };
+    return {
+      board,
+      slug: params.slug,
+      name: model.name,
+      nameZh: model.nameZh,
+      city: model.city,
+      cityZh: model.cityZh,
+    };
   },
   head: ({ params, loaderData }) => {
     if (!loaderData) {
@@ -43,8 +50,10 @@ export const Route = createFileRoute("/models/$board/$slug")({
         meta: [{ title: "Unavailable — J&J Model Agency" }, { name: "robots", content: "noindex" }],
       };
     }
-    const title = `${loaderData.name} — J&J Model Agency`;
-    const description = `${loaderData.name}, represented by J&J Model Agency in ${loaderData.city}. Portfolio, digitals and statistics.`;
+    const displayName = loaderData.nameZh || loaderData.name;
+    const displayCity = loaderData.cityZh || loaderData.city;
+    const title = `${displayName} — J&J Model Agency`;
+    const description = `${displayName}, represented by J&J Model Agency in ${displayCity}. Portfolio, digitals and statistics.`;
     return {
       meta: [
         { title },
@@ -113,7 +122,8 @@ function ModelPage() {
             alt={model.name}
             width={768}
             height={1024}
-            fit="contain"
+            aspectRatio="3 / 4"
+            fit="cover"
           />
           <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             {pick(model.bioEn, model.bioZh)}
@@ -157,6 +167,25 @@ function ModelPage() {
       <Gallery title={t("model.portfolio")} images={model.gallery} model={model} />
       <Gallery title={t("model.digitals")} images={model.digitals} model={model} />
       <VideoGallery title={t("video.showreel")} videos={model.videos} />
+      {model.socialLinks?.length ? (
+        <section className="mt-16">
+          <h2 className="label-xs pb-4 text-muted-foreground">{pick("Social", "社群連結")}</h2>
+          <ul className="flex flex-wrap gap-2">
+            {model.socialLinks.map((link) => (
+              <li key={`${link.platform}-${link.url}`}>
+                <a
+                  href={link.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="label-xs inline-flex border border-border px-2.5 py-2 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       <section className="mt-16">
         <h2 className="label-xs pb-4 text-muted-foreground">{pick("Tags", "標籤")}</h2>
         <ul className="flex flex-wrap gap-2">

@@ -221,7 +221,9 @@ type I18nValue = {
 const I18nContext = createContext<I18nValue | null>(null);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
+  // Traditional Chinese is the primary agency experience; English remains
+  // available through the language switcher and is persisted per visitor.
+  const [lang, setLangState] = useState<Lang>("zh");
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);

@@ -59,6 +59,8 @@ export type Model = {
   tags: string[];
   /** Showreel / motion tests — uploaded files or YouTube links. */
   videos?: VideoMedia[];
+  /** Public social channels maintained from the Admin profile. */
+  socialLinks?: { platform: string; label: string; url: string }[];
 };
 
 export type NewsPost = {

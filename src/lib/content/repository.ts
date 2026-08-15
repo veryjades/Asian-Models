@@ -87,15 +87,15 @@ const fallbackModel = (row: Database["public"]["Tables"]["models"]["Row"]): Mode
   return {
     slug: row.slug,
     name: row.name,
-    nameZh: row.name_zh ?? row.display_name,
+    nameZh: row.name_zh ?? seed?.nameZh ?? row.name,
     board: (row.board as BoardId) ?? (row.gender === "men" ? "men" : "women"),
     gender: row.gender === "men" ? "men" : "women",
     languages: row.languages,
     featured: row.featured,
     city: row.city ?? "",
-    cityZh: row.city_zh ?? row.city ?? "",
-    bioEn: row.bio_en ?? row.bio ?? "",
-    bioZh: row.bio_zh ?? row.bio_en ?? row.bio ?? "",
+    cityZh: row.city_zh ?? seed?.cityZh ?? row.city ?? "",
+    bioEn: row.bio_en ?? seed?.bioEn ?? row.bio ?? "",
+    bioZh: row.bio_zh ?? seed?.bioZh ?? row.bio_en ?? row.bio ?? "",
     stats: modelStats,
     portrait: seed?.portrait ?? "",
     ...(seed?.hoverPortrait ? { hoverPortrait: seed.hoverPortrait } : {}),
@@ -103,6 +103,7 @@ const fallbackModel = (row: Database["public"]["Tables"]["models"]["Row"]): Mode
     digitals: seed?.digitals ?? [],
     tags: row.tags.length ? row.tags : (seed?.tags ?? []),
     ...(seed?.videos ? { videos: seed.videos } : {}),
+    socialLinks: [],
   };
 };
 
@@ -126,12 +127,42 @@ const supabaseRepository: ContentRepository = {
           data.map((row) => row.id),
         )
         .order("sort_order");
-      if (!media?.length) return models;
-      const byOwner = new Map<string, typeof media>();
-      for (const asset of media) {
+      const [videoResult, socialResult] = await Promise.all([
+        client
+          .from("model_video_links")
+          .select("id, model_id, title, youtube_url, sort_order")
+          .in(
+            "model_id",
+            data.map((row) => row.id),
+          )
+          .order("sort_order"),
+        client
+          .from("model_social_links")
+          .select("id, model_id, platform, label, url, sort_order")
+          .in(
+            "model_id",
+            data.map((row) => row.id),
+          )
+          .order("sort_order"),
+      ]);
+      type PublicMediaRow = NonNullable<typeof media>[number];
+      const byOwner = new Map<string, PublicMediaRow[]>();
+      for (const asset of media ?? []) {
         const list = byOwner.get(asset.owner_id) ?? [];
         list.push(asset);
         byOwner.set(asset.owner_id, list);
+      }
+      const videosByOwner = new Map<string, NonNullable<typeof videoResult.data>>();
+      for (const video of videoResult.data ?? []) {
+        const list = videosByOwner.get(video.model_id) ?? [];
+        list.push(video);
+        videosByOwner.set(video.model_id, list);
+      }
+      const socialsByOwner = new Map<string, NonNullable<typeof socialResult.data>>();
+      for (const social of socialResult.data ?? []) {
+        const list = socialsByOwner.get(social.model_id) ?? [];
+        list.push(social);
+        socialsByOwner.set(social.model_id, list);
       }
       return data.map((row, index) => {
         const base = models[index]!;
@@ -143,11 +174,25 @@ const supabaseRepository: ContentRepository = {
         const gallery = assets
           .filter((asset) => asset.sort_order > 1 && asset.type === "image")
           .map((asset) => publicUrl(asset.file_url));
+        const videos = (videosByOwner.get(row.id) ?? []).map((video) => ({
+          id: `db-${video.id}`,
+          source: "youtube" as const,
+          src: video.youtube_url,
+          titleEn: video.title,
+          titleZh: video.title,
+        }));
+        const socialLinks = (socialsByOwner.get(row.id) ?? []).map((social) => ({
+          platform: social.platform,
+          label: social.label,
+          url: social.url,
+        }));
         return {
           ...base,
           ...(primary ? { portrait: publicUrl(primary.file_url) } : {}),
           ...(hover ? { hoverPortrait: publicUrl(hover.file_url) } : {}),
           ...(gallery.length ? { gallery } : {}),
+          ...(videos.length ? { videos } : {}),
+          ...(socialLinks.length ? { socialLinks } : {}),
         };
       });
     } catch {

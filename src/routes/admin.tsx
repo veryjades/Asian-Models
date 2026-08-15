@@ -17,16 +17,34 @@ type VideoLinkRow = Database["public"]["Tables"]["model_video_links"]["Row"];
 type SocialLinkRow = Database["public"]["Tables"]["model_social_links"]["Row"];
 type ModelStatus = ModelRow["status"];
 type ModelGender = "women" | "men";
+type ModelBoard = "women" | "men" | "new-faces" | "talent";
 
 type ModelDraft = {
+  slug: string;
   name: string;
   displayName: string;
+  nameZh: string;
   gender: ModelGender;
+  board: ModelBoard;
   category: string;
+  city: string;
+  cityZh: string;
   height: string;
   nationality: string;
   languages: string;
-  bio: string;
+  bioEn: string;
+  bioZh: string;
+  weight: string;
+  bust: string;
+  waist: string;
+  hips: string;
+  shoes: string;
+  hair: string;
+  hairZh: string;
+  eyes: string;
+  eyesZh: string;
+  tags: string;
+  featured: boolean;
   status: ModelStatus;
 };
 
@@ -35,16 +53,50 @@ type AccessState = "loading" | "config" | "signed-out" | "forbidden" | "ready";
 type PreviewState = { primary: string | undefined; hover: string | undefined };
 
 const EMPTY_DRAFT: ModelDraft = {
+  slug: "",
   name: "",
   displayName: "",
+  nameZh: "",
   gender: "women",
+  board: "women",
   category: "editorial",
+  city: "",
+  cityZh: "",
   height: "",
   nationality: "",
   languages: "Mandarin, English",
-  bio: "",
+  bioEn: "",
+  bioZh: "",
+  weight: "",
+  bust: "",
+  waist: "",
+  hips: "",
+  shoes: "",
+  hair: "",
+  hairZh: "",
+  eyes: "",
+  eyesZh: "",
+  tags: "",
+  featured: false,
   status: "active",
 };
+
+function slugify(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function readJsonString(
+  record: Database["public"]["Tables"]["models"]["Row"]["stats"],
+  key: string,
+) {
+  if (!record || typeof record !== "object" || Array.isArray(record)) return "";
+  const value = (record as Record<string, unknown>)[key];
+  return value == null ? "" : String(value);
+}
 
 const SOCIAL_PLATFORMS = [
   ["instagram", "Instagram"],
@@ -526,15 +578,33 @@ function AdminDashboard({
 
   const selectModel = async (model: ModelRow) => {
     setSelectedModelId(model.id);
+    const heightStat = readJsonString(model.stats, "height").replace(/\s*cm$/i, "");
     setDraft({
+      slug: model.slug,
       name: model.name,
       displayName: model.display_name,
+      nameZh: model.name_zh ?? "",
       gender: model.gender === "men" ? "men" : "women",
+      board: (model.board as ModelBoard) ?? (model.gender === "men" ? "men" : "women"),
       category: model.category,
-      height: model.height?.toString() ?? "",
+      city: model.city ?? "",
+      cityZh: model.city_zh ?? "",
+      height: model.height?.toString() ?? heightStat,
       nationality: model.nationality ?? "",
       languages: model.languages.join(", "),
-      bio: model.bio ?? "",
+      bioEn: model.bio_en ?? model.bio ?? "",
+      bioZh: model.bio_zh ?? "",
+      weight: readJsonString(model.stats, "weight"),
+      bust: readJsonString(model.stats, "bust"),
+      waist: readJsonString(model.stats, "waist"),
+      hips: readJsonString(model.stats, "hips"),
+      shoes: readJsonString(model.stats, "shoes"),
+      hair: readJsonString(model.stats, "hair"),
+      hairZh: readJsonString(model.stats, "hairZh"),
+      eyes: readJsonString(model.stats, "eyes"),
+      eyesZh: readJsonString(model.stats, "eyesZh"),
+      tags: model.tags.join(", "),
+      featured: model.featured,
       status: model.status,
     });
     setPrimaryFile(null);
@@ -709,22 +779,65 @@ function AdminDashboard({
       setNotice({ tone: "error", text: "Name, display name, and category are required." });
       return;
     }
+    if (draft.status === "active" && !draft.nameZh.trim()) {
+      setNotice({
+        tone: "error",
+        text: "Traditional Chinese name is required for an active profile.",
+      });
+      return;
+    }
+    const slug = slugify(draft.slug || name);
+    if (!slug) {
+      setNotice({ tone: "error", text: "A public slug is required." });
+      return;
+    }
     setSaving(true);
     setNotice(null);
+    const height = draft.height.trim() ? Number.parseInt(draft.height, 10) : null;
+    const stats = {
+      height: height ? `${height} cm` : "",
+      weight: draft.weight.trim(),
+      bust: draft.bust.trim(),
+      waist: draft.waist.trim(),
+      hips: draft.hips.trim(),
+      shoes: draft.shoes.trim(),
+      hair: draft.hair.trim(),
+      hairZh: draft.hairZh.trim(),
+      eyes: draft.eyes.trim(),
+      eyesZh: draft.eyesZh.trim(),
+    };
+    const measurements = {
+      bust: draft.bust.trim(),
+      waist: draft.waist.trim(),
+      hips: draft.hips.trim(),
+    };
     const payload = {
+      slug,
       name,
       display_name: displayName,
+      name_zh: draft.nameZh.trim() || null,
       gender: draft.gender,
+      board: draft.board,
       category,
-      height: draft.height.trim() ? Number.parseInt(draft.height, 10) : null,
+      city: draft.city.trim() || null,
+      city_zh: draft.cityZh.trim() || null,
+      height,
       nationality: draft.nationality.trim() || null,
       languages: draft.languages
         .split(",")
         .map((language) => language.trim())
         .filter(Boolean),
-      bio: draft.bio.trim() || null,
+      bio: draft.bioEn.trim() || draft.bioZh.trim() || null,
+      bio_en: draft.bioEn.trim() || null,
+      bio_zh: draft.bioZh.trim() || null,
+      featured: draft.featured,
+      tags: draft.tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean),
+      stats,
+      measurements,
       status: draft.status,
-      measurements: {},
     };
 
     try {
@@ -892,20 +1005,34 @@ function AdminDashboard({
               <section className="border border-white/15 bg-white/[0.03] p-5 md:p-7">
                 <div className="grid gap-5 md:grid-cols-2">
                   <Field
-                    label="Slug / internal name"
-                    value={draft.name}
+                    label="Public slug"
+                    value={draft.slug}
                     disabled={!canEdit}
-                    onChange={(value) => setDraft((current) => ({ ...current, name: value }))}
+                    onChange={(value) => setDraft((current) => ({ ...current, slug: value }))}
                     placeholder="chen-yu-xin"
                   />
                   <Field
-                    label="Display name"
+                    label="English name / record key"
+                    value={draft.name}
+                    disabled={!canEdit}
+                    onChange={(value) => setDraft((current) => ({ ...current, name: value }))}
+                    placeholder="Chen Yu-Xin"
+                  />
+                  <Field
+                    label="English display name"
                     value={draft.displayName}
                     disabled={!canEdit}
                     onChange={(value) =>
                       setDraft((current) => ({ ...current, displayName: value }))
                     }
                     placeholder="Chen Yu-Xin"
+                  />
+                  <Field
+                    label="繁體中文姓名（前台繁中主顯示）"
+                    value={draft.nameZh}
+                    disabled={!canEdit}
+                    onChange={(value) => setDraft((current) => ({ ...current, nameZh: value }))}
+                    placeholder="陳妤欣"
                   />
                   <label className="block text-sm text-white/65">
                     Gender
@@ -924,12 +1051,45 @@ function AdminDashboard({
                       <option value="men">Men</option>
                     </select>
                   </label>
+                  <label className="block text-sm text-white/65">
+                    Public board
+                    <select
+                      value={draft.board}
+                      disabled={!canEdit}
+                      onChange={(event) =>
+                        setDraft((current) => ({
+                          ...current,
+                          board: event.target.value as ModelBoard,
+                        }))
+                      }
+                      className="mt-2 w-full border border-white/20 bg-slate-950 px-3 py-3 text-white outline-none focus:border-white/60"
+                    >
+                      <option value="women">Women / 女模</option>
+                      <option value="men">Men / 男模</option>
+                      <option value="new-faces">New Faces / 新面孔</option>
+                      <option value="talent">Talent / 藝人</option>
+                    </select>
+                  </label>
                   <Field
                     label="Category"
                     value={draft.category}
                     disabled={!canEdit}
                     onChange={(value) => setDraft((current) => ({ ...current, category: value }))}
                     placeholder="Editorial"
+                  />
+                  <Field
+                    label="City / market (English)"
+                    value={draft.city}
+                    disabled={!canEdit}
+                    onChange={(value) => setDraft((current) => ({ ...current, city: value }))}
+                    placeholder="Taipei"
+                  />
+                  <Field
+                    label="城市／市場（繁中）"
+                    value={draft.cityZh}
+                    disabled={!canEdit}
+                    onChange={(value) => setDraft((current) => ({ ...current, cityZh: value }))}
+                    placeholder="台北"
                   />
                   <Field
                     label="Height (cm)"
@@ -973,20 +1133,80 @@ function AdminDashboard({
                       <option value="archived">Archived</option>
                     </select>
                   </label>
+                  <label className="flex items-center gap-3 self-end pb-3 text-sm text-white/65">
+                    <input
+                      type="checkbox"
+                      checked={draft.featured}
+                      disabled={!canEdit}
+                      onChange={(event) =>
+                        setDraft((current) => ({ ...current, featured: event.target.checked }))
+                      }
+                      className="h-4 w-4 accent-white"
+                    />
+                    Featured on homepage
+                  </label>
                 </div>
-                <label className="mt-5 block text-sm text-white/65">
-                  Bio
-                  <textarea
-                    value={draft.bio}
+                <div className="mt-5 grid gap-5 md:grid-cols-2">
+                  <label className="block text-sm text-white/65">
+                    Bio (English)
+                    <textarea
+                      value={draft.bioEn}
+                      disabled={!canEdit}
+                      onChange={(event) =>
+                        setDraft((current) => ({ ...current, bioEn: event.target.value }))
+                      }
+                      rows={5}
+                      className="mt-2 w-full resize-y border border-white/20 bg-slate-950 px-3 py-3 text-white outline-none focus:border-white/60"
+                      placeholder="Short casting and editorial notes"
+                    />
+                  </label>
+                  <label className="block text-sm text-white/65">
+                    個人簡介（繁中）
+                    <textarea
+                      value={draft.bioZh}
+                      disabled={!canEdit}
+                      onChange={(event) =>
+                        setDraft((current) => ({ ...current, bioZh: event.target.value }))
+                      }
+                      rows={5}
+                      className="mt-2 w-full resize-y border border-white/20 bg-slate-950 px-3 py-3 text-white outline-none focus:border-white/60"
+                      placeholder="模特簡介、工作經驗與風格描述"
+                    />
+                  </label>
+                </div>
+                <div className="mt-5 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+                  {(
+                    [
+                      ["Weight", "weight", "58 kg"],
+                      ["Bust", "bust", "82 cm"],
+                      ["Waist", "waist", "60 cm"],
+                      ["Hips", "hips", "88 cm"],
+                      ["Shoes", "shoes", "24 cm"],
+                      ["Hair (English)", "hair", "Black"],
+                      ["髮色（繁中）", "hairZh", "黑色"],
+                      ["Eyes (English)", "eyes", "Brown"],
+                      ["眼睛（繁中）", "eyesZh", "棕色"],
+                    ] as const
+                  ).map(([label, key, placeholder]) => (
+                    <Field
+                      key={key}
+                      label={label}
+                      value={draft[key]}
+                      disabled={!canEdit}
+                      onChange={(value) => setDraft((current) => ({ ...current, [key]: value }))}
+                      placeholder={placeholder}
+                    />
+                  ))}
+                </div>
+                <div className="mt-5">
+                  <Field
+                    label="Tags / keywords (comma separated slugs)"
+                    value={draft.tags}
                     disabled={!canEdit}
-                    onChange={(event) =>
-                      setDraft((current) => ({ ...current, bio: event.target.value }))
-                    }
-                    rows={4}
-                    className="mt-2 w-full resize-y border border-white/20 bg-slate-950 px-3 py-3 text-white outline-none focus:border-white/60"
-                    placeholder="Short casting and editorial notes"
+                    onChange={(value) => setDraft((current) => ({ ...current, tags: value }))}
+                    placeholder="editorial, runway, beauty"
                   />
-                </label>
+                </div>
               </section>
 
               <section className="border border-white/15 bg-white/[0.03] p-5 md:p-7">

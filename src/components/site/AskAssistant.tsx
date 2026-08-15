@@ -192,7 +192,10 @@ export function AskAssistant() {
                                   >
                                     {pick("View profile", "查看檔案")}
                                   </Link>
-                                  <QuickBooking modelId={model.slug} modelName={model.name} />
+                                  <QuickBooking
+                                    modelId={model.slug}
+                                    modelName={pick(model.name, model.nameZh)}
+                                  />
                                 </div>
                               </article>
                             ))}
