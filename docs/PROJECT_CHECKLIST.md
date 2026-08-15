@@ -16,7 +16,7 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 - [x] Configure Auth Site URL and local/Preview redirect URLs.
 - [x] Create the owner Auth account and verify trusted `app_metadata.role=admin`.
 - [x] Verify invitation/recovery delivery in Auth Logs (`/invite`, `/recover`, `/verify`).
-- [ ] Verify Vercel Preview environment variables point to the new Supabase project.
+- [x] Verify Vercel Preview environment variables point to the new Supabase project. GOV-003 confirmed the public Preview env for `jkhxtuwqmmdetjqymzso` and a READY `c84ee24` redeploy.
 - [ ] Confirm custom domain, DNS, SSL, and deployment protection/SSO behavior.
 
 ## 2. Model records and media
@@ -34,7 +34,7 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 
 ## 3. Content CMS
 
-- [~] Add editable About page content (bilingual copy, offices, contact metadata, publish state). Schema, RLS, editor, and public binding exist; authenticated save verification remains.
+- [~] Add editable About page content (bilingual copy, offices, contact metadata, publish state). Live anon column-read of published About returns HTTP 200; Admin save/refresh still failed as `anon`.
 - [~] Add News CRUD (slug, date, bilingual title/excerpt/body, cover media, tags, publish state, ordering). Publish/list/delete are implemented; edit and cover upload UI remain.
 - [ ] Add News media upload/replace/delete with the same crop and private-storage rules.
 - [x] Bind public About and News routes to published Supabase content with a safe seed fallback. Live counts: `news_count=3`, `settings_count=1`; local `/about` and `/news` return 200.
@@ -70,12 +70,12 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 - [x] Verify Auth, Storage, RLS, Data API grants, and cleanup of test rows/objects. Live role/storage matrix and the current trigger transaction probe passed; test records/objects were removed or rolled back.
 - [x] Run `bunx tsc --noEmit`, `bun run lint`, `bun run build`, and `git diff --check` for the exact work unit. GOV-001 corrected the six Markdown whitespace groups; all commands and `git diff --check origin/main` exit 0 on `feature/release-governance` (lint: 0 errors, 9 existing warnings). The same checks are now encoded in pinned-Bun GitHub CI and must pass again on the pushed commit.
 - [~] Deploy Preview, inspect routes in the deployed build, and record URL/commit. The branch Preview responds 200; current-commit route/hover inspection remains.
-- [~] Reconcile PR #4/#5 before review. PR #5 metadata now describes its actual stacked scope; PR #6/#7 add passing pinned-Bun CI without rewriting history, and `main` protection requires that CI plus one approval. Human review/merge of PR #6/#7 and then PR #4 remains before PR #5 can safely retarget `main`.
+- [~] Reconcile PR #4/#5 before review. PR #5 metadata now describes its actual stacked scope; PR #7 CI is merged; PR #6 still needs merge into `feature/mock-assets`. Do not retarget PR #5 to `main` until PR #4 is reviewed and merged.
 
 ## 7. Project operations
 
 - [x] Keep this checklist, `TASKS.md`, and `docs/STATUS.md` synchronized after each work session.
-- [ ] Keep the Asana launch plan aligned with these acceptance gates and completion percentages. The recorded 2/17 status was not independently reverified during GOV-001 because the project requires authentication.
+- [~] Keep the Asana launch plan aligned with these acceptance gates and completion percentages. GOV-003 confirmed project 模特經紀網站發佈計畫 is 2/17 complete (12%) with status 存在風險.
 - [ ] Keep Notion/launch documentation linked to the same source-of-truth checklist.
 
 ## 8. Enquiries, applications, and administrator notifications
@@ -85,4 +85,4 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 - [x] Database triggers enqueue one `admin_notifications` row addressed to `site_settings.admin_email` (`menscheck@gmail.com` by default); a live transactional probe confirmed the row and rolled back its temporary test records.
 - [x] Admin Inbox lists enquiries, applications, and notification status, and allows Editor/Admin status updates.
 - [x] Edge Function `notify-admin` is implemented in the repository, deployed through the Supabase dashboard, and called by public forms after insert; the Admin retry action sends the notification reference id.
-- [!] Actual email delivery requires a configured provider secret (`RESEND_API_KEY` and `RESEND_FROM`, or an approved SMTP sender). No provider credential exists in this workspace, so no email is claimed as sent.
+- [!] Actual email delivery requires a configured provider secret (`RESEND_API_KEY` and `RESEND_FROM`, or an approved SMTP sender). Live Edge Function Secrets show no custom secrets; no email is claimed as sent.

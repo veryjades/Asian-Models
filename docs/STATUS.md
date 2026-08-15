@@ -3,15 +3,15 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** Hard-gate verification; product changes remain paused pending PR #6/#7 human review.
-**Last heartbeat:** 2026-08-15 +08:00 (GOV-001/GOV-002 completed from base `c84ee24`)
+**Current task:** Merge PR #6; Admin write/email/production remain blocked.
+**Last heartbeat:** 2026-08-15 +08:00 (GOV-003 live re-verification; published About anon read restored)
 **Phase 0 completion date:** 2026-08-10
 
 ## Current live backend
 
-The items in this section are prior project records. GOV-001 could not access the
-authenticated Supabase dashboard and did not independently re-run these live
-checks; they must not be described as current verification until repeated.
+GOV-003 re-verified the live project from the authenticated dashboards and
+publishable-key REST on 2026-08-15. Claims below are current unless marked
+historical.
 
 - Supabase project: `jkhxtuwqmmdetjqymzso` (`Model's Project`, `veryjades's Org Free`, Mumbai `ap-south-1`). The earlier `cajkkxustehtzyymlopm` project is historical only.
 - SQL Editor verification on 2026-08-15: `model_count=13`, `news_count=3`, `settings_count=1`, `inquiries_count=0`, `applications_count=0`, and `notification_count=0`; foundation tables, content tables, trusted `current_app_role()` policies, and Storage buckets are present.
@@ -32,7 +32,7 @@ checks; they must not be described as current verification until repeated.
 - `supabase/functions/notify-admin/index.ts` and public dispatch calls are committed locally. The function is deployed through the Supabase dashboard and the Admin retry action passes the notification reference id. Actual delivery still requires a provider secret (`RESEND_API_KEY`/`RESEND_FROM` or approved SMTP).
 - Local route probes returned HTTP 200 for `/`, `/admin`, `/models/women`, `/models/men`, `/models/new-faces`, `/models/talent`, `/keywords/women`, `/about`, and `/news`; `/models/women` contains Chen Yu-Xin and `/news` contains a seeded story.
 - Model board/profile/keyword loaders now revalidate stale React Query data so a newly published active model appears after returning to the public surface instead of remaining in an old client cache. The live project currently still contains exactly 13 model rows; no new model row was present during this verification.
-- GOV-001 corrected six Markdown whitespace groups. On `feature/release-governance`, `bunx tsc --noEmit`, `bun run lint`, `bun run build`, `git diff --check`, and `git diff --check origin/main` all exit 0; lint retains 9 existing React-refresh warnings and 0 errors.
+- GOV-003 applied additive `20260815213000_public_about_settings.sql` live: anon public-column About read returns HTTP 200; `admin_email` and `select=*` remain 401. Admin About save from Preview still failed as `anon`. Edge Function Secrets have no custom secrets. News remains 3 published rows.
 
 ## Completed items
 
@@ -95,14 +95,12 @@ checks; they must not be described as current verification until repeated.
 
 ## Blockers
 
-- Governance gate: [PR #6](https://github.com/veryjades/Asian-Models/pull/6) and [PR #7](https://github.com/veryjades/Asian-Models/pull/7) have passing pinned-Bun CI but still require human approval. PR #5 metadata now reflects its actual scope; its stacked base remains unchanged until PR #4 is reviewed and merged.
-- `main` is now protected with strict `Typecheck, lint, and build`, one approving review, stale-review dismissal, conversation resolution, admin enforcement, and force-push/deletion denial.
-- External verification gate: Supabase, Asana, and the protected Vercel Preview require authenticated access; their live state was not independently verified during GOV-001.
-- The live Auth/Data API/Storage matrix is clean. Supabase Auth policy is project-configurable; the owner-authorized Email provider setting is currently minimum 6 characters with no required character classes. Security advisor still reports `auth_leaked_password_protection` because Supabase makes leaked-password checks available only on Pro and above; this is a plan limitation, not a failed setting. Performance advisors report only unused indexes on the empty database. Local Docker remains unavailable but is non-blocking.
-- Owner password-reset invitation is temporarily blocked by Supabase's email send rate limit (`429 over_email_send_rate_limit`); retry after the provider window clears.
-- The strict TypeScript baseline is resolved: fixed the 10 pre-existing errors in AskAssistant, QuickBooking, and assistantRetrieval; `bunx tsc --noEmit`, `bun run lint`, and `bun run build` now pass (lint retains 9 existing warnings).
-- Product acceptance is pending authenticated Admin CRUD/refresh verification and isolated Preview review. The live `notify-admin` function is deployed; provider secret configuration and authenticated delivery verification remain outstanding.
-- Identity-consistent hover photography remains in progress for the remaining models. No other-person photo may be substituted or duplicated; the Lin hover derivative only trims the supplied frame's baked black matte while preserving the subject.
+- Governance gate: [PR #7](https://github.com/veryjades/Asian-Models/pull/7) is merged into `feature/phase-1-foundation`. [PR #6](https://github.com/veryjades/Asian-Models/pull/6) still needs merge into `feature/mock-assets`; GitHub blocks self-approval. Do not retarget PR #5 to `main` until PR #4 is reviewed and merged. `main` protection requires CI plus one human approval.
+- Production remains blocked: DNS/SSL, monitoring/Sentry, backup, email delivery, PR #4/#5 review chain, and current-commit Preview QA are incomplete. Do not promote production.
+- Email delivery is blocked (B-005): live Edge Function Secrets show **No custom secrets created**. `RESEND_API_KEY` / `RESEND_FROM` cannot be invented; creating a Resend account would need owner OTP.
+- Admin→public About save/refresh is unverified. Preview `/admin` is visually signed in (Access tab, 13 profiles, 3 News), but About save/refresh returned `permission denied for table site_settings`. Live grants still give `authenticated` full table DML; the failing request behaved as `anon`. Viewer/Editor deny matrix was not re-run.
+- Public media path is blocked by empty storage: 0 `media_assets` rows and 0 `model-media` objects. Remaining hover pairs are deferred and are not a launch blocker.
+- The owner-authorized Email provider setting is currently minimum 6 characters with no required character classes. Security advisor still reports `auth_leaked_password_protection` because Supabase makes leaked-password checks available only on Pro and above.
 
 ## Phase 0 readiness
 
@@ -117,8 +115,7 @@ checks; they must not be described as current verification until repeated.
 
 ## Next action
 
-Finish GOV-001 and the PR-chain/CI recovery first. Then run authenticated Admin
-create/edit/refresh against the live project, upload one published model-media
-object to prove the end-to-end asset path, and complete provider-secret delivery
-plus final Preview review. No image generation is in scope; remaining hover-pose
-sourcing stays tracked separately.
+Merge [PR #6](https://github.com/veryjades/Asian-Models/pull/6) into
+`feature/mock-assets`. Re-test About save from a Preview session that actually
+sends an Admin JWT. Do not generate images, invent email keys, or promote
+production.

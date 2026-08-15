@@ -1841,6 +1841,7 @@ function AdminOperationsPanel({
     const { error } = await client.from("site_settings").upsert({
       id: "global",
       admin_email: String(form.get("adminEmail") ?? "").trim(),
+      about_published: form.get("aboutPublished") === "on",
       about_title_en: String(form.get("aboutTitleEn") ?? "").trim(),
       about_title_zh: String(form.get("aboutTitleZh") ?? "").trim(),
       about_body_en: String(form.get("aboutBodyEn") ?? "")
@@ -2230,6 +2231,15 @@ function AdminOperationsPanel({
               className={inputClass}
               required
             />
+          </label>
+          <label className="flex items-center gap-3 self-end border border-white/15 px-3 py-3 text-sm text-white/65">
+            <input
+              name="aboutPublished"
+              type="checkbox"
+              defaultChecked={Boolean(settings.about_published)}
+              className="h-4 w-4 accent-white"
+            />
+            Published on the public About page
           </label>
           <label className="text-sm text-white/65">
             About title (English)
