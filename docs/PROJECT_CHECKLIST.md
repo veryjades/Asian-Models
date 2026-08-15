@@ -57,7 +57,7 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 
 - [x] Admin sign-in, first-time password setup, recovery route, and Admin/Editor/Viewer gate.
 - [~] Admin navigation exposes Models, About, News, JAgent Knowledge, media, and account actions. The operations control plane is present below the model editor; a dedicated navigation shell remains.
-- [ ] Admin and Editor can create/update content; only Admin can delete or manage roles.
+- [~] Admin and Editor can create/update content; only Admin can delete or manage roles. Admin-only invitation, role-change, and guarded-delete controls are live and verified; authenticated Editor write and Admin CRUD refresh proof remains.
 - [ ] Viewer can read published content only and cannot write or access private media.
 - [~] All forms have validation, loading, success/error states, and refresh persistence. Public forms and admin content forms have these states; authenticated end-to-end refresh verification remains.
 

@@ -17,7 +17,11 @@ const keywordQuery = (slug: string) =>
   });
 
 export const Route = createFileRoute("/keywords/$slug")({
-  loader: ({ context, params }) => context.queryClient.ensureQueryData(keywordQuery(params.slug)),
+  loader: ({ context, params }) =>
+    context.queryClient.ensureQueryData({
+      ...keywordQuery(params.slug),
+      revalidateIfStale: true,
+    }),
   head: ({ params, loaderData }) => {
     const keyword = loaderData?.keyword;
     const title = keyword ? `${keyword.labelEn} — J&J Model Agency` : "Keyword — J&J Model Agency";

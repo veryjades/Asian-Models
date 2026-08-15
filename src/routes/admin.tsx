@@ -49,6 +49,14 @@ type ModelDraft = {
 };
 
 type Notice = { tone: "error" | "success"; text: string };
+type WorkspaceUser = {
+  id: string;
+  email: string | null;
+  role: "admin" | "editor" | "viewer";
+  created_at: string;
+  last_sign_in_at: string | null;
+  confirmed_at: string | null;
+};
 type AccessState = "loading" | "config" | "signed-out" | "forbidden" | "ready";
 type PreviewState = { primary: string | undefined; hover: string | undefined };
 
@@ -140,9 +148,21 @@ function AdminRoute() {
       setClient(nextClient);
       const recoveryHash = new URLSearchParams(window.location.hash.slice(1)).get("type");
       const recoveryType = recoveryHash ?? new URLSearchParams(window.location.search).get("type");
-      const recoveryQuery = new URLSearchParams(window.location.search).get("reset");
+      const searchParams = new URLSearchParams(window.location.search);
+      const recoveryQuery = searchParams.get("reset");
+      const resetError = searchParams.get("reset_error");
+      if (resetError) {
+        setNotice({
+          tone: "error",
+          text:
+            resetError === "otp_expired" || resetError === "invite_expired"
+              ? "This password link has expired or was already used. Enter your email below to request a fresh link."
+              : "This password link is invalid. Enter your email below to request a fresh link.",
+        });
+      }
       setPasswordSetup(
-        recoveryType === "recovery" || recoveryType === "invite" || recoveryQuery === "1",
+        !resetError &&
+          (recoveryType === "recovery" || recoveryType === "invite" || recoveryQuery === "1"),
       );
       const auth = createAuthAdapter(nextClient);
 
@@ -166,7 +186,8 @@ function AdminRoute() {
       };
 
       void refreshIdentity();
-      unsubscribe = auth.onAuthStateChange(() => {
+      unsubscribe = auth.onAuthStateChange((event) => {
+        if (event === "PASSWORD_RECOVERY") setPasswordSetup(true);
         void refreshIdentity();
       }).unsubscribe;
     } catch (error) {
@@ -197,7 +218,28 @@ function AdminRoute() {
       />
     );
   if (passwordSetup && client) {
-    return <AdminPasswordSetup client={client} onComplete={() => setPasswordSetup(false)} />;
+    return (
+      <AdminPasswordSetup
+        client={client}
+        onComplete={() => {
+          setPasswordSetup(false);
+          setIdentity(null);
+          setAccess("signed-out");
+          setNotice({
+            tone: "success",
+            text: "Password updated. Sign in with your new password.",
+          });
+        }}
+        onExpired={() => {
+          window.history.replaceState({}, "", "/admin");
+          setPasswordSetup(false);
+          setNotice({
+            tone: "error",
+            text: "Request a new password link below. The old link cannot be reused.",
+          });
+        }}
+      />
+    );
   }
   if (access === "signed-out") {
     return <AdminSignIn client={client} notice={notice} />;
@@ -229,9 +271,11 @@ function AdminRoute() {
 function AdminPasswordSetup({
   client,
   onComplete,
+  onExpired,
 }: {
   client: SupabaseClient<Database>;
   onComplete: () => void;
+  onExpired: () => void;
 }) {
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
@@ -248,9 +292,17 @@ function AdminPasswordSetup({
     setMessage(null);
     const { error } = await createAuthAdapter(client).updatePassword(password);
     if (error) {
-      setMessage({ tone: "error", text: error.message });
+      const expired = /expired|invalid|session|token/i.test(error.message);
+      setMessage({
+        tone: "error",
+        text: expired
+          ? "This password link is expired or invalid. Request a new link from the sign-in screen."
+          : error.message,
+      });
+      if (expired) onExpired();
     } else {
       window.history.replaceState({}, "", "/admin");
+      await createAuthAdapter(client).signOut();
       setMessage({
         tone: "success",
         text: "Password updated. You can now sign in to the workspace.",
@@ -311,6 +363,13 @@ function AdminPasswordSetup({
             className="label-xs w-full bg-white px-4 py-3 text-slate-950 transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy ? "Updating…" : "Set password"}
+          </button>
+          <button
+            type="button"
+            onClick={onExpired}
+            className="w-full text-center text-xs text-white/55 underline underline-offset-4 hover:text-white"
+          >
+            Request a new link
           </button>
         </form>
       </div>
@@ -870,7 +929,13 @@ function AdminDashboard({
       setAdditionalFiles([]);
       await loadModels();
       await loadRelations(saved.id);
-      setNotice({ tone: "success", text: "Model profile and selected media saved." });
+      setNotice({
+        tone: draft.status === "active" ? "success" : "error",
+        text:
+          draft.status === "active"
+            ? "Model profile and selected media saved. It is public after the frontend refreshes."
+            : "Model profile saved as inactive. Change Status to Active and save again before it can appear on public boards.",
+      });
     } catch (error) {
       setNotice({
         tone: "error",
@@ -967,7 +1032,7 @@ function AdminDashboard({
                       >
                         <span className="block text-sm">{model.display_name}</span>
                         <span className="mt-1 block text-xs uppercase tracking-[0.16em] text-white/40">
-                          {model.gender} / {model.category}
+                          {model.gender} / {model.category} / {model.status}
                         </span>
                       </button>
                     </li>
@@ -1458,6 +1523,7 @@ function AdminDashboard({
           client={client}
           canEdit={canEdit}
           canDelete={identity.role === "admin"}
+          canManageAccess={identity.role === "admin"}
         />
       </div>
     </div>
@@ -1468,12 +1534,14 @@ function AdminOperationsPanel({
   client,
   canEdit,
   canDelete,
+  canManageAccess,
 }: {
   client: SupabaseClient<Database>;
   canEdit: boolean;
   canDelete: boolean;
+  canManageAccess: boolean;
 }) {
-  const [tab, setTab] = useState<"inbox" | "about" | "news" | "knowledge">("inbox");
+  const [tab, setTab] = useState<"inbox" | "about" | "news" | "knowledge" | "access">("inbox");
   const [inquiries, setInquiries] = useState<Database["public"]["Tables"]["inquiries"]["Row"][]>(
     [],
   );
@@ -1493,6 +1561,10 @@ function AdminOperationsPanel({
   const [busy, setBusy] = useState(false);
   const [sendingNotification, setSendingNotification] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [workspaceUsers, setWorkspaceUsers] = useState<WorkspaceUser[]>([]);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<WorkspaceUser["role"]>("editor");
+  const [accessBusy, setAccessBusy] = useState(false);
 
   const load = useCallback(async () => {
     const [
@@ -1524,6 +1596,83 @@ function AdminOperationsPanel({
   useEffect(() => {
     void load();
   }, [load]);
+
+  const loadWorkspaceUsers = useCallback(async () => {
+    if (!canManageAccess) return;
+    const { data, error } = await client.functions.invoke("provision-user", {
+      body: { action: "list" },
+    });
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+    const users = data && Array.isArray(data.users) ? (data.users as WorkspaceUser[]) : [];
+    setWorkspaceUsers(users);
+  }, [canManageAccess, client]);
+
+  useEffect(() => {
+    void loadWorkspaceUsers();
+  }, [loadWorkspaceUsers]);
+
+  const inviteWorkspaceUser = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!canManageAccess || !inviteEmail.trim()) return;
+    setAccessBusy(true);
+    setMessage("");
+    const redirectTo = new URL("/admin?reset=1", window.location.origin).toString();
+    const { data, error } = await client.functions.invoke("provision-user", {
+      body: {
+        action: "invite",
+        email: inviteEmail.trim(),
+        role: inviteRole,
+        redirect_to: redirectTo,
+      },
+    });
+    if (error) {
+      setMessage(error.message);
+    } else {
+      setInviteEmail("");
+      setMessage(
+        `Invitation sent to ${String(data?.email ?? inviteEmail.trim())}. The selected role is ${inviteRole}.`,
+      );
+      await loadWorkspaceUsers();
+    }
+    setAccessBusy(false);
+  };
+
+  const changeWorkspaceRole = async (userId: string, role: WorkspaceUser["role"]) => {
+    if (!canManageAccess) return;
+    setAccessBusy(true);
+    const { error } = await client.functions.invoke("provision-user", {
+      body: { action: "set_role", user_id: userId, role },
+    });
+    if (error) setMessage(error.message);
+    else {
+      setMessage(
+        "Role updated. The user must sign in again or refresh their session for the new permission to take effect.",
+      );
+      await loadWorkspaceUsers();
+    }
+    setAccessBusy(false);
+  };
+
+  const deleteWorkspaceUser = async (user: WorkspaceUser) => {
+    if (
+      !canManageAccess ||
+      !window.confirm(`Delete ${user.email ?? "this user"} from the workspace?`)
+    )
+      return;
+    setAccessBusy(true);
+    const { error } = await client.functions.invoke("provision-user", {
+      body: { action: "delete", user_id: user.id },
+    });
+    if (error) setMessage(error.message);
+    else {
+      setMessage("Workspace user deleted.");
+      await loadWorkspaceUsers();
+    }
+    setAccessBusy(false);
+  };
 
   const updateInquiryStatus = async (id: string, status: string) => {
     if (!canEdit) return;
@@ -1672,6 +1821,9 @@ function AdminOperationsPanel({
 
   const inputClass =
     "mt-2 w-full border border-white/15 bg-slate-950 px-3 py-3 text-sm text-white outline-none focus:border-white/50";
+  const operationTabs = canManageAccess
+    ? (["inbox", "about", "news", "knowledge", "access"] as const)
+    : (["inbox", "about", "news", "knowledge"] as const);
   return (
     <section className="mt-10 border border-white/15 bg-white/[0.03] p-5 md:p-7">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -1692,7 +1844,7 @@ function AdminOperationsPanel({
         </button>
       </div>
       <div className="mt-6 flex flex-wrap gap-2 border-b border-white/15 pb-3">
-        {(["inbox", "about", "news", "knowledge"] as const).map((item) => (
+        {operationTabs.map((item) => (
           <button
             key={item}
             type="button"
@@ -1705,7 +1857,9 @@ function AdminOperationsPanel({
                 ? "About + email"
                 : item === "news"
                   ? "News"
-                  : "JAgent RAG"}
+                  : item === "knowledge"
+                    ? "JAgent RAG"
+                    : "Access / invitations"}
           </button>
         ))}
       </div>
@@ -1841,6 +1995,111 @@ function AdminOperationsPanel({
               ))}
               {notifications.length === 0 ? (
                 <li className="p-4 text-sm text-white/45">No notification rows yet.</li>
+              ) : null}
+            </ul>
+          </div>
+        </div>
+      ) : null}
+      {tab === "access" && canManageAccess ? (
+        <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+          <form onSubmit={inviteWorkspaceUser} className="space-y-4 border border-white/10 p-5">
+            <div>
+              <p className="label-xs text-white/45">ADMIN-ONLY ACCESS CONTROL</p>
+              <h3 className="mt-2 text-xl font-light">Invite a collaborator</h3>
+              <p className="mt-2 text-sm leading-6 text-white/50">
+                The invitation email includes the secure setup link. The role is assigned before the
+                user accepts, so the first session starts with the intended permissions.
+              </p>
+            </div>
+            <label className="block text-sm text-white/65">
+              Email address
+              <input
+                value={inviteEmail}
+                onChange={(event) => setInviteEmail(event.target.value)}
+                type="email"
+                required
+                className={inputClass}
+                placeholder="editor@example.com"
+              />
+            </label>
+            <label className="block text-sm text-white/65">
+              Permission role
+              <select
+                value={inviteRole}
+                onChange={(event) => setInviteRole(event.target.value as WorkspaceUser["role"])}
+                className={inputClass}
+              >
+                <option value="viewer">檢視者 / Viewer — read-only</option>
+                <option value="editor">協作者 / Editor — create and edit content</option>
+                <option value="admin">完整管理員 / Admin — users, roles, delete</option>
+              </select>
+            </label>
+            <button
+              type="submit"
+              disabled={accessBusy}
+              className="label-xs bg-white px-5 py-3 text-slate-950 disabled:opacity-50"
+            >
+              {accessBusy ? "Sending…" : "Send invitation"}
+            </button>
+          </form>
+          <div>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-xl font-light">Workspace users ({workspaceUsers.length})</h3>
+                <p className="mt-1 text-xs text-white/45">
+                  Only Admin can change roles or remove users.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void loadWorkspaceUsers()}
+                disabled={accessBusy}
+                className="text-xs text-white/50 underline underline-offset-4 hover:text-white"
+              >
+                Refresh
+              </button>
+            </div>
+            <ul className="mt-4 divide-y divide-white/10 border border-white/10">
+              {workspaceUsers.map((user) => (
+                <li key={user.id} className="flex flex-wrap items-center justify-between gap-4 p-4">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm text-white/85">{user.email ?? user.id}</p>
+                    <p className="mt-1 text-xs text-white/40">
+                      {user.confirmed_at ? "confirmed" : "invited / pending"} · created{" "}
+                      {new Date(user.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <select
+                      value={user.role}
+                      disabled={accessBusy}
+                      onChange={(event) =>
+                        void changeWorkspaceRole(
+                          user.id,
+                          event.target.value as WorkspaceUser["role"],
+                        )
+                      }
+                      className="border border-white/20 bg-slate-950 px-2 py-2 text-xs"
+                    >
+                      <option value="viewer">Viewer</option>
+                      <option value="editor">Editor</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                    <button
+                      type="button"
+                      disabled={accessBusy}
+                      onClick={() => void deleteWorkspaceUser(user)}
+                      className="text-xs text-red-200/70 underline underline-offset-4 hover:text-red-100 disabled:opacity-40"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+              {workspaceUsers.length === 0 ? (
+                <li className="p-4 text-sm text-white/45">
+                  No users returned. Refresh after the Edge Function is deployed.
+                </li>
               ) : null}
             </ul>
           </div>

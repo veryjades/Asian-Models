@@ -27,7 +27,11 @@ const homeQuery = queryOptions({
 });
 
 export const Route = createFileRoute("/")({
-  loader: ({ context }) => context.queryClient.ensureQueryData(homeQuery),
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData({
+      ...homeQuery,
+      revalidateIfStale: true,
+    }),
   head: () => ({
     meta: [
       { title: "J&J Model Agency — Model Management for Asia" },

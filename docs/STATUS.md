@@ -4,7 +4,7 @@
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
 **Current task:** Complete the Admin content/operations control plane and verify the public Supabase data path.
-**Last heartbeat:** 2026-08-15 +08:00 (public content grants, bilingual model backfill, Admin mapping, media adapter, notification outbox, and build verification)
+**Last heartbeat:** 2026-08-15 +08:00 (public content grants, bilingual model backfill, Admin mapping, reset recovery handling, invitation roles, and build verification)
 **Completion date:** 2026-08-10
 
 ## Current live backend
@@ -16,6 +16,8 @@
 - Migration `20260815211000_backfill_model_localization.sql` is committed and its full bilingual backfill was executed in SQL Editor batches. REST verification returned 13/13 rows with non-null `name_zh`, `city_zh`, `bio_en`, and `bio_zh`; the repository still keeps seed fallback for resilience.
 - Auth URL configuration is set to `http://127.0.0.1:8090` with local and Preview wildcard redirects. `menscheck@gmail.com` has a live invitation row and `raw_app_meta_data.role=admin`; Auth Logs show `/invite` 200 → `/verify` 303 and a later `/recover` 200 → `/verify` 303. A duplicate recovery request correctly returned 429 due to email-rate protection.
 - Local `http://127.0.0.1:8090/admin` was restarted with the new environment and returned HTTP 200; the signed-out surface exposes email, password, sign-in, and first-time setup controls.
+- The live `provision-user` Edge Function is deployed and custom-authenticated: CORS preflight is handled, legacy JWT gateway verification is disabled, and the function validates the caller with `auth.getUser()` plus trusted `app_metadata.role=admin`. The Admin Access / invitations panel successfully listed the owner account from the live project.
+- Password recovery now routes expired/invalid hashes to `/admin?reset_error=...`, gives a fresh-link action, listens for Supabase `PASSWORD_RECOVERY`, and signs the user out after a successful password update so the new password is explicitly tested on the next sign-in.
 - `.env.local` uses the new project URL and publishable browser key; it is ignored and no service-role credential is committed.
 
 ## Current work-unit evidence (2026-08-15)
@@ -25,6 +27,7 @@
 - A transactional live SQL probe inserted a temporary inquiry, confirmed the trigger-created outbox row, and rolled back both records; the live counts remain `inquiries_count=0` and `notification_count=0`.
 - `supabase/functions/notify-admin/index.ts` and public dispatch calls are committed locally. The function is deployed through the Supabase dashboard and the Admin retry action passes the notification reference id. Actual delivery still requires a provider secret (`RESEND_API_KEY`/`RESEND_FROM` or approved SMTP).
 - Local route probes returned HTTP 200 for `/`, `/admin`, `/models/women`, `/models/men`, `/models/new-faces`, `/models/talent`, `/keywords/women`, `/about`, and `/news`; `/models/women` contains Chen Yu-Xin and `/news` contains a seeded story.
+- Model board/profile/keyword loaders now revalidate stale React Query data so a newly published active model appears after returning to the public surface instead of remaining in an old client cache. The live project currently still contains exactly 13 model rows; no new model row was present during this verification.
 - `bunx tsc --noEmit` passed; `bun run lint` passed with 0 errors and 9 existing React-refresh warnings; `bun run build` passed; `git diff --check` passed.
 
 ## Completed items
@@ -63,7 +66,7 @@
 - Phase 2 was approved by the project owner. The current project has the foundation and security migrations applied; the browser SQL verification is recorded in the Current live backend section.
 - P2-002 is complete: `supabase/migrations/20260815170000_phase2_security_policies.sql` adds trusted `app_metadata.role` evaluation, authenticated-only grants, Admin/Editor/Viewer policies, private `model-media` Storage bucket/path policies, and was verified by security advisors plus live role probes.
 - P2-003 is complete: `src/lib/supabase/auth.ts` provides a browser-safe Auth adapter using server-confirmed `getUser()`, trusted `app_metadata.role`, sign-in/sign-out, session lookup, and auth-state subscriptions; it does not provision users or expose service credentials.
-- Server-only role provisioning is deployed as Supabase Edge Function `provision-user` (version 2, `verify_jwt=true`): missing auth returns 401, a publishable/non-admin JWT returns 403, and invalid roles return 400 in live smoke checks; the function preserves existing metadata, writes only the validated `app_metadata.role`, and accepts both rotated JSON key variables and legacy key variables server-side.
+- Server-only role provisioning is deployed as Supabase Edge Function `provision-user` (version 2). Legacy gateway JWT verification is disabled so browser CORS preflight can reach the function; the function itself requires a bearer token, calls `auth.getUser()`, and returns 403 for a publishable/non-admin caller. Invalid roles return 400; the function preserves existing metadata, writes only the validated `app_metadata.role`, and accepts both rotated JSON key variables and legacy key variables server-side.
 - The private Storage boundary is also implemented in `src/lib/supabase/media.ts`: fixed bucket, validated `models/<id>/`/`portfolios/<id>/` paths, traversal rejection, and MIME/50 MiB guards before Storage RLS.
 - Local adapter probes passed for trusted-role fallback, auth-state subscription, safe Storage paths, traversal rejection, and WebP MIME validation; these do not replace live Auth-session tests.
 - Live-session gate completed on 2026-08-15 with three disposable Auth accounts (viewer/editor/admin). The Edge Function provisioned viewer/editor with HTTP 200, the admin claim was bootstrapped server-side, and refreshed JWT claims matched each role.
@@ -78,6 +81,7 @@
 - Owner-authorized Admin UI preparation is complete at `/admin`: Auth sign-in, trusted Admin/Editor role gate, model create/update form, primary photo upload, optional second hover photo upload, private Storage paths, and `media_assets.sort_order` 0/1 persistence are implemented without service-role exposure. Local browser QA showed the configured sign-in state, no console errors, and no horizontal overflow. Full operational admin scope remains Phase 5.
 - Admin media manager extension is complete: `model_video_links` and `model_social_links` are live with RLS; `/admin` accepts unlimited gallery media including MP4, validated YouTube URLs, HTTPS social links, and Admin-only deletion. `src/lib/content/repository.ts` now consumes published media, YouTube, and social rows from the same project and maps sort order 0/1 to primary/hover without changing card geometry.
 - Admin recovery delivery is verified: `src/lib/supabase/auth.ts` supports reset/update password operations and `/admin` renders a first-time setup form that delegates password policy to Supabase Auth. Supabase Auth URL Configuration is set to `http://127.0.0.1:8090` with local and Preview wildcard redirects; the Dashboard confirmed all three URLs were added. The existing `menscheck@gmail.com` account is email-confirmed and has the server-side `app_metadata.role=admin`. The root route now catches invite/recovery links that land on the homepage and redirects to `/admin?reset=1` while preserving the auth hash; local browser QA rendered the setup form with no console errors. The live Email provider policy is owner-authorized minimum 6 characters with no required character classes. No password is stored in the repository or browser code.
+- Admin access management is now implemented: Admin-only invitation form with a preselected role, live user list, role changes, and guarded user deletion. Invitations use an approved `/admin?reset=1` redirect and assign `app_metadata.role` before acceptance; Editor and Viewer accounts cannot see or call the access panel.
 - A fresh owner reset invitation was attempted from the live `/admin` form and again from Supabase Auth Users → “Send password recovery”; both returned `429: email rate limit exceeded` (`over_email_send_rate_limit`). Supabase Authentication → Rate Limits exposes no adjustable email-send control on this project. Therefore no new invitation was sent. The application path remains ready for a retry after the provider window clears or a configured SMTP provider is available.
 
 ## Blockers

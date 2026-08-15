@@ -140,13 +140,27 @@ function RootComponent() {
     const hashParams = new URLSearchParams(window.location.hash.slice(1));
     const queryParams = new URLSearchParams(window.location.search);
     const authType = hashParams.get("type") ?? queryParams.get("type");
+    const authError = hashParams.get("error") ?? queryParams.get("error");
+    const authErrorCode = hashParams.get("error_code") ?? queryParams.get("error_code");
     const isPasswordSetupLink = authType === "recovery" || authType === "invite";
+    const isPasswordLinkError =
+      authError === "access_denied" ||
+      authErrorCode === "otp_expired" ||
+      authErrorCode === "invite_expired";
 
-    if (!isPasswordSetupLink || window.location.pathname.startsWith("/admin")) return;
+    if (
+      (!isPasswordSetupLink && !isPasswordLinkError) ||
+      window.location.pathname.startsWith("/admin")
+    )
+      return;
 
     const target = new URL(window.location.href);
     target.pathname = "/admin";
-    target.searchParams.set("reset", "1");
+    if (isPasswordLinkError) {
+      target.searchParams.set("reset_error", authErrorCode ?? "link_invalid");
+    } else {
+      target.searchParams.set("reset", "1");
+    }
     window.location.replace(target.toString());
   }, []);
 

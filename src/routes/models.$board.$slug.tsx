@@ -34,7 +34,10 @@ const modelQuery = (board: BoardId, slug: string) =>
 export const Route = createFileRoute("/models/$board/$slug")({
   loader: async ({ context, params }) => {
     const board = params.board as BoardId;
-    const model = await context.queryClient.ensureQueryData(modelQuery(board, params.slug));
+    const model = await context.queryClient.ensureQueryData({
+      ...modelQuery(board, params.slug),
+      revalidateIfStale: true,
+    });
     return {
       board,
       slug: params.slug,
