@@ -1,21 +1,37 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
+import type { CSSProperties } from "react";
 import { contentRepository } from "@/lib/content/repository";
 import { HeroCarousel } from "@/components/site/HeroCarousel";
+import { AgencyImage } from "@/components/site/AgencyImage";
+import { ModelCard } from "@/components/site/ModelGrid";
 import { AskAssistant } from "@/components/site/AskAssistant";
-import { boards } from "@/lib/content/types";
 import { useI18n } from "@/lib/i18n";
+import type { Keyword } from "@/lib/content/types";
 
 const homeQuery = queryOptions({
   queryKey: ["home"],
-  queryFn: async () => ({
-    featured: await contentRepository.listFeaturedModels(4),
-    news: await contentRepository.listNews(3),
-  }),
+  queryFn: async () => {
+    const [featured, news, keywords] = await Promise.all([
+      contentRepository.listFeaturedModels(4),
+      contentRepository.listNews(3),
+      contentRepository.listKeywords({ activeOnly: true, limit: 15 }),
+    ]);
+
+    return {
+      featured,
+      news,
+      keywords,
+    };
+  },
 });
 
 export const Route = createFileRoute("/")({
-  loader: ({ context }) => context.queryClient.ensureQueryData(homeQuery),
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData({
+      ...homeQuery,
+      revalidateIfStale: true,
+    }),
   head: () => ({
     meta: [
       { title: "J&J Model Agency — Model Management for Asia" },
@@ -47,66 +63,13 @@ function Index() {
     <div>
       <HeroCarousel />
 
-      <section className="mx-auto max-w-[1600px] px-5 pt-12 md:px-10">
-        <h1 className="max-w-3xl text-3xl font-light leading-tight md:text-5xl">
-          {t("home.tagline")}
-        </h1>
-        <p className="mt-4 max-w-xl text-sm text-muted-foreground md:text-base">
-          {t("home.intro")}
-        </p>
-      </section>
-
-      <section className="mx-auto max-w-[1600px] px-5 py-14 md:px-10">
-        <h2 className="label-xs text-muted-foreground">{t("home.boards")}</h2>
-        <ul className="mt-6 grid grid-cols-2 gap-px bg-border md:grid-cols-4">
-          {boards.map((board) => (
-            <li key={board.id} className="bg-background">
-              <Link
-                to="/models/$board"
-                params={{ board: board.id }}
-                className="group flex h-28 items-end p-4 transition-colors md:h-36"
-              >
-                <span className="relative z-10">
-                  <span className="block text-xl font-light md:text-2xl">
-                    {pick(board.labelEn, board.labelZh)}
-                  </span>
-                  <span className="label-xs mt-2 block text-muted-foreground group-hover:text-foreground">
-                    {t("home.viewBoard")}
-                  </span>
-                </span>
-                <span className="gradient-accent pointer-events-none absolute inset-x-0 bottom-0 h-0.5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <div className="halftone h-20 w-full opacity-50" aria-hidden="true" />
+      <KeywordDynamicRunway keywords={data.keywords} />
 
       <section className="mx-auto max-w-[1600px] px-5 py-14 md:px-10">
         <h2 className="label-xs text-muted-foreground">{t("home.featured")}</h2>
         <ul className="mt-6 grid grid-cols-2 gap-px bg-border md:grid-cols-4">
           {data.featured.map((model) => (
-            <li key={model.slug} className="bg-background">
-              <Link
-                to="/models/$board/$slug"
-                params={{ board: model.board, slug: model.slug }}
-                className="portrait-hover group block"
-              >
-                <div className="relative overflow-hidden bg-muted">
-                  <img
-                    src={model.portrait}
-                    alt={model.name}
-                    loading="lazy"
-                    width={768}
-                    height={1024}
-                    className="aspect-[3/4] w-full object-cover"
-                  />
-                  <div className="gradient-accent-soft pointer-events-none absolute inset-0 opacity-0 mix-blend-multiply transition-opacity duration-500 group-hover:opacity-100" />
-                </div>
-                <p className="label-xs px-3 py-3">{pick(model.name, model.nameZh)}</p>
-              </Link>
-            </li>
+            <ModelCard key={model.slug} model={model} />
           ))}
         </ul>
       </section>
@@ -121,13 +84,14 @@ function Index() {
                 params={{ slug: post.slug }}
                 className="portrait-hover group block"
               >
-                <img
+                <AgencyImage
                   src={post.cover}
                   alt={pick(post.titleEn, post.titleZh)}
                   loading="lazy"
                   width={768}
-                  height={1024}
-                  className="aspect-[4/3] w-full object-cover"
+                  height={512}
+                  aspectRatio="3 / 2"
+                  fit="contain"
                 />
                 <p className="label-xs mt-4 text-muted-foreground">
                   {new Date(post.date).toLocaleDateString(lang === "zh" ? "zh-TW" : "en-GB", {
@@ -148,5 +112,37 @@ function Index() {
 
       <AskAssistant />
     </div>
+  );
+}
+
+function KeywordDynamicRunway({ keywords }: { keywords: Keyword[] }) {
+  const { t, pick } = useI18n();
+  const duration = 34;
+
+  return (
+    <section
+      className="keyword-runway"
+      data-testid="keyword-dynamic-runway"
+      aria-label={t("home.keywordRunway")}
+    >
+      <h2 className="sr-only">{t("home.keywordRunway")}</h2>
+      <div className="keyword-runway-stage">
+        {keywords.map((keyword, index) => (
+          <a
+            key={keyword.slug}
+            href={`/keywords/${keyword.slug}`}
+            data-keyword-tile={keyword.slug}
+            className="keyword-runway-item"
+            style={
+              {
+                "--runway-delay": `${-(index * (duration / keywords.length))}s`,
+              } as CSSProperties
+            }
+          >
+            <span className="keyword-runway-label">{pick(keyword.labelEn, keyword.labelZh)}</span>
+          </a>
+        ))}
+      </div>
+    </section>
   );
 }

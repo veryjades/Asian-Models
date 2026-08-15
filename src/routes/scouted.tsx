@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useI18n } from "@/lib/i18n";
 import { VideoUploadField } from "@/components/site/VideoUploadField";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createScoutApplication, uploadScoutFiles } from "@/lib/supabase/submissions";
 
 export const Route = createFileRoute("/scouted")({
   head: () => ({
@@ -54,14 +56,85 @@ function Field({
 
 function ScoutedPage() {
   const { t } = useI18n();
-  const [state, setState] = useState<"idle" | "sending" | "done">("idle");
+  const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [photoGate, setPhotoGate] = useState({
+    halfBody: false,
+    fullBody: false,
+    additional: false,
+  });
+  const [photoError, setPhotoError] = useState("");
+  const canSubmitPhotos = photoGate.halfBody && photoGate.fullBody;
 
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
+  function onPhotoChange(kind: "halfBody" | "fullBody" | "additional", files: FileList | null) {
+    const hasFile = Boolean(files?.length);
+    setPhotoGate((current) => {
+      const next = { ...current, [kind]: hasFile };
+      if (next.halfBody && next.fullBody) setPhotoError("");
+      return next;
+    });
+  }
+
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const form = e.currentTarget;
+    const halfBody = form.elements.namedItem("halfBodyPhoto") as HTMLInputElement | null;
+    const fullBody = form.elements.namedItem("fullBodyPhoto") as HTMLInputElement | null;
+    const hasRequiredPhotos = Boolean(halfBody?.files?.length) && Boolean(fullBody?.files?.length);
+
+    if (!hasRequiredPhotos) {
+      setPhotoError(t("scout.photosError"));
+      return;
+    }
+
+    setPhotoError("");
+    setErrorMessage("");
     setState("sending");
-    // Submissions are wired to the agency database once the Supabase project
-    // credentials are connected; the form shape below is the stored record.
-    window.setTimeout(() => setState("done"), 600);
+    try {
+      const formData = new FormData(form);
+      const client = getSupabaseBrowserClient();
+      const { data, error } = await createScoutApplication(client, {
+        name: String(formData.get("name") ?? "").trim(),
+        age: Number(formData.get("age") ?? 0) || null,
+        city: String(formData.get("city") ?? "").trim(),
+        email: String(formData.get("email") ?? "").trim(),
+        phone: String(formData.get("phone") ?? "").trim() || null,
+        height: String(formData.get("height") ?? "").trim() || null,
+        measurements: String(formData.get("measurements") ?? "").trim() || null,
+        instagram: String(formData.get("instagram") ?? "").trim() || null,
+        social_links: String(formData.get("socialLinks") ?? "").trim() || null,
+        message: String(formData.get("message") ?? "").trim() || null,
+      });
+      if (error || !data) throw error ?? new Error("Application could not be saved.");
+
+      const uploads = [
+        { kind: "half-body", file: halfBody?.files?.[0] },
+        { kind: "full-body", file: fullBody?.files?.[0] },
+        {
+          kind: "additional",
+          file: (form.elements.namedItem("additionalPhoto") as HTMLInputElement | null)?.files?.[0],
+        },
+        {
+          kind: "model-card",
+          file: (form.elements.namedItem("modelCard") as HTMLInputElement | null)?.files?.[0],
+        },
+      ].filter((item): item is { kind: string; file: File } => Boolean(item.file));
+      const videoFile = (form.elements.namedItem("videoFile") as HTMLInputElement | null)
+        ?.files?.[0];
+      if (videoFile) uploads.push({ kind: "video", file: videoFile });
+      const attachments = await uploadScoutFiles(client, data.id, uploads);
+      const { error: updateError } = await client
+        .from("scout_applications")
+        .update({ attachments })
+        .eq("id", data.id);
+      if (updateError) throw updateError;
+      setState("done");
+    } catch (error) {
+      setState("error");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Unable to submit your application.",
+      );
+    }
   }
 
   return (
@@ -70,6 +143,10 @@ function ScoutedPage() {
       <div className="mx-auto max-w-3xl px-5 py-12 md:px-10">
         <h1 className="text-3xl font-light md:text-4xl">{t("scout.title")}</h1>
         <p className="mt-4 text-sm text-muted-foreground">{t("scout.intro")}</p>
+        <div className="mt-6 border border-border p-4 text-sm">
+          <p className="font-normal">{t("scout.photosGate")}</p>
+          <p className="mt-2 text-xs text-muted-foreground">{t("scout.photosNatural")}</p>
+        </div>
 
         {state === "done" ? (
           <p className="mt-12 border border-border p-6 text-sm">{t("scout.thanks")}</p>
@@ -83,21 +160,61 @@ function ScoutedPage() {
             <Field label={t("scout.height")} name="height" required />
             <Field label={t("scout.measurements")} name="measurements" />
             <Field label={t("scout.instagram")} name="instagram" />
+            <Field label={t("scout.socialLinks")} name="socialLinks" />
 
             <label className="block md:col-span-2">
-              <span className="label-xs text-muted-foreground">{t("scout.photos")} *</span>
+              <span className="label-xs text-muted-foreground">{t("scout.modelCard")}</span>
               <input
+                name="modelCard"
                 type="file"
-                name="photos"
-                accept="image/*"
-                multiple
-                required
+                accept="image/*,.pdf"
                 className="mt-2 w-full border border-dashed border-border p-4 text-sm"
               />
-              <span className="mt-2 block text-xs text-muted-foreground">
-                {t("scout.photosHint")}
-              </span>
             </label>
+
+            <div className="grid gap-4 md:col-span-2">
+              <div>
+                <p className="label-xs text-muted-foreground">{t("scout.photos")} *</p>
+                <p className="mt-2 text-xs text-muted-foreground">{t("scout.photosHint")}</p>
+              </div>
+              <label className="block">
+                <span className="label-xs text-muted-foreground">{t("scout.photoHalf")} *</span>
+                <input
+                  type="file"
+                  name="halfBodyPhoto"
+                  accept="image/*"
+                  required
+                  onChange={(e) => onPhotoChange("halfBody", e.currentTarget.files)}
+                  className="mt-2 w-full border border-dashed border-border p-4 text-sm"
+                />
+              </label>
+              <label className="block">
+                <span className="label-xs text-muted-foreground">{t("scout.photoFull")} *</span>
+                <input
+                  type="file"
+                  name="fullBodyPhoto"
+                  accept="image/*"
+                  required
+                  onChange={(e) => onPhotoChange("fullBody", e.currentTarget.files)}
+                  className="mt-2 w-full border border-dashed border-border p-4 text-sm"
+                />
+              </label>
+              <label className="block">
+                <span className="label-xs text-muted-foreground">{t("scout.photoAdditional")}</span>
+                <input
+                  type="file"
+                  name="additionalPhoto"
+                  accept="image/*"
+                  onChange={(e) => onPhotoChange("additional", e.currentTarget.files)}
+                  className="mt-2 w-full border border-dashed border-border p-4 text-sm"
+                />
+              </label>
+              {photoError ? (
+                <p className="text-sm text-destructive" role="alert" aria-live="polite">
+                  {photoError}
+                </p>
+              ) : null}
+            </div>
 
             <VideoUploadField className="md:col-span-2" name="video" />
 
@@ -113,11 +230,16 @@ function ScoutedPage() {
             <div className="md:col-span-2">
               <button
                 type="submit"
-                disabled={state === "sending"}
+                disabled={state === "sending" || !canSubmitPhotos}
                 className="label-xs border border-foreground px-6 py-3 transition-colors hover:bg-foreground hover:text-background disabled:opacity-50"
               >
                 {state === "sending" ? t("scout.sending") : t("scout.submit")}
               </button>
+              {state === "error" ? (
+                <p className="mt-3 text-sm text-destructive" role="alert">
+                  {errorMessage}
+                </p>
+              ) : null}
             </div>
           </form>
         )}

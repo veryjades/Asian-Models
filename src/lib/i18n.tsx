@@ -37,7 +37,25 @@ const dict: Dict = {
   "home.boards": { en: "Boards", zh: "分類" },
   "home.featured": { en: "Featured", zh: "精選" },
   "home.viewBoard": { en: "View board", zh: "查看分類" },
+  "home.keywordRunway": { en: "Keyword Dynamic Runway", zh: "關鍵字動態伸展台" },
+  "home.keywordRunwayIntro": {
+    en: "Start from a production need, then move directly into relevant models, stories and portfolios.",
+    zh: "從製作需求出發，直接找到相關模特兒、文章與作品集。",
+  },
+  "home.keywordRunwayDynamic": { en: "Top active keywords", zh: "目前熱門關鍵字" },
+  "home.keywordRunwayMeta": { en: "Talent need", zh: "製作需求" },
+  "home.keywordRunwayCta": { en: "Find talent", zh: "尋找人選" },
   "home.latest": { en: "Latest", zh: "最新消息" },
+
+  "keyword.back": { en: "All keywords", zh: "所有關鍵字" },
+  "keyword.models": { en: "Relevant models", zh: "相關模特兒" },
+  "keyword.news": { en: "Related news", zh: "相關消息" },
+  "keyword.portfolio": { en: "Portfolio signals", zh: "作品集線索" },
+  "keyword.booking": { en: "Start a booking request", zh: "開始預約需求" },
+  "keyword.empty": {
+    en: "No matching content is active for this keyword yet.",
+    zh: "此關鍵字目前尚無啟用中的相關內容。",
+  },
 
   "board.count": { en: "models", zh: "位模特兒" },
   "board.all": { en: "All", zh: "全部" },
@@ -46,6 +64,7 @@ const dict: Dict = {
 
   "model.stats": { en: "Statistics", zh: "身型資料" },
   "model.height": { en: "Height", zh: "身高" },
+  "model.weight": { en: "Weight", zh: "體重" },
   "model.bust": { en: "Bust", zh: "胸圍" },
   "model.waist": { en: "Waist", zh: "腰圍" },
   "model.hips": { en: "Hips", zh: "臀圍" },
@@ -54,7 +73,7 @@ const dict: Dict = {
   "model.eyes": { en: "Eyes", zh: "眼睛" },
   "model.portfolio": { en: "Portfolio", zh: "作品集" },
   "model.digitals": { en: "Digitals", zh: "生活照" },
-  "model.booking": { en: "Booking enquiries", zh: "工作邀約" },
+  "model.booking": { en: "Quick booking", zh: "快速預約" },
 
   "news.title": { en: "News", zh: "最新消息" },
   "news.readMore": { en: "Read", zh: "閱讀" },
@@ -65,7 +84,7 @@ const dict: Dict = {
 
   "contact.title": { en: "Contact", zh: "聯絡我們" },
   "contact.general": { en: "General", zh: "一般洽詢" },
-  "contact.bookings": { en: "Bookings", zh: "工作邀約" },
+  "contact.bookings": { en: "Bookings", zh: "快速預約" },
   "contact.press": { en: "Press", zh: "媒體聯繫" },
 
   "scout.title": { en: "Get Scouted", zh: "模特招募" },
@@ -81,10 +100,27 @@ const dict: Dict = {
   "scout.height": { en: "Height (cm)", zh: "身高（公分）" },
   "scout.measurements": { en: "Measurements", zh: "三圍" },
   "scout.instagram": { en: "Instagram", zh: "Instagram" },
+  "scout.socialLinks": { en: "Other social links", zh: "其他社群連結" },
+  "scout.modelCard": { en: "Model Card upload", zh: "Model Card／模特卡上傳" },
   "scout.photos": { en: "Photographs", zh: "照片" },
   "scout.photosHint": {
-    en: "Face, full body and profile. Up to 6 images.",
-    zh: "臉部、全身與側面，最多 6 張。",
+    en: "Minimum 2 photos: 1 clear half-body photo and 1 clear full-body photo. A third photo is optional.",
+    zh: "申請至少需要 2 張照片：1 張清楚的半身照 + 1 張清楚的全身照。第三張照片為選填。",
+  },
+  "scout.photosGate": {
+    en: "Applications require at least 2 photos: 1 clear half-body photo and 1 clear full-body photo.",
+    zh: "申請至少需要 2 張照片：1 張清楚的半身照 + 1 張清楚的全身照。",
+  },
+  "scout.photosNatural": {
+    en: "Photos should be natural, clear, unretouched and without filters.",
+    zh: "照片請保持自然、清楚，未經後製及未套用濾鏡。",
+  },
+  "scout.photoHalf": { en: "Half-body photo", zh: "半身照" },
+  "scout.photoFull": { en: "Full-body photo", zh: "全身照" },
+  "scout.photoAdditional": { en: "Additional photo (optional)", zh: "第三張照片（選填）" },
+  "scout.photosError": {
+    en: "Please upload at least 2 photos before submitting: 1 half-body photo and 1 full-body photo.",
+    zh: "請先上傳至少 2 張照片：1 張半身照及 1 張全身照，才能送出模特兒申請。",
   },
   "scout.message": { en: "Anything else", zh: "其他說明" },
   "scout.submit": { en: "Submit application", zh: "送出申請" },
@@ -136,14 +172,14 @@ const dict: Dict = {
   "booking.cta": { en: "Quick booking", zh: "快速預約" },
   "booking.title": { en: "Quick booking request", zh: "快速預約需求" },
   "booking.intro": {
-    en: "Leave a contact and we will call you back — full brief not required.",
-    zh: "留下聯絡方式，我們會盡快回電，暫不需完整需求說明。",
+    en: "Build a booking request quickly. A full casting brief is not required at this stage.",
+    zh: "用幾個選項快速建立預約需求，此階段不需要完整選角簡報。",
   },
   "booking.contact": { en: "Contact person", zh: "聯絡人" },
   "booking.phone": { en: "Phone", zh: "電話" },
   "booking.email": { en: "Email", zh: "電子信箱" },
   "booking.note": { en: "Note (optional)", zh: "備註（選填）" },
-  "booking.submit": { en: "Send request", zh: "送出需求" },
+  "booking.submit": { en: "Send booking request", zh: "送出預約需求" },
   "booking.sending": { en: "Sending…", zh: "傳送中…" },
   "booking.thanks": {
     en: "Received. A booker will contact you shortly.",
@@ -185,7 +221,9 @@ type I18nValue = {
 const I18nContext = createContext<I18nValue | null>(null);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
+  // Traditional Chinese is the primary agency experience; English remains
+  // available through the language switcher and is persisted per visitor.
+  const [lang, setLangState] = useState<Lang>("zh");
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);

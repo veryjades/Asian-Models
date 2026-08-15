@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -92,7 +93,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&family=Noto+Sans+TC:wght@200;300;400;500&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
     ],
     scripts: [
       {
@@ -128,17 +129,51 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const isAdminSurface = pathname.startsWith("/admin");
+
+  useEffect(() => {
+    // Supabase invite/recovery links can fall back to the configured Site URL
+    // (the homepage) when an older email or template omits the deep link. Keep
+    // the auth hash/query intact, but route those links to the password setup
+    // screen so the user never lands on an unrelated public page.
+    const hashParams = new URLSearchParams(window.location.hash.slice(1));
+    const queryParams = new URLSearchParams(window.location.search);
+    const authType = hashParams.get("type") ?? queryParams.get("type");
+    const authError = hashParams.get("error") ?? queryParams.get("error");
+    const authErrorCode = hashParams.get("error_code") ?? queryParams.get("error_code");
+    const isPasswordSetupLink = authType === "recovery" || authType === "invite";
+    const isPasswordLinkError =
+      authError === "access_denied" ||
+      authErrorCode === "otp_expired" ||
+      authErrorCode === "invite_expired";
+
+    if (
+      (!isPasswordSetupLink && !isPasswordLinkError) ||
+      window.location.pathname.startsWith("/admin")
+    )
+      return;
+
+    const target = new URL(window.location.href);
+    target.pathname = "/admin";
+    if (isPasswordLinkError) {
+      target.searchParams.set("reset_error", authErrorCode ?? "link_invalid");
+    } else {
+      target.searchParams.set("reset", "1");
+    }
+    window.location.replace(target.toString());
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
         <div className="flex min-h-screen flex-col">
-          <SiteHeader />
+          {!isAdminSurface && <SiteHeader />}
           <main className="flex-1">
             {/* Required: nested routes render here. */}
             <Outlet />
           </main>
-          <SiteFooter />
+          {!isAdminSurface && <SiteFooter />}
         </div>
       </I18nProvider>
     </QueryClientProvider>

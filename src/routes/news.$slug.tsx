@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { contentRepository } from "@/lib/content/repository";
 import { useI18n } from "@/lib/i18n";
+import { AgencyImage } from "@/components/site/AgencyImage";
 import { VideoGallery } from "@/components/site/VideoGallery";
 
 const postQuery = (slug: string) =>
@@ -77,12 +78,14 @@ function NewsPost() {
         })}
       </p>
       <h1 className="mt-3 text-3xl font-light md:text-4xl">{pick(post.titleEn, post.titleZh)}</h1>
-      <img
+      <AgencyImage
         src={post.cover}
         alt={pick(post.titleEn, post.titleZh)}
         width={768}
-        height={1024}
-        className="mt-8 aspect-[4/3] w-full object-cover"
+        height={512}
+        aspectRatio="3 / 2"
+        fit="contain"
+        containerClassName="mt-8"
       />
       <div className="mt-8 space-y-5">
         {(lang === "zh" ? post.bodyZh : post.bodyEn).map((para, i) => (

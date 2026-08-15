@@ -1,7 +1,7 @@
 # ADR-001: Platform Architecture Foundation
 
-**Status:** Accepted  
-**Date:** 2026-08-10  
+**Status:** Accepted
+**Date:** 2026-08-10
 **Phase:** Phase 1 — Architecture Foundation
 
 ## Context
@@ -28,3 +28,18 @@ Asian Stars Agency needs a production foundation for its agency data and future 
 ## Future AI boundary
 
 AI remains out of scope. Any Azure OpenAI or other provider integration must be behind the approved provider abstraction in a later phase. This foundation stores no prompts, embeddings, AI decisions, or automatic casting output.
+
+## Phase 2 implementation addendum — 2026-08-15
+
+The Phase 1 boundaries above remain the architectural decision; the deferred
+pieces are now implemented in the linked zero-cost Supabase project under the
+approved Phase 2 tasks:
+
+- `initial_platform_foundation` creates the five typed business tables and
+  enables RLS on each table.
+- `phase2_security_policies` adds authenticated-only grants, the
+  Admin/Editor/Viewer `app_metadata.role` policies, and the private
+  `model-media` bucket with path/MIME/size limits.
+- `src/lib/supabase/auth.ts` and `src/lib/supabase/media.ts` are the browser
+  adapters. They never expose a service-role credential and are not mounted by
+  public routes until live Auth-session verification is complete.

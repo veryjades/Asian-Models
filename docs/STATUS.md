@@ -1,42 +1,122 @@
 # Asian Stars Agency — Status
 
-**Phase:** Phase 1 — Architecture Foundation
+**Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
-**Current phase:** Phase 1 — Architecture Foundation
-**Current task:** Supabase foundation is ready for Luna review; no UI or product integration has started.
-**Last heartbeat:** 2026-08-10 23:14:08 +08:00
-**Completion date:** 2026-08-10
+**Current phase:** Phase 2 — Application Foundation
+**Current task:** CMS-002 About save/refresh verified locally; production remains blocked.
+**Last heartbeat:** 2026-08-15 +08:00 (CMS-002 About UI save → public REST → `/about` h1; title restored)
+**Phase 0 completion date:** 2026-08-10
+
+## Current live backend
+
+GOV-003 re-verified the live project from the authenticated dashboards and
+publishable-key REST on 2026-08-15. Claims below are current unless marked
+historical.
+
+- Supabase project: `jkhxtuwqmmdetjqymzso` (`Model's Project`, `veryjades's Org Free`, Mumbai `ap-south-1`). The earlier `cajkkxustehtzyymlopm` project is historical only.
+- SQL Editor verification on 2026-08-15: `model_count=13`, `news_count=3`, `settings_count=1`, `inquiries_count=0`, `applications_count=0`, and `notification_count=0`; foundation tables, content tables, trusted `current_app_role()` policies, and Storage buckets are present.
+- Public Data API verification on 2026-08-15 returned HTTP 200 for `models`, `media_assets`, `model_video_links`, and `model_social_links` using the publishable key. `models` returned all 13 active records; the three media/link tables are currently empty, so the public adapter is connected but no live uploaded asset exists to render yet.
+- Migration `20260815210000_public_content_grants.sql` is applied in the live project: active model rows and `visibility='public'` media/video/social rows are readable anonymously; authenticated Admin/Editor reads remain role-gated; `model-media` is public for published objects while writes/deletes remain Storage-RLS protected.
+- Migration `20260815211000_backfill_model_localization.sql` is committed and its full bilingual backfill was executed in SQL Editor batches. REST verification returned 13/13 rows with non-null `name_zh`, `city_zh`, `bio_en`, and `bio_zh`; the repository still keeps seed fallback for resilience.
+- Auth URL configuration is set to `http://127.0.0.1:8090` with local and Preview wildcard redirects. `menscheck@gmail.com` has a live invitation row and `raw_app_meta_data.role=admin`; Auth Logs show `/invite` 200 → `/verify` 303 and a later `/recover` 200 → `/verify` 303. A duplicate recovery request correctly returned 429 due to email-rate protection.
+- Local `http://127.0.0.1:8090/admin` was restarted with the new environment and returned HTTP 200; the signed-out surface exposes email, password, sign-in, and first-time setup controls.
+- The live `provision-user` Edge Function is deployed and custom-authenticated: CORS preflight is handled, legacy JWT gateway verification is disabled, and the function validates the caller with `auth.getUser()` plus trusted `app_metadata.role=admin`. The Admin Access / invitations panel successfully listed the owner account from the live project.
+- Password recovery now routes expired/invalid hashes to `/admin?reset_error=...`, gives a fresh-link action, listens for Supabase `PASSWORD_RECOVERY`, and signs the user out after a successful password update so the new password is explicitly tested on the next sign-in.
+- `.env.local` uses the new project URL and publishable browser key; it is ignored and no service-role credential is committed.
+
+## Current work-unit evidence (2026-08-15)
+
+- `supabase/migrations/20260815193000_seed_existing_models.sql` and `20260815194500_content_operations.sql` are applied in the owner project through SQL Editor. The live count query returned 13 models, 3 news posts, and 1 settings row.
+- `/admin` now includes Inbox, About + email, News, and JAgent RAG operations panels. Public Contact, Quick Booking, and Scouting submissions write to Supabase; an insert trigger creates an `admin_notifications` outbox row addressed to `site_settings.admin_email`.
+- A transactional live SQL probe inserted a temporary inquiry, confirmed the trigger-created outbox row, and rolled back both records; the live counts remain `inquiries_count=0` and `notification_count=0`.
+- `supabase/functions/notify-admin/index.ts` and public dispatch calls are committed locally. The function is deployed through the Supabase dashboard and the Admin retry action passes the notification reference id. Actual delivery still requires a provider secret (`RESEND_API_KEY`/`RESEND_FROM` or approved SMTP).
+- Local route probes returned HTTP 200 for `/`, `/admin`, `/models/women`, `/models/men`, `/models/new-faces`, `/models/talent`, `/keywords/women`, `/about`, and `/news`; `/models/women` contains Chen Yu-Xin and `/news` contains a seeded story.
+- Model board/profile/keyword loaders now revalidate stale React Query data so a newly published active model appears after returning to the public surface instead of remaining in an old client cache. The live project currently still contains exactly 13 model rows; no new model row was present during this verification.
+- GOV-003 applied additive `20260815213000_public_about_settings.sql` live: anon public-column About read returns HTTP 200; `admin_email` and `select=*` remain 401. Edge Function Secrets have no custom secrets. News remains 3 published rows.
+- CMS-002 About save/refresh on 2026-08-15: local `/admin` owner session was a live Admin JWT (`menscheck@gmail.com`). UI Save of marker `About GATE-20260815-2248` returned POST `site_settings` 200 with a Bearer user JWT; publishable-key REST and English `/about` h1 showed the same title; copy was restored to `About`. A prior `getUser()`+`getSession()` lock hang on Save is fixed by a serial Auth lock and by failing closed on upsert errors instead of a pre-write `getUser()`.
 
 ## Completed items
 
-- Project-control documents and agent protocol are active on `feature/baseline`.
+- Project-control documents and agent protocol are active on `feature/mock-assets`; historical Phase 0 baseline details remain in `TASKS.md`.
 - The baseline lint audit found 46 Prettier errors in 17 existing files and no other error-level lint rules; those files were formatted with the repository configuration.
 - `npm run lint` now exits 0 with 0 errors and 9 existing React-refresh warnings.
 - `npm run build` completes successfully; Vite/Nitro warnings are non-fatal.
 - Test baseline inspected: no test files, runner, or `test` script exists. The minimum recommended future approach is unit coverage for pure content/repository/i18n behavior before route/workflow integration tests.
-- Package manager resolved: Bun 1.x is canonical; setup is `bun install --frozen-lockfile`, with a pinned Bun version required in CI. npm was used only because Bun is unavailable in this environment.
+- Package manager resolved: Bun 1.x is canonical; Bun 1.3.14 is now available locally. Setup is `bun install --frozen-lockfile`; CI still requires an explicit version pin. npm use belongs only to the historical Phase 0 baseline.
 - PR [#2](https://github.com/veryjades/Asian-Models/pull/2) merged into `main` as `875f9eb`.
-- ADR-001, Supabase configuration, `.env.example`, initial migration, typed client/adapter, and RLS policy plan are established on `feature/phase-1-foundation`.
+- ADR-001, Supabase configuration, `.env.example`, initial migration, typed client/adapter, and RLS policy plan are established; the current live-project verification is recorded above.
 
 ## In-progress items
 
-- Foundation review and migration validation are pending. No Phase 1 UI or product work is in progress.
+- Foundation review and migration validation are complete. Public model/media/video/social reads are now connected to Supabase behind the approved RLS and visibility boundary; Admin writes remain authenticated.
+- The authorised D-008/D-009 mock-asset experience iteration documents source/licensing requirements and now includes a reusable safe-presentation component.
+- Draft PR [#5](https://github.com/veryjades/Asian-Models/pull/5) is an 84-commit, 96-file stacked change from `feature/mock-assets` into `feature/phase-1-foundation`, not a mock-assets-only PR. Its title and description are stale. It has no reviewer approval and only Vercel checks. Its dependency, draft PR [#4](https://github.com/veryjades/Asian-Models/pull/4), targets `main` and also has no checks or reviews.
+- The Golden Mock Asset Set is complete: 18 reviewed fictional adult assets for three desktop heroes, five Women/Men portrait/full-body pairs, two New Faces digitals, and three portfolio scenes. See `docs/GOLDEN_MOCK_ASSET_SET.md`.
+- Isolated Preview review passed for desktop and a 390px viewport: three hero CTAs route to their intended boards; desktop arrows change slides; the Women board and Chen Yu-Xin profile load their mapped fictional media. Preview: `https://asian-models-gxon1hn2t-asian-models.vercel.app`.
+- Homepage asset audit found Golden assets in the Hero and Featured Models sections, but legacy `model-05`, `model-02`, and `model-03` covers in News. The minimal replacement maps each News post to a compositionally suitable existing Golden portfolio asset; no new media or dependency was needed. Build and lint passed before Preview validation.
+- Visual-consistency Preview passed at desktop and 390px: Hero → Featured Models → News now stays within the Golden asset set, News has a reviewed 3:2 non-cropping presentation, and no browser console errors were observed. Preview: `https://asian-models-p2kd962ta-asian-models.vercel.app`.
+- Local verification for the missed-requirements iteration passed: J_J favicon route/link, homepage Keyword Dynamic Runway with 15 active taxonomy entries, keyword result page with models/portfolio/news/Quick Booking, model-specific Quick Booking modal payload, recruitment 2-photo gate, and Golden model profile identity cleanup. `bun run lint` passed with 0 errors and 9 existing warnings; `bun run build` passed.
+- The final UX recovery iteration now renders Quick Booking through a top-level portal overlay, locks background scroll, marks header/main/footer inert while open, and hides the generic header booking CTA on model profile pages so the profile exposes one model-specific 「快速預約」 action. Local desktop and 390px browser verification passed for modal layering and console errors.
+- The 390px Keyword Dynamic Runway was tightened so active keywords remain readable instead of collapsing into an overlapping text cluster; keyword destination pages continue to surface tagged models, portfolio signals, news, and Quick Booking.
+- Recruitment gate regression verification passed locally: 0 photos keeps submit disabled, one required photo keeps submit disabled, and half-body plus full-body enables submit; the optional third photo and optional video remain non-required.
+- The final Keyword Dynamic Runway correction is complete locally: the runway is now a 40px strip directly below Hero, consumes the top 15 active canonical keywords, moves LEFT↔RIGHT instead of as a one-direction ticker, gives the C-position keyword highest opacity/sharpness/z-order, fades and blurs keywords after C into the rear depth plane, keeps controlled overlap, and avoids horizontal overflow on desktop and 390px. Local click verification reached `/keywords/editorial-model` with Models/Portfolio/News/Quick Booking content. `bun run lint` passed with 0 errors and 9 existing warnings; `bun run build` passed.
+- The focus-interaction correction now separates the moving runway element from its nested text label: automatic C-state scales the label to 2.4× without relocating the keyword, while desktop hover/focus pauses the runway where it is and applies the same 2.4× label scale above neighboring keywords. The focus treatment has no background, inversion, padding, or colour change. Preview verification on commit `d136c69` passed: real desktop pointer hover reported a frozen non-zero runway transform, 2.4× label scale, z-index 20, transparent background, unchanged text colour, and no horizontal overflow; automatic C-state remained in place at the same scale. The 390px browser surface passed 40px height, 15 items, one line, no horizontal overflow, and no console errors.
+- Profile data and interaction corrections are ready locally: every fictional model now has a weight, culturally inconsistent city/name combinations have been corrected (including Hina Chinen for Okinawa and Kim Do-yun for Busan), and model-specific Quick Booking is fixed to the bottom-left viewport rather than the profile content flow. The reusable model-card component is wired for a white shutter flash and a separate `hoverPortrait` second frame on homepage, category, and keyword discovery cards; no invalid existing image is used as a substitute.
+- Chen Yu-Xin's category and keyword cards now use `women-aya-look-02.webp` as the reviewed same-person, same-studio, same-wardrobe hover frame. Its changed shoulders, torso, arm line, stance, and leg separation make the shutter transition visually distinct while the two image layers keep identical geometry. Deployed Chrome pointer QA confirmed `:hover`, primary opacity `0`, hover-layer opacity `1`, and the shutter animation; category, keyword, and profile routes passed at desktop and 390px with no horizontal overflow or console errors. The profile still exposes its existing portrait, editorial gallery, and digitals.
+- Supplied hover assets now expose three reviewed editorial pairs: Chen Yu-Xin, Aoi Takahashi, and Lin Wei-Jie. Tanya Lim and Han Min-jae retain same-person full-body extensions while stronger pose variants are sourced. The audit removed Lin's unrelated beach image, Hina's identity-mismatched hover/gallery images, and cross-person legacy gallery images from six talent profiles. Profile gallery media now uses a clipped `cover` frame to prevent letterboxing. Remaining cards intentionally have no `hoverPortrait` until genuine same-person pose frames are available.
+- J Assistant now performs deterministic, repository-backed candidate retrieval instead of telling visitors to browse on their own. It combines reviewed gender, language, market, tag, portfolio, and News signals, and renders a direct profile plus model-specific Quick Booking action for each recommendation. `docs/ASSISTANT_RETRIEVAL.md` records the current boundary and the later Supabase/pgvector replacement path; the five required Chinese queries were executed against the actual content set.
+- Execution started for UX-010: removed the Hina/Kim cross-person hover imports and mixed-identity gallery entries from the new-faces seed. Those cards now render only their verified primary digital until a genuine same-person second frame is reviewed.
+- Historical Phase 2 evidence was first collected against `cajkkxustehtzyymlopm`; it is retained for audit and is no longer the application target.
+- Supabase pre-migration smoke check passed before Phase 2; the migration was then applied and the post-migration table/advisor verification is recorded below.
+- Phase 2 was approved by the project owner. The current project has the foundation and security migrations applied; the browser SQL verification is recorded in the Current live backend section.
+- P2-002 is complete: `supabase/migrations/20260815170000_phase2_security_policies.sql` adds trusted `app_metadata.role` evaluation, authenticated-only grants, Admin/Editor/Viewer policies, private `model-media` Storage bucket/path policies, and was verified by security advisors plus live role probes.
+- P2-003 is complete: `src/lib/supabase/auth.ts` provides a browser-safe Auth adapter using server-confirmed `getUser()`, trusted `app_metadata.role`, sign-in/sign-out, session lookup, and auth-state subscriptions; it does not provision users or expose service credentials.
+- Server-only role provisioning is deployed as Supabase Edge Function `provision-user` (version 2). Legacy gateway JWT verification is disabled so browser CORS preflight can reach the function; the function itself requires a bearer token, calls `auth.getUser()`, and returns 403 for a publishable/non-admin caller. Invalid roles return 400; the function preserves existing metadata, writes only the validated `app_metadata.role`, and accepts both rotated JSON key variables and legacy key variables server-side.
+- The private Storage boundary is also implemented in `src/lib/supabase/media.ts`: fixed bucket, validated `models/<id>/`/`portfolios/<id>/` paths, traversal rejection, and MIME/50 MiB guards before Storage RLS.
+- Local adapter probes passed for trusted-role fallback, auth-state subscription, safe Storage paths, traversal rejection, and WebP MIME validation; these do not replace live Auth-session tests.
+- Live-session gate completed on 2026-08-15 with three disposable Auth accounts (viewer/editor/admin). The Edge Function provisioned viewer/editor with HTTP 200, the admin claim was bootstrapped server-side, and refreshed JWT claims matched each role.
+- The live database matrix passed: editor insert/update succeeded for models, portfolios, media assets, clients, and bookings; viewer model/portfolio/media reads succeeded while client/booking reads and writes were denied; editor deletes were denied; admin deletes succeeded. All probe rows were removed.
+- The live Storage matrix passed: viewer download succeeded and upload was denied; editor upload/update succeeded and delete was denied; admin delete succeeded. Anonymous download returned `400 Object not found` for a controlled private object and anonymous Data API access returned `401/permission denied`. All probe objects were removed.
+- Extended policy probe script executed against the linked project: invalid role fallback, viewer client-write denial, and admin insert/delete transaction all behaved as expected.
+- Asset mapping audit found no media path shared across different model slugs; repeated paths are limited to the same model's gallery/digital usage. The only black-edge legacy asset (`src/assets/model-03.jpg`) is not referenced by the content seed.
+- Local Playwright QA on 2026-08-15 loaded `/models/women`, `/keywords/women`, and `/models/women/chen-yu-xin` with HTTP 200 and no console/page errors; Women board rendered 5 paired cards, and Chen hover switched primary opacity `0` → hover opacity `1` with fixed card geometry.
+- Latest verified Phase 2 Vercel branch Preview is READY at `https://asian-models-git-feature-mock-assets-asian-models.vercel.app`; deployment access is SSO-protected, so route/hover evidence remains from the local Playwright pass.
+- `.env.example` now points to the approved public project URL; the publishable key remains a local-only placeholder and no service-role secret is committed.
+- The J Assistant control no longer collides with the Vercel Preview Toolbar: its trigger is positioned clear of the toolbar and its opened conversation temporarily hides that toolbar. The latest Preview was clicked directly; it opened J Assistant and returned four candidate profiles for `我要找男模`. The 390px surface had no horizontal overflow or console errors.
+- Owner-authorized Admin UI preparation is complete at `/admin`: Auth sign-in, trusted Admin/Editor role gate, model create/update form, primary photo upload, optional second hover photo upload, private Storage paths, and `media_assets.sort_order` 0/1 persistence are implemented without service-role exposure. Local browser QA showed the configured sign-in state, no console errors, and no horizontal overflow. Full operational admin scope remains Phase 5.
+- Admin media manager extension is complete: `model_video_links` and `model_social_links` are live with RLS; `/admin` accepts unlimited gallery media including MP4, validated YouTube URLs, HTTPS social links, and Admin-only deletion. `src/lib/content/repository.ts` now consumes published media, YouTube, and social rows from the same project and maps sort order 0/1 to primary/hover without changing card geometry.
+- Admin recovery delivery is verified: `src/lib/supabase/auth.ts` supports reset/update password operations and `/admin` renders a first-time setup form that delegates password policy to Supabase Auth. Supabase Auth URL Configuration is set to `http://127.0.0.1:8090` with local and Preview wildcard redirects; the Dashboard confirmed all three URLs were added. The existing `menscheck@gmail.com` account is email-confirmed and has the server-side `app_metadata.role=admin`. The root route now catches invite/recovery links that land on the homepage and redirects to `/admin?reset=1` while preserving the auth hash; local browser QA rendered the setup form with no console errors. The live Email provider policy is owner-authorized minimum 6 characters with no required character classes. No password is stored in the repository or browser code.
+- Admin access management is now implemented: Admin-only invitation form with a preselected role, live user list, role changes, and guarded user deletion. Invitations use an approved `/admin?reset=1` redirect and assign `app_metadata.role` before acceptance; Editor and Viewer accounts cannot see or call the access panel.
+- The Admin model-create action is now exposed as a prominent top-level `＋ 新增模特檔案` button as well as the sidebar action; local browser verification confirmed it opens the complete model/profile/media form.
+- New model creation now opens that form in a scrollable modal with an empty draft, explicit `確認新增模特檔案` submit action, and `取消新增`; successful creation closes the modal and selects the new record for media follow-up.
+- Admin navigation is now section-first: Models, Inbox, About, News, JAgent RAG, and (Admin-only) Access each have a top-level tab; the workspace opens on the Models list rather than dropping directly into a create form.
+- Local browser regression after the tab refactor passed: a full reload has no parser/runtime errors; Access lists the live owner with the Admin role selector, and Models opens a blank create modal with confirm/cancel controls.
+- The cross-phase release process is documented in `docs/RELEASE_OPERATING_PLAN.md`, mapping Asana, GitHub, Supabase, Vercel, Browser/Playwright, DNS/SSL, monitoring, and email ownership from planning through launch.
+- A fresh owner reset invitation was attempted from the live `/admin` form and again from Supabase Auth Users → “Send password recovery”; both returned `429: email rate limit exceeded` (`over_email_send_rate_limit`). Supabase Authentication → Rate Limits exposes no adjustable email-send control on this project. Therefore no new invitation was sent. The application path remains ready for a retry after the provider window clears or a configured SMTP provider is available.
 
 ## Blockers
 
-- A local Supabase database is not running, and no cloud Supabase project has been linked. The initial migration is therefore un-applied; this is intentional until local Docker or a project approval is available.
+- Governance gate: [PR #6](https://github.com/veryjades/Asian-Models/pull/6) is merged into `feature/mock-assets` as `2db6fd6`. [PR #7](https://github.com/veryjades/Asian-Models/pull/7) is merged into `feature/phase-1-foundation`. Do not retarget PR #5 to `main` until PR #4 is reviewed and merged. `main` protection requires CI plus one human approval.
+- Production remains blocked: DNS/SSL, monitoring/Sentry, backup, email delivery, PR #4/#5 review chain, and current-commit Preview QA are incomplete. Do not promote production.
+- Email delivery is blocked (B-005): live Edge Function Secrets show **No custom secrets created**. `RESEND_API_KEY` / `RESEND_FROM` cannot be invented; creating a Resend account would need owner OTP.
+- Viewer/Editor deny matrix was not re-run in this session (no extra accounts). News Admin→public edit/refresh, JAgent live retrieval, and uploaded media remain unverified.
+- Public media path is blocked by empty storage: 0 `media_assets` rows and 0 `model-media` objects. Remaining hover pairs are deferred and are not a launch blocker.
+- The owner-authorized Email provider setting is currently minimum 6 characters with no required character classes. Security advisor still reports `auth_leaked_password_protection` because Supabase makes leaked-password checks available only on Pro and above.
 
 ## Phase 0 readiness
 
 **Phase 0: COMPLETE.** PR [#2](https://github.com/veryjades/Asian-Models/pull/2) is merged and its checks remain green.
 
-## Phase 1 prerequisites
+## Phase 2 prerequisites
 
-- Phase 1 foundation PR must be reviewed before any cloud project is linked or a migration is applied.
-- Product/domain scope, user journeys, content ownership, and acceptance criteria must be approved and recorded before implementation.
+- Phase 1 foundation is recorded as applied and verified. P2-002 documents the Auth claims, Storage paths, and RLS policy matrix; D-015/D-016 authorize the bounded content/public-media connection already present.
+- Product/domain scope, user journeys, content ownership, and acceptance criteria must remain recorded before any further implementation.
 - A Phase 1 architecture note must be created under `docs/architecture/` if the approved design requires one.
-- Supabase, AI, Messenger/Facebook webhook, Admin, and backend implementation remain prohibited until their planned phases.
+- AI, Messenger/Facebook webhook, pricing, and production automation remain prohibited. Existing Supabase/Admin/content exceptions are limited to D-012 through D-017 and must not silently expand.
 
 ## Next action
 
-Luna reviews the Phase 1 foundation PR. After approval, use a local Supabase stack or approved project connection to apply and validate the migration; do not connect existing UI yet.
+CMS-002 About save/refresh is verified on local `:8090` with the owner Admin
+JWT. Next: News/JAgent/media hard gates, email secret (B-005), and PR #4/#5
+review. Do not reset the password, generate images, invent email keys,
+retarget PR #5 to `main`, or promote production.

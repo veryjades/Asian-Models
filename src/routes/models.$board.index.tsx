@@ -16,7 +16,10 @@ const boardQuery = (board: BoardId) =>
 export const Route = createFileRoute("/models/$board/")({
   loader: async ({ context, params }) => {
     if (!boardIds.includes(params.board as BoardId)) throw notFound();
-    await context.queryClient.ensureQueryData(boardQuery(params.board as BoardId));
+    await context.queryClient.ensureQueryData({
+      ...boardQuery(params.board as BoardId),
+      revalidateIfStale: true,
+    });
     return { board: params.board as BoardId };
   },
   head: ({ params }) => {

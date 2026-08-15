@@ -1,13 +1,4 @@
-import m1 from "@/assets/model-01.jpg";
-import m2 from "@/assets/model-02.jpg";
-import m3 from "@/assets/model-03.jpg";
-import m4 from "@/assets/model-04.jpg";
-import m5 from "@/assets/model-05.jpg";
-import m6 from "@/assets/model-06.jpg";
-import m10 from "@/assets/model-10.jpg";
-import m12 from "@/assets/model-12.jpg";
-import m13 from "@/assets/model-13.jpg";
-import hero from "@/assets/hero.jpg";
+import { goldenMockAssets } from "./mockAssets";
 
 /**
  * Slides shown in the rotating band at the top of the home page.
@@ -20,10 +11,15 @@ export type SpotlightSlide = {
   id: string;
   kind: SpotlightKind;
   image: string;
+  /** Image presentation travels with the content and will map to future CMS metadata. */
+  imageFit: "contain" | "cover";
+  objectPosition: string;
   titleEn: string;
   titleZh: string;
   captionEn: string;
   captionZh: string;
+  ctaEn: string;
+  ctaZh: string;
   /** Route pattern + params, e.g. "/news/$slug" with { slug } */
   to: string;
   params?: Record<string, string>;
@@ -43,126 +39,49 @@ export const spotlightLabels: Record<SpotlightKind, { en: string; zh: string }> 
 
 export const spotlightSlides: SpotlightSlide[] = [
   {
-    id: "showroom-sept",
-    kind: "event",
-    image: hero,
-    titleEn: "September showroom, Taipei",
-    titleZh: "九月展間・台北",
-    captionEn: "Three days with casting directors and stylists for the autumn calendar.",
-    captionZh: "為期三天，接待秋季檔期的選角與造型團隊。",
-    to: "/news",
-  },
-  {
-    id: "spring-board-update",
-    kind: "news",
-    image: m5,
-    titleEn: "Spring board update",
-    titleZh: "春季分類更新",
-    captionEn: "Four new signings join the Women and New Faces boards.",
-    captionZh: "四位新簽約模特兒加入女模與新面孔分類。",
-    to: "/news/$slug",
-    params: { slug: "spring-board-update" },
-  },
-  {
-    id: "vogue-clip",
-    kind: "media",
-    image: m3,
-    titleEn: "Backstage film, Taipei season",
-    titleZh: "台北時裝季後台影片",
-    captionEn: "A two-minute cut from the runway backstage.",
-    captionZh: "伸展台後台的兩分鐘剪輯。",
-    to: "/news/$slug",
-    params: { slug: "tokyo-showroom" },
-  },
-  {
-    id: "new-face-mei",
+    id: "taipei-atelier",
     kind: "new-face",
-    image: m4,
-    titleEn: "New face: scouted in Tainan",
-    titleZh: "新面孔：發掘於台南",
-    captionEn: "The latest addition to the New Faces board.",
-    captionZh: "新面孔分類最新加入的成員。",
+    image: goldenMockAssets.hero.taipeiAtelier,
+    imageFit: "contain",
+    objectPosition: "50% 50%",
+    titleEn: "Taipei atelier — Women",
+    titleZh: "台北 atelier・女模",
+    captionEn: "A considered new season of editorial and campaign talent.",
+    captionZh: "為 editorial 與品牌廣告精選的全新面孔。",
+    ctaEn: "View Women",
+    ctaZh: "查看女模",
     to: "/models/$board",
-    params: { board: "new-faces" },
+    params: { board: "women" },
   },
   {
-    id: "ig-post",
-    kind: "social",
-    image: m6,
-    titleEn: "From our Instagram",
-    titleZh: "來自我們的 Instagram",
-    captionEn: "Polaroids from this week's studio day.",
-    captionZh: "本週攝影棚日的拍立得。",
-    to: "/news",
-    externalHref: "https://www.instagram.com/jjmodelagency",
-  },
-  {
-    id: "tokyo-showroom",
+    id: "seoul-tailoring",
     kind: "event",
-    image: m2,
-    titleEn: "Tokyo showroom, Shibuya",
-    titleZh: "東京展間・澀谷",
-    captionEn: "Fourteen models across two boards met the autumn buyers.",
-    captionZh: "十四位模特兒、兩個分類，與秋季客戶會面。",
-    to: "/news/$slug",
-    params: { slug: "tokyo-showroom" },
-  },
-  {
-    id: "inclusive-casting",
-    kind: "event",
-    image: m10,
-    titleEn: "Open casting: every face, every age",
-    titleZh: "公開選角：不分面孔、不分年齡",
-    captionEn:
-      "Our Taipei open call is unrestricted by ethnicity, age or size — walk in with daylight photographs.",
-    captionZh: "台北公開徵選不限族裔、年齡或尺碼，帶著日光照片即可到場。",
-    to: "/scouted",
-  },
-  {
-    id: "global-board",
-    kind: "new-face",
-    image: m12,
-    titleEn: "A board that looks like the region",
-    titleZh: "如同這片區域一樣多元的分類",
-    captionEn:
-      "Filipino-Spanish, Nigerian, South Asian and East Asian talent, booked side by side.",
-    captionZh: "菲西混血、奈及利亞、南亞與東亞面孔並肩合作。",
+    image: goldenMockAssets.hero.seoulTailoring,
+    imageFit: "contain",
+    objectPosition: "50% 50%",
+    titleEn: "Seoul tailoring — Men",
+    titleZh: "首爾西裝・男模",
+    captionEn: "Menswear talent with presence for regional campaigns and editorials.",
+    captionZh: "適合亞洲市場廣告與時尚 editorial 的男模。",
+    ctaEn: "View Men",
+    ctaZh: "查看男模",
     to: "/models/$board",
     params: { board: "men" },
   },
   {
-    id: "classic-division",
+    id: "tokyo-evening",
     kind: "media",
-    image: m13,
-    titleEn: "Classic division film",
-    titleZh: "經典分類影片",
-    captionEn: "A short film with our silver-haired talent for a skincare campaign.",
-    captionZh: "與銀髮模特兒合作的保養品廣告短片。",
-    to: "/models/$board/$slug",
-    params: { board: "talent", slug: "margit-lindqvist" },
-    video: { source: "youtube", src: "aqz-KE-bpKQ" },
-  },
-  {
-    id: "fb-post",
-    kind: "social",
-    image: m12,
-    titleEn: "From our Facebook page",
-    titleZh: "來自我們的 Facebook 專頁",
-    captionEn: "Casting calls and backstage updates, posted weekly.",
-    captionZh: "每週更新的選角資訊與後台花絮。",
-    to: "/news",
-    externalHref: "https://www.facebook.com/jjmodelagency",
-  },
-  {
-    id: "scouting-feature",
-    kind: "media",
-    image: m1,
-    titleEn: "On scouting in Asia",
-    titleZh: "關於亞洲的星探工作",
-    captionEn: "Why we look outside the capitals.",
-    captionZh: "為什麼我們走出首都城市。",
-    to: "/news/$slug",
-    params: { slug: "on-scouting-in-asia" },
+    image: goldenMockAssets.hero.tokyoEvening,
+    imageFit: "contain",
+    objectPosition: "50% 50%",
+    titleEn: "Tokyo evening — New Faces",
+    titleZh: "東京夜色・新面孔",
+    captionEn: "Fresh, natural talent prepared for the next casting conversation.",
+    captionZh: "為下一場選角而準備的自然新面孔。",
+    ctaEn: "Meet New Faces",
+    ctaZh: "認識新面孔",
+    to: "/models/$board",
+    params: { board: "new-faces" },
   },
 ];
 
