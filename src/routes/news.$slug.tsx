@@ -4,6 +4,7 @@ import { contentRepository } from "@/lib/content/repository";
 import { useI18n } from "@/lib/i18n";
 import { AgencyImage } from "@/components/site/AgencyImage";
 import { VideoGallery } from "@/components/site/VideoGallery";
+import { agencySlotProps, PUBLIC_MEDIA_SLOTS } from "@/lib/content/mediaSlots";
 
 const postQuery = (slug: string) =>
   queryOptions({
@@ -84,10 +85,7 @@ function NewsPost() {
       <AgencyImage
         src={post.cover}
         alt={pick(post.titleEn, post.titleZh)}
-        width={768}
-        height={512}
-        aspectRatio="3 / 2"
-        fit="contain"
+        {...agencySlotProps(PUBLIC_MEDIA_SLOTS.newsCover)}
         containerClassName="mt-8"
       />
       <div className="mt-8 space-y-5">

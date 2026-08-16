@@ -269,3 +269,60 @@ export function sortKeywords(keywords: Keyword[]) {
     (a, b) => a.displayPriority - b.displayPriority || b.seoPriority - a.seoPriority,
   );
 }
+
+const TAG_ALIASES: Record<string, string> = {
+  editorial: "editorial-model",
+  "editorial-model": "editorial-model",
+  編輯: "editorial-model",
+  beauty: "beauty",
+  美妝: "beauty",
+  美容: "beauty",
+  runway: "runway",
+  伸展台: "runway",
+  走秀: "runway",
+  fashion: "fashion-model",
+  "fashion-model": "fashion-model",
+  時裝: "fashion-model",
+  commercial: "commercial-model",
+  "commercial-model": "commercial-model",
+  print: "print-model",
+  "print-model": "print-model",
+  advertising: "advertising-model",
+  "advertising-model": "advertising-model",
+  women: "women",
+  女模: "women",
+  men: "men",
+  男模: "men",
+  "new-faces": "new-faces",
+  新面孔: "new-faces",
+  talent: "talent",
+  藝人: "talent",
+};
+
+const knownSlugs = new Set(seedKeywords.map((keyword) => keyword.slug));
+
+/** Map typed Admin labels onto canonical keyword slugs used by public tag pages. */
+export function canonicalizeTag(raw: string): string | null {
+  const value = raw.trim().toLowerCase().replace(/\s+/g, "-");
+  if (!value) return null;
+  const aliased = TAG_ALIASES[value] ?? TAG_ALIASES[raw.trim()] ?? value;
+  return aliased;
+}
+
+export function normalizeStoredTags(tags: string[]): string[] {
+  const unique = new Set<string>();
+  for (const tag of tags) {
+    const next = canonicalizeTag(tag);
+    if (next) unique.add(next);
+  }
+  return [...unique];
+}
+
+export function hasKeywordTag(tags: string[], slug: string): boolean {
+  const want = canonicalizeTag(slug) ?? slug;
+  return normalizeStoredTags(tags).includes(want) || tags.includes(slug);
+}
+
+export function isKnownKeywordSlug(slug: string): boolean {
+  return knownSlugs.has(slug);
+}

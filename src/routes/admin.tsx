@@ -11,6 +11,11 @@ import {
   type ModelMediaMimeType,
 } from "@/lib/supabase/media";
 import type { Database } from "@/lib/supabase/database.types";
+import { seedKeywords, normalizeStoredTags } from "@/lib/content/keywords";
+import { canonicalYouTubeUrl } from "@/lib/content/media";
+import { englishFromChinese } from "@/lib/i18n/translationAdapter";
+import { PUBLIC_MEDIA_SLOTS, slotHint } from "@/lib/content/mediaSlots";
+import { assertAllowedModelMedia } from "@/lib/supabase/media";
 
 type ModelRow = Database["public"]["Tables"]["models"]["Row"];
 type MediaRow = Database["public"]["Tables"]["media_assets"]["Row"];
@@ -100,6 +105,17 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+async function invalidatePublicContent(queryClient: ReturnType<typeof useQueryClient>) {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: ["board"] }),
+    queryClient.invalidateQueries({ queryKey: ["model"] }),
+    queryClient.invalidateQueries({ queryKey: ["home"] }),
+    queryClient.invalidateQueries({ queryKey: ["keyword"] }),
+    queryClient.invalidateQueries({ queryKey: ["news"] }),
+    queryClient.invalidateQueries({ queryKey: ["site-settings"] }),
+  ]);
+}
+
 function readJsonString(
   record: Database["public"]["Tables"]["models"]["Row"]["stats"],
   key: string,
@@ -118,20 +134,6 @@ const SOCIAL_PLATFORMS = [
   ["website", "Website"],
   ["other", "Other"],
 ] as const;
-
-function isYouTubeUrl(value: string) {
-  try {
-    const url = new URL(value);
-    return (
-      url.protocol === "https:" &&
-      ["youtube.com", "www.youtube.com", "youtu.be", "www.youtu.be"].includes(
-        url.hostname.toLowerCase(),
-      )
-    );
-  } catch {
-    return false;
-  }
-}
 
 export const Route = createFileRoute("/admin")({ component: AdminRoute });
 
@@ -550,6 +552,7 @@ function AdminDashboard({
   identity: AuthIdentity;
   onSignedOut: () => void;
 }) {
+  const queryClient = useQueryClient();
   const canEdit = identity.role === "admin" || identity.role === "editor";
   const [activeSection, setActiveSection] = useState<AdminSection>("models");
   const [models, setModels] = useState<ModelRow[]>([]);
@@ -742,6 +745,7 @@ function AdminDashboard({
   }, [createModalOpen]);
 
   const persistMedia = async (modelId: string, file: File, sortOrder: number, replace = false) => {
+    assertAllowedModelMedia(file);
     const mime = file.type as ModelMediaMimeType;
     const extension =
       mime === "image/jpeg"
@@ -804,9 +808,12 @@ function AdminDashboard({
       return;
     }
     const title = videoTitle.trim();
-    const url = videoUrl.trim();
-    if (!title || !isYouTubeUrl(url)) {
-      setNotice({ tone: "error", text: "Enter a title and a valid HTTPS YouTube URL." });
+    const url = canonicalYouTubeUrl(videoUrl);
+    if (!title || !url) {
+      setNotice({
+        tone: "error",
+        text: "Enter a title and a valid YouTube URL (watch, youtu.be, Shorts, or mobile).",
+      });
       return;
     }
     const { error } = await client.from("model_video_links").insert({
@@ -822,6 +829,7 @@ function AdminDashboard({
     setVideoTitle("");
     setVideoUrl("");
     await loadRelations(selectedModelId);
+    await invalidatePublicContent(queryClient);
     setNotice({ tone: "success", text: "YouTube link added." });
   };
 
@@ -884,25 +892,23 @@ function AdminDashboard({
     event.preventDefault();
     if (!canEdit) return;
     const creating = !selectedModelId;
-    const name = draft.name.trim();
-    const displayName = draft.displayName.trim();
-    const category = draft.category.trim();
+    const nameZh = draft.nameZh.trim();
+    const name = (draft.name.trim() || (await englishFromChinese(nameZh)) || nameZh).trim();
+    const displayName = (
+      draft.displayName.trim() ||
+      (await englishFromChinese(nameZh)) ||
+      name
+    ).trim();
+    const category = draft.category.trim() || draft.board;
+    if (!nameZh) {
+      setNotice({ tone: "error", text: "請先填寫繁體中文姓名。" });
+      return;
+    }
     if (!name || !displayName || !category) {
       setNotice({ tone: "error", text: "Name, display name, and category are required." });
       return;
     }
-    if (draft.status === "active" && !draft.nameZh.trim()) {
-      setNotice({
-        tone: "error",
-        text: "Traditional Chinese name is required for an active profile.",
-      });
-      return;
-    }
-    const slug = slugify(draft.slug || name);
-    if (!slug) {
-      setNotice({ tone: "error", text: "A public slug is required." });
-      return;
-    }
+    const slug = slugify(draft.slug || name) || `model-${Date.now().toString(36)}`;
     setSaving(true);
     setNotice(null);
     const height = draft.height.trim() ? Number.parseInt(draft.height, 10) : null;
@@ -923,30 +929,30 @@ function AdminDashboard({
       waist: draft.waist.trim(),
       hips: draft.hips.trim(),
     };
+    const cityZh = draft.cityZh.trim();
+    const bioZh = draft.bioZh.trim();
+    const tags = normalizeStoredTags([...draft.tags.split(","), draft.board, draft.gender]);
     const payload = {
       slug,
       name,
       display_name: displayName,
-      name_zh: draft.nameZh.trim() || null,
+      name_zh: nameZh || null,
       gender: draft.gender,
       board: draft.board,
       category,
-      city: draft.city.trim() || null,
-      city_zh: draft.cityZh.trim() || null,
+      city: (await englishFromChinese(cityZh, draft.city)) || cityZh || null,
+      city_zh: cityZh || null,
       height,
       nationality: draft.nationality.trim() || null,
       languages: draft.languages
         .split(",")
         .map((language) => language.trim())
         .filter(Boolean),
-      bio: draft.bioEn.trim() || draft.bioZh.trim() || null,
-      bio_en: draft.bioEn.trim() || null,
-      bio_zh: draft.bioZh.trim() || null,
+      bio: bioZh || draft.bioEn.trim() || null,
+      bio_en: (await englishFromChinese(bioZh, draft.bioEn)) || null,
+      bio_zh: bioZh || null,
       featured: draft.featured,
-      tags: draft.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
+      tags,
       stats,
       measurements,
       status: draft.status,
@@ -984,6 +990,7 @@ function AdminDashboard({
       setAdditionalFiles([]);
       await loadModels();
       await loadRelations(saved.id);
+      await invalidatePublicContent(queryClient);
       setNotice({
         tone: draft.status === "active" ? "success" : "error",
         text:
@@ -1190,34 +1197,32 @@ function AdminDashboard({
               <section className="border border-white/15 bg-white/[0.03] p-5 md:p-7">
                 <div className="grid gap-5 md:grid-cols-2">
                   <Field
-                    label="Public slug"
+                    label="繁體中文姓名（必填，前台主顯示）"
+                    value={draft.nameZh}
+                    disabled={!canEdit}
+                    onChange={(value) => setDraft((current) => ({ ...current, nameZh: value }))}
+                    placeholder="陳妤欣"
+                  />
+                  <Field
+                    label="Public slug（可留空自動產生）"
                     value={draft.slug}
                     disabled={!canEdit}
                     onChange={(value) => setDraft((current) => ({ ...current, slug: value }))}
                     placeholder="chen-yu-xin"
                   />
                   <Field
-                    label="English name / record key"
-                    value={draft.name}
+                    label="城市／市場（繁中）"
+                    value={draft.cityZh}
                     disabled={!canEdit}
-                    onChange={(value) => setDraft((current) => ({ ...current, name: value }))}
-                    placeholder="Chen Yu-Xin"
+                    onChange={(value) => setDraft((current) => ({ ...current, cityZh: value }))}
+                    placeholder="台北"
                   />
                   <Field
-                    label="English display name"
-                    value={draft.displayName}
+                    label="Category"
+                    value={draft.category}
                     disabled={!canEdit}
-                    onChange={(value) =>
-                      setDraft((current) => ({ ...current, displayName: value }))
-                    }
-                    placeholder="Chen Yu-Xin"
-                  />
-                  <Field
-                    label="繁體中文姓名（前台繁中主顯示）"
-                    value={draft.nameZh}
-                    disabled={!canEdit}
-                    onChange={(value) => setDraft((current) => ({ ...current, nameZh: value }))}
-                    placeholder="陳妤欣"
+                    onChange={(value) => setDraft((current) => ({ ...current, category: value }))}
+                    placeholder="Editorial"
                   />
                   <label className="block text-sm text-white/65">
                     Gender
@@ -1255,27 +1260,6 @@ function AdminDashboard({
                       <option value="talent">Talent / 藝人</option>
                     </select>
                   </label>
-                  <Field
-                    label="Category"
-                    value={draft.category}
-                    disabled={!canEdit}
-                    onChange={(value) => setDraft((current) => ({ ...current, category: value }))}
-                    placeholder="Editorial"
-                  />
-                  <Field
-                    label="City / market (English)"
-                    value={draft.city}
-                    disabled={!canEdit}
-                    onChange={(value) => setDraft((current) => ({ ...current, city: value }))}
-                    placeholder="Taipei"
-                  />
-                  <Field
-                    label="城市／市場（繁中）"
-                    value={draft.cityZh}
-                    disabled={!canEdit}
-                    onChange={(value) => setDraft((current) => ({ ...current, cityZh: value }))}
-                    placeholder="台北"
-                  />
                   <Field
                     label="Height (cm)"
                     value={draft.height}
@@ -1333,20 +1317,7 @@ function AdminDashboard({
                 </div>
                 <div className="mt-5 grid gap-5 md:grid-cols-2">
                   <label className="block text-sm text-white/65">
-                    Bio (English)
-                    <textarea
-                      value={draft.bioEn}
-                      disabled={!canEdit}
-                      onChange={(event) =>
-                        setDraft((current) => ({ ...current, bioEn: event.target.value }))
-                      }
-                      rows={5}
-                      className="mt-2 w-full resize-y border border-white/20 bg-slate-950 px-3 py-3 text-white outline-none focus:border-white/60"
-                      placeholder="Short casting and editorial notes"
-                    />
-                  </label>
-                  <label className="block text-sm text-white/65">
-                    個人簡介（繁中）
+                    個人簡介（繁中，前台主文）
                     <textarea
                       value={draft.bioZh}
                       disabled={!canEdit}
@@ -1356,6 +1327,19 @@ function AdminDashboard({
                       rows={5}
                       className="mt-2 w-full resize-y border border-white/20 bg-slate-950 px-3 py-3 text-white outline-none focus:border-white/60"
                       placeholder="模特簡介、工作經驗與風格描述"
+                    />
+                  </label>
+                  <label className="block text-sm text-white/65">
+                    English bio override（可留空；前台 EN 會回退中文）
+                    <textarea
+                      value={draft.bioEn}
+                      disabled={!canEdit}
+                      onChange={(event) =>
+                        setDraft((current) => ({ ...current, bioEn: event.target.value }))
+                      }
+                      rows={5}
+                      className="mt-2 w-full resize-y border border-white/20 bg-slate-950 px-3 py-3 text-white outline-none focus:border-white/60"
+                      placeholder="Optional English override"
                     />
                   </label>
                 </div>
@@ -1384,13 +1368,43 @@ function AdminDashboard({
                   ))}
                 </div>
                 <div className="mt-5">
-                  <Field
-                    label="Tags / keywords (comma separated slugs)"
-                    value={draft.tags}
-                    disabled={!canEdit}
-                    onChange={(value) => setDraft((current) => ({ ...current, tags: value }))}
-                    placeholder="editorial, runway, beauty"
-                  />
+                  <p className="text-sm text-white/65">公開標籤（對應 /keywords 頁面）</p>
+                  <p className="mt-1 text-xs text-white/40">
+                    勾選 Editorial / Beauty / Runway 才會出現在對應關鍵字頁。儲存時會寫入 canonical
+                    slug（例如 editorial → editorial-model）。
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {seedKeywords
+                      .filter((keyword) => keyword.active)
+                      .map((keyword) => {
+                        const selected = normalizeStoredTags(draft.tags.split(",")).includes(
+                          keyword.slug,
+                        );
+                        return (
+                          <label
+                            key={keyword.slug}
+                            className={`inline-flex items-center gap-2 border px-3 py-2 text-xs ${selected ? "border-white bg-white text-slate-950" : "border-white/20 text-white/70"}`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selected}
+                              disabled={!canEdit}
+                              onChange={() => {
+                                const current = new Set(normalizeStoredTags(draft.tags.split(",")));
+                                if (current.has(keyword.slug)) current.delete(keyword.slug);
+                                else current.add(keyword.slug);
+                                setDraft((draftState) => ({
+                                  ...draftState,
+                                  tags: [...current].join(", "),
+                                }));
+                              }}
+                              className="h-3.5 w-3.5 accent-white"
+                            />
+                            {keyword.labelZh} / {keyword.labelEn}
+                          </label>
+                        );
+                      })}
+                  </div>
                 </div>
               </section>
 
@@ -1406,20 +1420,20 @@ function AdminDashboard({
                     </p>
                   </div>
                   <span className="text-xs uppercase tracking-[0.16em] text-white/40">
-                    JPG / PNG / WEBP · 50 MB max
+                    JPG / PNG / WEBP · {slotHint(PUBLIC_MEDIA_SLOTS.modelCard)}
                   </span>
                 </div>
                 <div className="mt-6 grid gap-5 md:grid-cols-2">
                   <UploadSlot
                     label="01 / Primary profile photo"
-                    hint="Shown before hover"
+                    hint={slotHint(PUBLIC_MEDIA_SLOTS.modelCard)}
                     preview={previewPrimary}
                     disabled={!canEdit}
                     onFile={setPrimaryFile}
                   />
                   <UploadSlot
-                    label="02 / Hover photo (optional)"
-                    hint="Shown after hover when uploaded"
+                    label="02 / Hover photo (optional, D-025)"
+                    hint={slotHint(PUBLIC_MEDIA_SLOTS.modelCard)}
                     preview={previewHover}
                     disabled={!canEdit}
                     onFile={setHoverFile}
@@ -1439,20 +1453,31 @@ function AdminDashboard({
                     </p>
                   </div>
                   <span className="text-xs uppercase tracking-[0.16em] text-white/40">
-                    JPG / PNG / WEBP / MP4 · 50 MB max each
+                    可新增多張照片與 MP4，沒有數量上限。照片{" "}
+                    {slotHint(PUBLIC_MEDIA_SLOTS.modelGallery)}
+                    ；影片 {slotHint(PUBLIC_MEDIA_SLOTS.videoFrame)}。YouTube
+                    連結請用下方欄位，與上傳檔案分開。
                   </span>
                 </div>
                 <div className="mt-6">
                   <MultiUploadSlot
-                    disabled={!canEdit || !selectedModelId}
+                    disabled={!canEdit}
                     selectedCount={additionalFiles.length}
-                    onFiles={setAdditionalFiles}
+                    onFiles={(files) => {
+                      try {
+                        files.forEach(assertAllowedModelMedia);
+                        setAdditionalFiles(files);
+                      } catch (error) {
+                        setNotice({
+                          tone: "error",
+                          text:
+                            error instanceof Error
+                              ? error.message
+                              : "One or more files exceed the size or type limit.",
+                        });
+                      }
+                    }}
                   />
-                  {!selectedModelId && (
-                    <p className="mt-3 text-xs text-white/40">
-                      Save the profile first, then add gallery media.
-                    </p>
-                  )}
                 </div>
                 {mediaRows.filter((row) => row.sort_order > 1).length > 0 && (
                   <ul className="mt-6 divide-y divide-white/10 border border-white/10">
@@ -1487,8 +1512,8 @@ function AdminDashboard({
                   <p className="label-xs text-white/45">VIDEO LINKS</p>
                   <h3 className="mt-2 text-2xl font-light">YouTube references</h3>
                   <p className="mt-2 text-sm leading-6 text-white/50">
-                    Store interviews, runway reels, or casting references without embedding them in
-                    the profile record.
+                    Store interviews or reels as a YouTube URL (watch, youtu.be, Shorts, m.youtube).
+                    This is separate from uploaded MP4 files.
                   </p>
                   <div className="mt-5 space-y-4">
                     <Field
@@ -1877,20 +1902,26 @@ function AdminOperationsPanel({
     setBusy(true);
     setMessage("");
     const form = new FormData(event.currentTarget);
+    const aboutTitleZh = String(form.get("aboutTitleZh") ?? "").trim();
+    const aboutBodyZh = String(form.get("aboutBodyZh") ?? "")
+      .split("\n")
+      .map((value) => value.trim())
+      .filter(Boolean);
     const payload = {
       id: "global" as const,
       admin_email: String(form.get("adminEmail") ?? "").trim(),
       about_published: form.get("aboutPublished") === "on",
-      about_title_en: String(form.get("aboutTitleEn") ?? "").trim(),
-      about_title_zh: String(form.get("aboutTitleZh") ?? "").trim(),
-      about_body_en: String(form.get("aboutBodyEn") ?? "")
-        .split("\n")
-        .map((value) => value.trim())
-        .filter(Boolean),
-      about_body_zh: String(form.get("aboutBodyZh") ?? "")
-        .split("\n")
-        .map((value) => value.trim())
-        .filter(Boolean),
+      about_title_en:
+        String(form.get("aboutTitleEn") ?? "").trim() || (await englishFromChinese(aboutTitleZh)),
+      about_title_zh: aboutTitleZh,
+      about_body_en: (() => {
+        const english = String(form.get("aboutBodyEn") ?? "")
+          .split("\n")
+          .map((value) => value.trim())
+          .filter(Boolean);
+        return english.length ? english : aboutBodyZh;
+      })(),
+      about_body_zh: aboutBodyZh,
       offices: settings.offices,
       messenger_url: String(form.get("messengerUrl") ?? "").trim() || null,
       line_oa_url: String(form.get("lineOaUrl") ?? "").trim() || null,
@@ -1909,6 +1940,7 @@ function AdminOperationsPanel({
       return;
     }
     setMessage("About and notification settings saved.");
+    await invalidatePublicContent(queryClient);
     await load();
   };
 
@@ -1919,25 +1951,37 @@ function AdminOperationsPanel({
     const form = new FormData(formElement);
     setBusy(true);
     setMessage("");
+    const titleZh = String(form.get("titleZh") ?? "").trim();
+    const excerptZh = String(form.get("excerptZh") ?? "").trim();
+    const bodyZh = String(form.get("bodyZh") ?? "")
+      .split("\n")
+      .map((value) => value.trim())
+      .filter(Boolean);
     const payload = {
       slug: String(form.get("slug") ?? "").trim(),
-      title_en: String(form.get("titleEn") ?? "").trim(),
-      title_zh: String(form.get("titleZh") ?? "").trim(),
-      excerpt_en: String(form.get("excerptEn") ?? "").trim(),
-      excerpt_zh: String(form.get("excerptZh") ?? "").trim(),
-      body_en: String(form.get("bodyEn") ?? "")
-        .split("\n")
-        .map((value) => value.trim())
-        .filter(Boolean),
-      body_zh: String(form.get("bodyZh") ?? "")
-        .split("\n")
-        .map((value) => value.trim())
-        .filter(Boolean),
+      title_en: String(form.get("titleEn") ?? "").trim() || (await englishFromChinese(titleZh)),
+      title_zh: titleZh,
+      excerpt_en:
+        String(form.get("excerptEn") ?? "").trim() || (await englishFromChinese(excerptZh)),
+      excerpt_zh: excerptZh,
+      body_en:
+        String(form.get("bodyEn") ?? "")
+          .split("\n")
+          .map((value) => value.trim())
+          .filter(Boolean).length > 0
+          ? String(form.get("bodyEn") ?? "")
+              .split("\n")
+              .map((value) => value.trim())
+              .filter(Boolean)
+          : bodyZh,
+      body_zh: bodyZh,
       cover_url: String(form.get("coverUrl") ?? "").trim() || null,
-      tags: String(form.get("tags") ?? "")
-        .split(",")
-        .map((value) => value.trim())
-        .filter(Boolean),
+      tags: normalizeStoredTags(
+        String(form.get("tags") ?? "")
+          .split(",")
+          .map((value) => value.trim())
+          .filter(Boolean),
+      ),
     };
     const { error } = editingNewsId
       ? await client.from("news_posts").update(payload).eq("id", editingNewsId)
@@ -1949,6 +1993,7 @@ function AdminOperationsPanel({
       setEditingNewsId(null);
       setMessage(editingNewsId ? "News updated." : "News published.");
       await queryClient.invalidateQueries({ queryKey: ["news"] });
+      await invalidatePublicContent(queryClient);
       await load();
     }
   };
@@ -2303,7 +2348,6 @@ function AdminOperationsPanel({
               name="aboutTitleEn"
               defaultValue={settings.about_title_en}
               className={inputClass}
-              required
             />
           </label>
           <label className="text-sm text-white/65">
@@ -2386,7 +2430,7 @@ function AdminOperationsPanel({
                     name={name}
                     defaultValue={defaults[name] ?? ""}
                     className={inputClass}
-                    required={name !== "coverUrl"}
+                    required={name === "slug" || name === "titleZh" || name === "excerptZh"}
                   />
                 </label>
               );
@@ -2397,7 +2441,6 @@ function AdminOperationsPanel({
                 name="bodyEn"
                 rows={4}
                 className={inputClass}
-                required
                 defaultValue={(editingNews?.body_en ?? []).join("\n")}
               />
             </label>
@@ -2581,12 +2624,12 @@ function UploadSlot({
       <label
         className={`mt-3 block overflow-hidden border border-dashed border-white/25 bg-black/20 ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:border-white/65"}`}
       >
-        <div className="aspect-[3/4] w-full">
+        <div className="aspect-[2/3] w-full">
           {preview ? (
             <img
               src={preview}
               alt="Selected model media preview"
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover object-center"
             />
           ) : (
             <div className="flex h-full items-center justify-center p-8 text-center text-sm leading-6 text-white/35">

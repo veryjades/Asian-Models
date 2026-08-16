@@ -3,8 +3,8 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** News Admin→public same-row refresh (needs signed-in Admin) plus cover-upload; J Agent retrieval/handoff is coded and locally verified.
-**Last heartbeat:** 2026-08-16 +08:00 (`feature/dev-env-news-gate`; SQL columns live; J Agent local evidence; Admin session missing)
+**Current task:** Admin completeness: tag-page sync, YouTube links, unlimited media + slot crop, Chinese-first Admin.
+**Last heartbeat:** 2026-08-16 +08:00 (`feature/dev-env-news-gate`; keyword pages now use live models + tag aliases)
 **Phase 0 completion date:** 2026-08-10
 
 ## Current live backend
@@ -113,13 +113,13 @@ historical.
 - Phase 1 foundation is recorded as applied and verified. P2-002 documents the Auth claims, Storage paths, and RLS policy matrix; D-015/D-016 authorize the bounded content/public-media connection already present.
 - Product/domain scope, user journeys, content ownership, and acceptance criteria must remain recorded before any further implementation.
 - A Phase 1 architecture note must be created under `docs/architecture/` if the approved design requires one.
-- AI, translation SDKs, Messenger/LINE webhooks, pricing, and production automation remain prohibited. D-012 through D-028 authorize the current development slice only.
+- AI, translation vendor SDKs, Messenger/LINE webhooks, pricing, and production automation remain prohibited. D-012 through D-031 authorize the current development slice only. D-029 is a no-SDK adapter.
 
 ## Next action
 
-Sign in to local `/admin` and re-run News edit → public `/news` same-row
-refresh, then restore copy. Owner pastes live m.me / LINE OA URLs in Admin
-About when they exist. Cover file-upload remains. Watch Asana 模特經紀網站發佈計畫
-as the visual board only. Do not start Phase 6 translation SDK or Phase 7
-webhooks. Do not reset the password, generate images, invent email keys,
-retarget PR #5 to `main`, or promote production.
+On local `http://127.0.0.1:8091/admin`, assign Editorial / Beauty / Runway
+checkboxes on the new woman, save, then confirm `/keywords/editorial-model`,
+`/keywords/beauty`, and `/keywords/runway`. Paste a YouTube URL after save.
+Owner pastes live m.me / LINE OA URLs when they exist. Cover file-upload remains
+URL-only. Do not start a paid translation SDK or Phase 7 webhooks. Do not
+promote production.

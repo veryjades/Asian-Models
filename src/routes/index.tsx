@@ -8,6 +8,7 @@ import { ModelCard } from "@/components/site/ModelGrid";
 import { AskAssistant } from "@/components/site/AskAssistant";
 import { useI18n } from "@/lib/i18n";
 import type { Keyword } from "@/lib/content/types";
+import { agencySlotProps, PUBLIC_MEDIA_SLOTS } from "@/lib/content/mediaSlots";
 
 const homeQuery = queryOptions({
   queryKey: ["home"],
@@ -88,10 +89,7 @@ function Index() {
                   src={post.cover}
                   alt={pick(post.titleEn, post.titleZh)}
                   loading="lazy"
-                  width={768}
-                  height={512}
-                  aspectRatio="3 / 2"
-                  fit="contain"
+                  {...agencySlotProps(PUBLIC_MEDIA_SLOTS.newsCover)}
                 />
                 <p className="label-xs mt-4 text-muted-foreground">
                   {new Date(post.date).toLocaleDateString(lang === "zh" ? "zh-TW" : "en-GB", {

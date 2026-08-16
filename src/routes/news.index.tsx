@@ -3,6 +3,7 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { contentRepository } from "@/lib/content/repository";
 import { useI18n } from "@/lib/i18n";
 import { AgencyImage } from "@/components/site/AgencyImage";
+import { agencySlotProps, PUBLIC_MEDIA_SLOTS } from "@/lib/content/mediaSlots";
 
 const newsQuery = queryOptions({
   queryKey: ["news"],
@@ -62,10 +63,7 @@ function NewsIndex() {
                 src={post.cover}
                 alt={pick(post.titleEn, post.titleZh)}
                 loading="lazy"
-                width={768}
-                height={512}
-                aspectRatio="3 / 2"
-                fit="contain"
+                {...agencySlotProps(PUBLIC_MEDIA_SLOTS.newsCover)}
               />
               <p className="label-xs mt-4 text-muted-foreground">
                 {new Date(post.date).toLocaleDateString(lang === "zh" ? "zh-TW" : "en-GB", {

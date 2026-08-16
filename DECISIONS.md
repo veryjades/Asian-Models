@@ -1,7 +1,7 @@
 # Asian Stars Agency — Decision Log
 
 **Status:** active project control record  
-**Last updated:** 2026-08-15
+**Last updated:** 2026-08-16
 **How to use:** Record approved, durable choices here before implementation. Do not silently edit a decision's outcome; supersede it with a new decision that links to the prior ID.
 
 ## Decision register
@@ -36,7 +36,9 @@
 | D-025 | Approved | Remaining hover **second frames** are **post-launch Admin uploads**, not a Phase 2 completion blocker. | Missing same-person hover pairs must not stall News, J Agent retrieval, or specialist-handoff work. | Do not generate images, mix identities, or treat empty hover slots as a Phase 2 fail. UX-010 remaining frames wait for authorised Admin media after launch. See detailed record below. |
 | D-026 | Approved | `notify-admin` **real delivery** evidence belongs to **Phase 4** (enquiry/operational notify). If GitHub Student Pack SMTP is the production sender, that sender is provisioned in **Phase 8**. | Outbox and function dispatch exist; live secrets do not. B-005 must not pull paid Resend into the current development environment as the first move. | Do not invent API keys. Do not treat missing production SMTP as a Phase 2 fail. Student Pack remains first (D-018/D-024). See detailed record below. |
 | D-027 | Approved | Landing PR #4 / PR #5 onto `main`, plus production DNS/SSL, Sentry/monitoring, and backup/recovery, are **Phase 8 / Phase 9**. Not now. | These are production-cutover gates, not current development-slice work. | Do not retarget PR #5 to `main` until PR #4 is reviewed/merged. Do not promote production, buy Sentry, or configure live DNS/SSL in this environment. See detailed record below. |
-| D-028 | Approved | Asana project **模特經紀網站發佈計畫** is the owner-facing **visual progress board**, not the engineering source of truth. Repository control docs (`DECISIONS.md`, `DEVELOPMENT_PLAN.md`, `TASKS.md`, `docs/STATUS.md`) remain canonical. Do not create a duplicate Asana project. Align the existing board to the recorded phase map; do not invent a parallel Luna-style 17-task mashup. | The owner approved Asana as the dashboard they watch (`好` / `你做事真讓人放心`) after confirming the repo owns decisions and evidence. The previous 2/17 (12%) Asana snapshot is not current engineering truth. | Agents must update the existing project (rename/complete/comment preferred over mass-delete). Completion percentage on Asana must not override `TASKS.md`. See detailed record below. |
+| D-029 | Approved | Admin authors **Chinese as the source of truth**. Public EN uses stored English when present, otherwise falls back to Chinese. A **replaceable translation adapter** may fill English later; the default adapter does not call a vendor SDK. | Owner required Chinese-only Admin plus EN as Admin completeness now, without locking a translation vendor. | Dual fields remain. No Azure/OpenAI/translation SDK. Phase 6 may swap the adapter for a cached provider. D-021 is not rewritten; only the “do not start the adapter now” timing is superseded for this no-SDK adapter. |
+| D-030 | Approved | Model profiles allow **unlimited** gallery photos and uploaded videos (no count cap). Photos max **10 MiB**; videos max **50 MiB**. YouTube URLs are a separate link/embed field. | Owner required unlimited media with file-size limits. 50 MiB videos stay within typical Storage defaults. | Enforce in Admin UI and Storage adapter. Do not generate images. Hover extra poses remain D-025. |
+| D-031 | Approved | Public media slots are a single spec: hero 16:9 1920×1080; model card/hover/profile/gallery 2:3 800×1200; news cover 3:2 1600×1067; video 16:9 1280×720. Display uses **object-fit: cover** and **object-position: center**. | Owner required neat layout and center-crop of mismatched uploads. | Constants live in `src/lib/content/mediaSlots.ts`. Do not add ad-hoc aspect ratios on pages. About has no image slot. |
 
 ## Decision lifecycle
 
@@ -202,3 +204,40 @@ Add an ID, date, status, owner, context, options considered, final decision, rat
 - **Supersedes:** Only the implication that Asana 12% is engineering truth. D-018 remains the development-environment decision.
 - **Migration / reversal:** No schema change. Reversal would require a new decision making Asana canonical.
 - **Related tasks:** GOV-003, REL-001.
+
+## D-029 — Chinese-only Admin authoring; replaceable EN adapter without a vendor SDK
+
+- **Date:** 2026-08-16
+- **Status:** Approved
+- **Owner:** Project owner (Joseph Chang)
+- **Context:** D-021 kept dual fields and deferred auto-translate to Phase 6. The owner now requires Chinese-only Admin plus public EN as Admin completeness.
+- **Options considered:** (1) Wait for Phase 6 and a paid provider. (2) Collapse to a single Chinese column. (3) Keep dual fields; Admin writes Chinese; empty English falls back to Chinese; a replaceable adapter may fill English later with no vendor SDK bundled now.
+- **Decision:** Option 3.
+- **Affected phase:** Current Admin completeness slice (Phase 2/5). Phase 6 still owns paid/provider-quality translation and vector RAG.
+- **Supersedes:** Only D-021’s “do not start the adapter now” timing. Dual fields, D-002, and no vendor SDK remain.
+- **Related tasks:** CMS-000.
+
+## D-030 — Unlimited model gallery media with size limits
+
+- **Date:** 2026-08-16
+- **Status:** Approved
+- **Owner:** Project owner (Joseph Chang)
+- **Context:** Profiles must accept unlimited photos and videos with file-size limits. YouTube remains a separate URL field.
+- **Decision:** No count cap. Photos ≤ 10 MiB. Videos ≤ 50 MiB (MP4). YouTube links are stored on `model_video_links` after canonicalization to `https://www.youtube.com/watch?v=…`.
+- **Affected phase:** Current Admin completeness. Hover extra poses remain D-025.
+- **Related tasks:** ADM-002, CMS-004, CMS-000.
+
+## D-031 — Public media slot geometry and center-crop
+
+- **Date:** 2026-08-16
+- **Status:** Approved
+- **Owner:** Project owner (Joseph Chang)
+- **Context:** Uploaded photos that do not match frontend slots must be center-cropped, not stretched. Slot sizes must be defined once.
+- **Decision:** Single spec in `src/lib/content/mediaSlots.ts`:
+  - Hero: 16:9, 1920×1080, cover, center
+  - Model card / hover / profile / gallery / digitals: 2:3, 800×1200, cover, center
+  - News cover: 3:2, 1600×1067, cover, center
+  - Video / YouTube frame: 16:9, 1280×720, cover, center
+  - About: no image slot
+- **Display:** `object-fit: cover` and `object-position: 50% 50%`. Admin shows the slot hint next to uploads.
+- **Related tasks:** CMS-000, UX-002.

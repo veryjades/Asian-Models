@@ -5,6 +5,7 @@ import { AgencyImage } from "@/components/site/AgencyImage";
 import { ModelGrid } from "@/components/site/ModelGrid";
 import { QuickBooking } from "@/components/site/QuickBooking";
 import { useI18n } from "@/lib/i18n";
+import { agencySlotProps, PUBLIC_MEDIA_SLOTS } from "@/lib/content/mediaSlots";
 
 const keywordQuery = (slug: string) =>
   queryOptions({
@@ -119,10 +120,7 @@ function KeywordPage() {
                         src={post.cover}
                         alt={pick(post.titleEn, post.titleZh)}
                         loading="lazy"
-                        width={768}
-                        height={512}
-                        aspectRatio="3 / 2"
-                        fit="contain"
+                        {...agencySlotProps(PUBLIC_MEDIA_SLOTS.newsCover)}
                       />
                       <p className="label-xs mt-4 text-muted-foreground">
                         {new Date(post.date).toLocaleDateString(lang === "zh" ? "zh-TW" : "en-GB", {

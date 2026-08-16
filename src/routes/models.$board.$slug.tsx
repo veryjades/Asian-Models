@@ -7,6 +7,7 @@ import { VideoGallery } from "@/components/site/VideoGallery";
 import { AgencyImage } from "@/components/site/AgencyImage";
 import { QuickBooking } from "@/components/site/QuickBooking";
 import { seedKeywords } from "@/lib/content/keywords";
+import { agencySlotProps, PUBLIC_MEDIA_SLOTS } from "@/lib/content/mediaSlots";
 
 const languageLabels: Record<string, { en: string; zh: string }> = {
   Mandarin: { en: "Mandarin", zh: "中文" },
@@ -123,10 +124,7 @@ function ModelPage() {
           <AgencyImage
             src={model.portrait}
             alt={model.name}
-            width={768}
-            height={1024}
-            aspectRatio="3 / 4"
-            fit="cover"
+            {...agencySlotProps(PUBLIC_MEDIA_SLOTS.modelProfile)}
           />
           <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             {pick(model.bioEn, model.bioZh)}
@@ -218,10 +216,7 @@ function Gallery({ title, images, model }: { title: string; images: string[]; mo
               src={src}
               alt={`${model.name} — ${title} ${i + 1}`}
               loading="lazy"
-              width={768}
-              height={1024}
-              aspectRatio="2 / 3"
-              fit="cover"
+              {...agencySlotProps(PUBLIC_MEDIA_SLOTS.modelGallery)}
             />
           </li>
         ))}
