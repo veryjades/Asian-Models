@@ -235,8 +235,30 @@ const supabaseRepository: ContentRepository = {
     }
   },
   async getNewsPost(slug) {
-    const posts = await this.listNews();
-    return posts.find((post) => post.slug === slug) ?? seedRepository.getNewsPost(slug);
+    try {
+      const client = getSupabaseBrowserClient();
+      const { data, error } = await client
+        .from("news_posts")
+        .select("*")
+        .eq("status", "published")
+        .eq("slug", slug)
+        .maybeSingle();
+      if (error || !data) return seedRepository.getNewsPost(slug);
+      return {
+        slug: data.slug,
+        date: data.date,
+        titleEn: data.title_en,
+        titleZh: data.title_zh,
+        excerptEn: data.excerpt_en,
+        excerptZh: data.excerpt_zh,
+        bodyEn: data.body_en,
+        bodyZh: data.body_zh,
+        cover: data.cover_url ?? seedNews.find((post) => post.slug === data.slug)?.cover ?? "",
+        tags: data.tags,
+      };
+    } catch {
+      return seedRepository.getNewsPost(slug);
+    }
   },
 };
 

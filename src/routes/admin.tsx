@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -1670,6 +1671,16 @@ function AdminDashboard({
   );
 }
 
+const newsFormFields = [
+  ["slug", "Slug"],
+  ["titleEn", "Title (English)"],
+  ["titleZh", "Title (中文)"],
+  ["excerptEn", "Excerpt (English)"],
+  ["excerptZh", "Excerpt (中文)"],
+  ["coverUrl", "Cover URL"],
+  ["tags", "Tags (comma separated)"],
+] as const;
+
 function AdminOperationsPanel({
   activeTab,
   client,
@@ -1686,6 +1697,7 @@ function AdminOperationsPanel({
   onSessionExpired: () => void;
 }) {
   const tab = activeTab;
+  const queryClient = useQueryClient();
   const [inquiries, setInquiries] = useState<Database["public"]["Tables"]["inquiries"]["Row"][]>(
     [],
   );
@@ -1699,6 +1711,7 @@ function AdminOperationsPanel({
     Database["public"]["Tables"]["site_settings"]["Row"] | null
   >(null);
   const [news, setNews] = useState<Database["public"]["Tables"]["news_posts"]["Row"][]>([]);
+  const [editingNewsId, setEditingNewsId] = useState<string | null>(null);
   const [knowledge, setKnowledge] = useState<
     Database["public"]["Tables"]["assistant_knowledge_documents"]["Row"][]
   >([]);
@@ -1864,8 +1877,8 @@ function AdminOperationsPanel({
     setBusy(true);
     setMessage("");
     const form = new FormData(event.currentTarget);
-    const { error } = await client.from("site_settings").upsert({
-      id: "global",
+    const payload = {
+      id: "global" as const,
       admin_email: String(form.get("adminEmail") ?? "").trim(),
       about_published: form.get("aboutPublished") === "on",
       about_title_en: String(form.get("aboutTitleEn") ?? "").trim(),
@@ -1879,7 +1892,14 @@ function AdminOperationsPanel({
         .map((value) => value.trim())
         .filter(Boolean),
       offices: settings.offices,
-    });
+      messenger_url: String(form.get("messengerUrl") ?? "").trim() || null,
+      line_oa_url: String(form.get("lineOaUrl") ?? "").trim() || null,
+    };
+    let { error } = await client.from("site_settings").upsert(payload);
+    if (error && /messenger_url|line_oa_url|schema cache|column/i.test(error.message)) {
+      const { messenger_url: _messenger, line_oa_url: _line, ...withoutChannels } = payload;
+      ({ error } = await client.from("site_settings").upsert(withoutChannels));
+    }
     setBusy(false);
     if (error) {
       setMessage(error.message);
@@ -1899,7 +1919,7 @@ function AdminOperationsPanel({
     const form = new FormData(formElement);
     setBusy(true);
     setMessage("");
-    const { error } = await client.from("news_posts").insert({
+    const payload = {
       slug: String(form.get("slug") ?? "").trim(),
       title_en: String(form.get("titleEn") ?? "").trim(),
       title_zh: String(form.get("titleZh") ?? "").trim(),
@@ -1914,17 +1934,21 @@ function AdminOperationsPanel({
         .map((value) => value.trim())
         .filter(Boolean),
       cover_url: String(form.get("coverUrl") ?? "").trim() || null,
-      status: "published",
       tags: String(form.get("tags") ?? "")
         .split(",")
         .map((value) => value.trim())
         .filter(Boolean),
-    });
+    };
+    const { error } = editingNewsId
+      ? await client.from("news_posts").update(payload).eq("id", editingNewsId)
+      : await client.from("news_posts").insert({ ...payload, status: "published" });
     setBusy(false);
     if (error) setMessage(error.message);
     else {
       formElement.reset();
-      setMessage("News published.");
+      setEditingNewsId(null);
+      setMessage(editingNewsId ? "News updated." : "News published.");
+      await queryClient.invalidateQueries({ queryKey: ["news"] });
       await load();
     }
   };
@@ -1962,6 +1986,7 @@ function AdminOperationsPanel({
     const { error } = await client.from("news_posts").delete().eq("id", id);
     if (error) setMessage(error.message);
     else {
+      if (editingNewsId === id) setEditingNewsId(null);
       setMessage("News item deleted.");
       await load();
     }
@@ -1977,6 +2002,7 @@ function AdminOperationsPanel({
     }
   };
 
+  const editingNews = news.find((row) => row.id === editingNewsId) ?? null;
   const inputClass =
     "mt-2 w-full border border-white/15 bg-slate-950 px-3 py-3 text-sm text-white outline-none focus:border-white/50";
   const sectionHeading =
@@ -2307,6 +2333,30 @@ function AdminOperationsPanel({
               className={inputClass}
             />
           </label>
+          <label className="text-sm text-white/65">
+            Facebook Messenger URL (m.me)
+            <input
+              name="messengerUrl"
+              type="url"
+              defaultValue={settings.messenger_url ?? ""}
+              placeholder="https://m.me/your-page"
+              className={inputClass}
+            />
+          </label>
+          <label className="text-sm text-white/65">
+            LINE Official Account URL
+            <input
+              name="lineOaUrl"
+              type="url"
+              defaultValue={settings.line_oa_url ?? ""}
+              placeholder="https://line.me/R/ti/p/@your-oa"
+              className={inputClass}
+            />
+          </label>
+          <p className="md:col-span-2 text-xs text-white/45">
+            J Agent 轉接專人 uses these HTTPS deep links. Leave blank until the live page exists. Do
+            not paste a fake URL. Messenger and LINE webhooks stay Phase 7.
+          </p>
           <button
             disabled={!canEdit || busy}
             className="label-xs w-fit bg-white px-5 py-3 text-slate-950 disabled:opacity-50"
@@ -2317,36 +2367,68 @@ function AdminOperationsPanel({
       ) : null}
       {tab === "news" ? (
         <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_1.3fr]">
-          <form onSubmit={addNews} className="space-y-4">
-            <h3 className="text-xl font-light">Publish news</h3>
-            {[
-              ["slug", "Slug"],
-              ["titleEn", "Title (English)"],
-              ["titleZh", "Title (中文)"],
-              ["excerptEn", "Excerpt (English)"],
-              ["excerptZh", "Excerpt (中文)"],
-              ["coverUrl", "Cover URL"],
-              ["tags", "Tags (comma separated)"],
-            ].map(([name, label]) => (
-              <label key={name} className="block text-sm text-white/65">
-                {label}
-                <input name={name} className={inputClass} required={name !== "coverUrl"} />
-              </label>
-            ))}
+          <form key={editingNewsId ?? "new"} onSubmit={addNews} className="space-y-4">
+            <h3 className="text-xl font-light">{editingNewsId ? "Edit news" : "Publish news"}</h3>
+            {newsFormFields.map(([name, label]) => {
+              const defaults: Record<string, string> = {
+                slug: editingNews?.slug ?? "",
+                titleEn: editingNews?.title_en ?? "",
+                titleZh: editingNews?.title_zh ?? "",
+                excerptEn: editingNews?.excerpt_en ?? "",
+                excerptZh: editingNews?.excerpt_zh ?? "",
+                coverUrl: editingNews?.cover_url ?? "",
+                tags: (editingNews?.tags ?? []).join(", "),
+              };
+              return (
+                <label key={name} className="block text-sm text-white/65">
+                  {label}
+                  <input
+                    name={name}
+                    defaultValue={defaults[name] ?? ""}
+                    className={inputClass}
+                    required={name !== "coverUrl"}
+                  />
+                </label>
+              );
+            })}
             <label className="block text-sm text-white/65">
               Body (English, one paragraph per line)
-              <textarea name="bodyEn" rows={4} className={inputClass} required />
+              <textarea
+                name="bodyEn"
+                rows={4}
+                className={inputClass}
+                required
+                defaultValue={(editingNews?.body_en ?? []).join("\n")}
+              />
             </label>
             <label className="block text-sm text-white/65">
               Body (中文，每行一段)
-              <textarea name="bodyZh" rows={4} className={inputClass} required />
+              <textarea
+                name="bodyZh"
+                rows={4}
+                className={inputClass}
+                required
+                defaultValue={(editingNews?.body_zh ?? []).join("\n")}
+              />
             </label>
-            <button
-              disabled={!canEdit || busy}
-              className="label-xs bg-white px-5 py-3 text-slate-950 disabled:opacity-50"
-            >
-              Publish
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <button
+                disabled={!canEdit || busy}
+                className="label-xs bg-white px-5 py-3 text-slate-950 disabled:opacity-50"
+              >
+                {editingNewsId ? "Save changes" : "Publish"}
+              </button>
+              {editingNewsId ? (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setEditingNewsId(null)}
+                  className="label-xs border border-white/20 px-5 py-3 text-white disabled:opacity-50"
+                >
+                  Cancel edit
+                </button>
+              ) : null}
+            </div>
           </form>
           <div>
             <h3 className="text-xl font-light">Published / draft stories ({news.length})</h3>
@@ -2357,6 +2439,14 @@ function AdminOperationsPanel({
                     <strong>{row.title_en}</strong>
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-white/45">{row.status}</span>
+                      <button
+                        type="button"
+                        disabled={!canEdit || busy}
+                        onClick={() => setEditingNewsId(row.id)}
+                        className="text-xs text-white/70 underline disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        Edit
+                      </button>
                       <button
                         type="button"
                         disabled={!canDelete || busy}

@@ -4,15 +4,16 @@
 **Current phase:** Phase 2 — Application Foundation
 **Asana project:** [模特經紀網站發佈計畫](https://app.asana.com/1/1217499298982275/project/1217499223559383)
 
-This document is the layer above individual implementation tasks. Asana owns schedule, owners,
-reminders, and release gates; GitHub owns source history and review; the repository control docs own
-architecture decisions and evidence.
+This document is the layer above individual implementation tasks. Asana is the
+owner-facing visual progress board (D-028). GitHub owns source history and review;
+the repository control docs own architecture decisions and evidence. Asana
+completion percentage is not the launch gate.
 
 ## Tool ownership
 
 | Concern                                 | System                                                              | What it controls                                                              |
 | --------------------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Roadmap, owners, dates, reminders       | Asana                                                               | Phase tasks, dependencies, completion percentage, status updates              |
+| Visual progress the owner watches       | Asana 模特經紀網站發佈計畫                                          | Phase-aligned dashboard only. Not source of truth (D-028).                    |
 | Decisions and engineering evidence      | `DECISIONS.md`, `DEVELOPMENT_PLAN.md`, `TASKS.md`, `docs/STATUS.md` | Approved boundaries, phase gates, blockers, verification evidence             |
 | Code and review                         | GitHub / PR #5                                                      | Feature branches, commits, review, merge history                              |
 | Database, Auth, Storage, Edge Functions | Supabase project `jkhxtuwqmmdetjqymzso`                             | SQL schema, RLS, roles, `model-media`, `provision-user`, `notify-admin`, logs |
@@ -47,7 +48,8 @@ architecture decisions and evidence.
 
 ## Current release position
 
-- The last recorded Asana snapshot reports **2/17 tasks complete (12%)** and 15 open release-gate tasks. GOV-001 could not independently reverify this authenticated project.
+- Asana 模特經紀網站發佈計畫 is the visual board only (D-028). The old **2/17 (12%)** snapshot is not current engineering truth. Sync sections to the recorded phase map; do not invent a parallel Luna-style mashup.
+- Current Vercel Preview + Supabase `jkhxtuwqmmdetjqymzso` are **development** (D-018/D-024). Do not promote production here.
 - The recorded completed Asana gates are Supabase Auth/Storage/RLS and Admin UI login/roles/permissions; treat them as historical until the project is opened and reconciled.
 - The repository already contains additional Admin content controls, model media mapping, public QA, and the section-first Admin workspace, but those items remain open in Asana until their acceptance evidence is formally closed.
 - PR #5 is open/draft from `feature/mock-assets` into `feature/phase-1-foundation`; verified HEAD is `c84ee24`. It contains 84 commits and 96 changed files, has no reviewer approval, and currently exposes only Vercel checks.

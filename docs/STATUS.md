@@ -3,8 +3,8 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** CMS-002 About save/refresh verified locally; production remains blocked.
-**Last heartbeat:** 2026-08-15 +08:00 (CMS-002 About UI save → public REST → `/about` h1; title restored)
+**Current task:** News Admin→public same-row refresh (needs signed-in Admin) plus cover-upload; J Agent retrieval/handoff is coded and locally verified.
+**Last heartbeat:** 2026-08-16 +08:00 (`feature/dev-env-news-gate`; SQL columns live; J Agent local evidence; Admin session missing)
 **Phase 0 completion date:** 2026-08-10
 
 ## Current live backend
@@ -96,12 +96,13 @@ historical.
 
 ## Blockers
 
-- Governance gate: [PR #6](https://github.com/veryjades/Asian-Models/pull/6) is merged into `feature/mock-assets` as `2db6fd6`. [PR #7](https://github.com/veryjades/Asian-Models/pull/7) is merged into `feature/phase-1-foundation`. Do not retarget PR #5 to `main` until PR #4 is reviewed and merged. `main` protection requires CI plus one human approval.
-- Production remains blocked: DNS/SSL, monitoring/Sentry, backup, email delivery, PR #4/#5 review chain, and current-commit Preview QA are incomplete. Do not promote production.
-- Email delivery is blocked (B-005): live Edge Function Secrets show **No custom secrets created**. `RESEND_API_KEY` / `RESEND_FROM` cannot be invented; creating a Resend account would need owner OTP.
-- Viewer/Editor deny matrix was not re-run in this session (no extra accounts). News Admin→public edit/refresh, JAgent live retrieval, and uploaded media remain unverified.
-- Public media path is blocked by empty storage: 0 `media_assets` rows and 0 `model-media` objects. Remaining hover pairs are deferred and are not a launch blocker.
+- Governance gate: [PR #6](https://github.com/veryjades/Asian-Models/pull/6) is merged into `feature/mock-assets` as `2db6fd6`. [PR #7](https://github.com/veryjades/Asian-Models/pull/7) is merged into `feature/phase-1-foundation`. Do not retarget PR #5 to `main` until PR #4 is reviewed and merged (D-027, Phase 8/9). `main` protection requires CI plus one human approval.
+- Production remains blocked: DNS/SSL, monitoring/Sentry, backup, email delivery, PR #4/#5 review chain. Do not promote this development environment (D-018/D-024). Student Pack extras are Phase 8.
+- Email delivery is blocked (B-005 / D-026): no custom Edge Function secrets. Student Pack SMTP first; not a Phase 2 fail.
+- Viewer/Editor deny matrix was not re-run. News Admin→public unique-slug gate was previously verified then restored. **2026-08-16:** local `127.0.0.1:8091/admin` and Preview `/admin` were signed out, so same-row News edit refresh was not re-run. J Agent published retrieval and specialist-handoff UI passed locally.
+- Public media path: 0 `media_assets` rows. Remaining hover pairs are **post-launch Admin uploads** (D-025), not a Phase 2 blocker.
 - The owner-authorized Email provider setting is currently minimum 6 characters with no required character classes. Security advisor still reports `auth_leaked_password_protection` because Supabase makes leaked-password checks available only on Pro and above.
+- Asana MCP was unavailable (`plugin-asana-asana` error). Repo remains source of truth (D-028). Visual board: 模特經紀網站發佈計畫.
 
 ## Phase 0 readiness
 
@@ -112,11 +113,13 @@ historical.
 - Phase 1 foundation is recorded as applied and verified. P2-002 documents the Auth claims, Storage paths, and RLS policy matrix; D-015/D-016 authorize the bounded content/public-media connection already present.
 - Product/domain scope, user journeys, content ownership, and acceptance criteria must remain recorded before any further implementation.
 - A Phase 1 architecture note must be created under `docs/architecture/` if the approved design requires one.
-- AI, Messenger/Facebook webhook, pricing, and production automation remain prohibited. Existing Supabase/Admin/content exceptions are limited to D-012 through D-017 and must not silently expand.
+- AI, translation SDKs, Messenger/LINE webhooks, pricing, and production automation remain prohibited. D-012 through D-028 authorize the current development slice only.
 
 ## Next action
 
-CMS-002 About save/refresh is verified on local `:8090` with the owner Admin
-JWT. Next: News/JAgent/media hard gates, email secret (B-005), and PR #4/#5
-review. Do not reset the password, generate images, invent email keys,
+Sign in to local `/admin` and re-run News edit → public `/news` same-row
+refresh, then restore copy. Owner pastes live m.me / LINE OA URLs in Admin
+About when they exist. Cover file-upload remains. Watch Asana 模特經紀網站發佈計畫
+as the visual board only. Do not start Phase 6 translation SDK or Phase 7
+webhooks. Do not reset the password, generate images, invent email keys,
 retarget PR #5 to `main`, or promote production.

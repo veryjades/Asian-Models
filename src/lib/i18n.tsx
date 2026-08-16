@@ -248,7 +248,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       lang,
       setLang,
       t: (key) => dict[key]?.[lang] ?? key,
-      pick: (en, zh) => (lang === "zh" && zh ? zh : en),
+      pick: (en, zh) => {
+        if (lang === "zh") return zh || en;
+        return en || zh || "";
+      },
     }),
     [lang, setLang],
   );

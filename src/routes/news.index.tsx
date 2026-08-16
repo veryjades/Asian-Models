@@ -10,7 +10,11 @@ const newsQuery = queryOptions({
 });
 
 export const Route = createFileRoute("/news/")({
-  loader: ({ context }) => context.queryClient.ensureQueryData(newsQuery),
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData({
+      ...newsQuery,
+      revalidateIfStale: true,
+    }),
   head: () => ({
     meta: [
       { title: "News — J&J Model Agency" },

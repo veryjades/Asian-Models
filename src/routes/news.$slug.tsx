@@ -17,7 +17,10 @@ const postQuery = (slug: string) =>
 
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ context, params }) => {
-    const post = await context.queryClient.ensureQueryData(postQuery(params.slug));
+    const post = await context.queryClient.ensureQueryData({
+      ...postQuery(params.slug),
+      revalidateIfStale: true,
+    });
     return { slug: params.slug, title: post.titleEn, excerpt: post.excerptEn, date: post.date };
   },
   head: ({ params, loaderData }) => {
