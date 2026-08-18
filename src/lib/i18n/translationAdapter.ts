@@ -22,8 +22,27 @@ export const emptyTranslationAdapter: TranslationAdapter = {
   },
 };
 
+/** Dev-only HTTP adapter (replaceable; no vendor SDK). */
+const devHttpTranslationAdapter: TranslationAdapter = {
+  async translate({ text }) {
+    if (!text.trim()) return "";
+    try {
+      const response = await fetch(
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=zh-TW|en`,
+      );
+      if (!response.ok) return "";
+      const payload = (await response.json()) as {
+        responseData?: { translatedText?: string };
+      };
+      return payload.responseData?.translatedText?.trim() ?? "";
+    } catch {
+      return "";
+    }
+  },
+};
+
 export function getTranslationAdapter(): TranslationAdapter {
-  return emptyTranslationAdapter;
+  return import.meta.env.DEV ? devHttpTranslationAdapter : emptyTranslationAdapter;
 }
 
 export async function englishFromChinese(zh: string, existingEn = ""): Promise<string> {

@@ -237,18 +237,26 @@ const supabaseRepository: ContentRepository = {
       if (limit) query = query.limit(limit);
       const { data, error } = await query;
       if (error || !data?.length) return seedRepository.listNews(limit);
-      return data.map((row) => ({
-        slug: row.slug,
-        date: row.date,
-        titleEn: row.title_en,
-        titleZh: row.title_zh,
-        excerptEn: row.excerpt_en,
-        excerptZh: row.excerpt_zh,
-        bodyEn: row.body_en,
-        bodyZh: row.body_zh,
-        cover: row.cover_url ?? seedNews.find((post) => post.slug === row.slug)?.cover ?? "",
-        tags: normalizeStoredTags(row.tags),
-      }));
+      return data.map((row) => {
+        const raw = row as unknown as Record<string, unknown>;
+        const rawBlocks = raw["body_blocks"];
+        const blocks = Array.isArray(rawBlocks) && rawBlocks.length > 0
+          ? (rawBlocks as { type: "text" | "image"; content: string; caption?: string }[])
+          : undefined;
+        return {
+          slug: row.slug,
+          date: row.date,
+          titleEn: row.title_en,
+          titleZh: row.title_zh,
+          excerptEn: row.excerpt_en,
+          excerptZh: row.excerpt_zh,
+          bodyEn: row.body_en,
+          bodyZh: row.body_zh,
+          ...(blocks ? { bodyBlocks: blocks } : {}),
+          cover: row.cover_url ?? seedNews.find((post) => post.slug === row.slug)?.cover ?? "",
+          tags: normalizeStoredTags(row.tags),
+        };
+      });
     } catch {
       return seedRepository.listNews(limit);
     }
@@ -263,6 +271,11 @@ const supabaseRepository: ContentRepository = {
         .eq("slug", slug)
         .maybeSingle();
       if (error || !data) return seedRepository.getNewsPost(slug);
+      const raw = data as unknown as Record<string, unknown>;
+      const rawBlocks = raw["body_blocks"];
+      const blocks = Array.isArray(rawBlocks) && rawBlocks.length > 0
+        ? (rawBlocks as { type: "text" | "image"; content: string; caption?: string }[])
+        : undefined;
       return {
         slug: data.slug,
         date: data.date,
@@ -272,6 +285,7 @@ const supabaseRepository: ContentRepository = {
         excerptZh: data.excerpt_zh,
         bodyEn: data.body_en,
         bodyZh: data.body_zh,
+        ...(blocks ? { bodyBlocks: blocks } : {}),
         cover: data.cover_url ?? seedNews.find((post) => post.slug === data.slug)?.cover ?? "",
         tags: normalizeStoredTags(data.tags),
       };

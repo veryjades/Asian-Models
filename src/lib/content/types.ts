@@ -63,6 +63,8 @@ export type Model = {
   socialLinks?: { platform: string; label: string; url: string }[];
 };
 
+export type NewsBodyBlock = { type: "text" | "image"; content: string; caption?: string };
+
 export type NewsPost = {
   slug: string;
   date: string;
@@ -72,6 +74,8 @@ export type NewsPost = {
   excerptZh: string;
   bodyEn: string[];
   bodyZh: string[];
+  /** Block-based body content (段落 + 圖片交替). Takes precedence over bodyEn/bodyZh when present. */
+  bodyBlocks?: NewsBodyBlock[];
   cover: string;
   /** Canonical keyword/tag slugs from the shared taxonomy registry. */
   tags: string[];

@@ -1,6 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { createAuthAdapter, type AuthIdentity } from "@/lib/supabase/auth";
@@ -12,6 +20,8 @@ import {
 } from "@/lib/supabase/media";
 import type { Database } from "@/lib/supabase/database.types";
 import { seedKeywords, normalizeStoredTags } from "@/lib/content/keywords";
+import { MODEL_CATEGORY_OPTIONS, normalizeModelCategory } from "@/lib/content/modelCategories";
+import { NEWS_TAGS, searchNewsTags, type NewsTag } from "@/lib/content/newsTags";
 import { canonicalYouTubeUrl } from "@/lib/content/media";
 import { englishFromChinese } from "@/lib/i18n/translationAdapter";
 import { PUBLIC_MEDIA_SLOTS, slotHint } from "@/lib/content/mediaSlots";
@@ -558,6 +568,7 @@ function AdminDashboard({
   const [models, setModels] = useState<ModelRow[]>([]);
   const [selectedModelId, setSelectedModelId] = useState<string | null>(null);
   const [draft, setDraft] = useState<ModelDraft>(EMPTY_DRAFT);
+  const bioEnManualRef = useRef(false);
   const [primaryFile, setPrimaryFile] = useState<File | null>(null);
   const [hoverFile, setHoverFile] = useState<File | null>(null);
   const [additionalFiles, setAdditionalFiles] = useState<File[]>([]);
@@ -630,6 +641,26 @@ function AdminDashboard({
   }, [primaryFile, hoverFile]);
 
   useEffect(() => {
+    bioEnManualRef.current = false;
+  }, [selectedModelId, createModalOpen]);
+
+  useEffect(() => {
+    if (!canEdit) return;
+    const zh = draft.bioZh.trim();
+    if (!zh || bioEnManualRef.current) return;
+
+    const timer = window.setTimeout(() => {
+      void englishFromChinese(zh, "").then((translated) => {
+        if (!bioEnManualRef.current && translated) {
+          setDraft((current) => ({ ...current, bioEn: translated }));
+        }
+      });
+    }, 700);
+
+    return () => window.clearTimeout(timer);
+  }, [canEdit, draft.bioZh]);
+
+  useEffect(() => {
     let disposed = false;
     const urls: string[] = [];
     const loadPreviews = async () => {
@@ -670,7 +701,7 @@ function AdminDashboard({
       nameZh: model.name_zh ?? "",
       gender: model.gender === "men" ? "men" : "women",
       board: (model.board as ModelBoard) ?? (model.gender === "men" ? "men" : "women"),
-      category: model.category,
+      category: normalizeModelCategory(model.category),
       city: model.city ?? "",
       cityZh: model.city_zh ?? "",
       height: model.height?.toString() ?? heightStat,
@@ -899,7 +930,7 @@ function AdminDashboard({
       (await englishFromChinese(nameZh)) ||
       name
     ).trim();
-    const category = draft.category.trim() || draft.board;
+    const category = normalizeModelCategory(draft.category.trim() || draft.board);
     if (!nameZh) {
       setNotice({ tone: "error", text: "請先填寫繁體中文姓名。" });
       return;
@@ -1217,13 +1248,27 @@ function AdminDashboard({
                     onChange={(value) => setDraft((current) => ({ ...current, cityZh: value }))}
                     placeholder="台北"
                   />
-                  <Field
-                    label="Category"
-                    value={draft.category}
-                    disabled={!canEdit}
-                    onChange={(value) => setDraft((current) => ({ ...current, category: value }))}
-                    placeholder="Editorial"
-                  />
+                  <label className="block text-sm text-white/65">
+                    類目 Category
+                    <select
+                      value={
+                        MODEL_CATEGORY_OPTIONS.some((option) => option.value === draft.category)
+                          ? draft.category
+                          : normalizeModelCategory(draft.category)
+                      }
+                      disabled={!canEdit}
+                      onChange={(event) =>
+                        setDraft((current) => ({ ...current, category: event.target.value }))
+                      }
+                      className="mt-2 w-full border border-white/20 bg-slate-950 px-3 py-3 text-white outline-none focus:border-white/60"
+                    >
+                      {MODEL_CATEGORY_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                   <label className="block text-sm text-white/65">
                     Gender
                     <select
@@ -1285,7 +1330,7 @@ function AdminDashboard({
                     placeholder="Mandarin, English"
                   />
                   <label className="block text-sm text-white/65">
-                    Status
+                    狀態 Status（Active＝前台可見；Inactive / Archived＝下架）
                     <select
                       value={draft.status}
                       disabled={!canEdit}
@@ -1297,9 +1342,9 @@ function AdminDashboard({
                       }
                       className="mt-2 w-full border border-white/20 bg-slate-950 px-3 py-3 text-white outline-none focus:border-white/60"
                     >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                      <option value="archived">Archived</option>
+                      <option value="active">Active / 上架</option>
+                      <option value="inactive">Inactive / 下架</option>
+                      <option value="archived">Archived / 封存</option>
                     </select>
                   </label>
                   <label className="flex items-center gap-3 self-end pb-3 text-sm text-white/65">
@@ -1312,7 +1357,7 @@ function AdminDashboard({
                       }
                       className="h-4 w-4 accent-white"
                     />
-                    Featured on homepage
+                    首頁精選區顯示（不控制上下架；上下架請改 Status）
                   </label>
                 </div>
                 <div className="mt-5 grid gap-5 md:grid-cols-2">
@@ -1321,25 +1366,27 @@ function AdminDashboard({
                     <textarea
                       value={draft.bioZh}
                       disabled={!canEdit}
-                      onChange={(event) =>
-                        setDraft((current) => ({ ...current, bioZh: event.target.value }))
-                      }
+                      onChange={(event) => {
+                        bioEnManualRef.current = false;
+                        setDraft((current) => ({ ...current, bioZh: event.target.value }));
+                      }}
                       rows={5}
                       className="mt-2 w-full resize-y border border-white/20 bg-slate-950 px-3 py-3 text-white outline-none focus:border-white/60"
                       placeholder="模特簡介、工作經驗與風格描述"
                     />
                   </label>
                   <label className="block text-sm text-white/65">
-                    English bio override（可留空；前台 EN 會回退中文）
+                    English bio（可手動修改；前台 EN 會自動翻譯中文）
                     <textarea
                       value={draft.bioEn}
                       disabled={!canEdit}
-                      onChange={(event) =>
-                        setDraft((current) => ({ ...current, bioEn: event.target.value }))
-                      }
+                      onChange={(event) => {
+                        bioEnManualRef.current = true;
+                        setDraft((current) => ({ ...current, bioEn: event.target.value }));
+                      }}
                       rows={5}
                       className="mt-2 w-full resize-y border border-white/20 bg-slate-950 px-3 py-3 text-white outline-none focus:border-white/60"
-                      placeholder="Optional English override"
+                      placeholder="Auto-translated from Chinese; edit if needed"
                     />
                   </label>
                 </div>
@@ -1370,8 +1417,11 @@ function AdminDashboard({
                 <div className="mt-5">
                   <p className="text-sm text-white/65">公開標籤（對應 /keywords 頁面）</p>
                   <p className="mt-1 text-xs text-white/40">
-                    勾選 Editorial / Beauty / Runway 才會出現在對應關鍵字頁。儲存時會寫入 canonical
-                    slug（例如 editorial → editorial-model）。
+                    勾選 Editorial / Beauty / Runway 才會出現在對應關鍵字頁，例如
+                    <code className="mx-1 text-white/55">/keywords/editorial-model</code>、
+                    <code className="mx-1 text-white/55">/keywords/beauty</code>、
+                    <code className="text-white/55">/keywords/runway</code>
+                    。儲存時會寫入 canonical slug。
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {seedKeywords
@@ -1696,15 +1746,182 @@ function AdminDashboard({
   );
 }
 
-const newsFormFields = [
-  ["slug", "Slug"],
-  ["titleEn", "Title (English)"],
-  ["titleZh", "Title (中文)"],
-  ["excerptEn", "Excerpt (English)"],
-  ["excerptZh", "Excerpt (中文)"],
-  ["coverUrl", "Cover URL"],
-  ["tags", "Tags (comma separated)"],
-] as const;
+type NewsBodyBlock = { type: "text" | "image"; content: string; caption?: string };
+
+function NewsTagAutocomplete({
+  selectedTags,
+  onAdd,
+  onRemove,
+  disabled,
+}: {
+  selectedTags: string[];
+  onAdd: (slug: string) => void;
+  onRemove: (slug: string) => void;
+  disabled?: boolean;
+}) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const suggestions = useMemo(() => (query ? searchNewsTags(query).slice(0, 8) : []), [query]);
+
+  return (
+    <div className="relative">
+      <p className="text-sm text-white/65">標籤 Tags（輸入首字母或中文觸發建議）</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {selectedTags.map((slug) => {
+          const tag = NEWS_TAGS.find((t) => t.slug === slug);
+          return (
+            <span
+              key={slug}
+              className="inline-flex items-center gap-1 border border-white/30 bg-white/10 px-2 py-1 text-xs text-white"
+            >
+              {tag ? `${tag.labelZh} / ${tag.labelEn}` : slug}
+              {!disabled && (
+                <button type="button" onClick={() => onRemove(slug)} className="ml-1 text-white/60 hover:text-white">
+                  ×
+                </button>
+              )}
+            </span>
+          );
+        })}
+      </div>
+      <input
+        type="text"
+        value={query}
+        disabled={disabled}
+        placeholder="輸入標籤搜尋…"
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 200)}
+        className="mt-2 w-full border border-white/20 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-white/60"
+      />
+      {open && suggestions.length > 0 && (
+        <ul className="absolute z-50 mt-1 max-h-48 w-full overflow-y-auto border border-white/30 bg-slate-900 shadow-lg">
+          {suggestions
+            .filter((tag) => !selectedTags.includes(tag.slug))
+            .map((tag) => (
+              <li key={tag.slug}>
+                <button
+                  type="button"
+                  className="w-full px-3 py-2 text-left text-sm text-white hover:bg-white/10"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    onAdd(tag.slug);
+                    setQuery("");
+                    setOpen(false);
+                  }}
+                >
+                  {tag.labelZh} / {tag.labelEn}
+                </button>
+              </li>
+            ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function NewsBlockEditor({
+  blocks,
+  onChange,
+  onUploadImage,
+  disabled,
+}: {
+  blocks: NewsBodyBlock[];
+  onChange: (blocks: NewsBodyBlock[]) => void;
+  onUploadImage: (file: File) => Promise<string | null>;
+  disabled?: boolean;
+}) {
+  const addTextBlock = () => onChange([...blocks, { type: "text", content: "" }]);
+  const addImageBlock = async (file: File) => {
+    const url = await onUploadImage(file);
+    if (url) onChange([...blocks, { type: "image", content: url, caption: "" }]);
+  };
+  const updateBlock = (index: number, patch: Partial<NewsBodyBlock>) => {
+    const next = blocks.map((b, i) => (i === index ? { ...b, ...patch } : b));
+    onChange(next);
+  };
+  const removeBlock = (index: number) => onChange(blocks.filter((_, i) => i !== index));
+  const moveBlock = (index: number, dir: -1 | 1) => {
+    const target = index + dir;
+    if (target < 0 || target >= blocks.length) return;
+    const next = [...blocks];
+    const tmp = next[index]!;
+    next[index] = next[target]!;
+    next[target] = tmp;
+    onChange(next);
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-white/65">內文區塊（段落與圖片交替排列）</p>
+      {blocks.map((block, index) => (
+        <div key={index} className="group relative border border-white/10 bg-black/20 p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs text-white/40">
+              {block.type === "text" ? `段落 #${index + 1}` : `圖片 #${index + 1}`}
+            </span>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => moveBlock(index, -1)} disabled={disabled || index === 0} className="text-xs text-white/50 hover:text-white disabled:opacity-30">↑</button>
+              <button type="button" onClick={() => moveBlock(index, 1)} disabled={disabled || index === blocks.length - 1} className="text-xs text-white/50 hover:text-white disabled:opacity-30">↓</button>
+              <button type="button" onClick={() => removeBlock(index)} disabled={disabled} className="text-xs text-red-300/70 hover:text-red-200 disabled:opacity-30">刪除</button>
+            </div>
+          </div>
+          {block.type === "text" ? (
+            <textarea
+              value={block.content}
+              disabled={disabled}
+              onChange={(e) => updateBlock(index, { content: e.target.value })}
+              rows={3}
+              className="w-full resize-y border border-white/15 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-white/50"
+              placeholder="段落文字（中文）"
+            />
+          ) : (
+            <div>
+              {block.content && (
+                <img src={block.content} alt="block" className="mb-2 max-h-40 rounded object-contain" />
+              )}
+              <input
+                type="text"
+                value={block.caption ?? ""}
+                disabled={disabled}
+                onChange={(e) => updateBlock(index, { caption: e.target.value })}
+                placeholder="圖片說明（選填）"
+                className="w-full border border-white/15 bg-slate-950 px-3 py-2 text-xs text-white outline-none focus:border-white/50"
+              />
+            </div>
+          )}
+        </div>
+      ))}
+      <div className="flex gap-3">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={addTextBlock}
+          className="border border-white/20 px-3 py-2 text-xs text-white/70 hover:bg-white/5 disabled:opacity-40"
+        >
+          + 段落
+        </button>
+        <label className={`border border-white/20 px-3 py-2 text-xs text-white/70 hover:bg-white/5 ${disabled ? "pointer-events-none opacity-40" : "cursor-pointer"}`}>
+          + 圖片
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            disabled={disabled}
+            className="sr-only"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void addImageBlock(file);
+              e.target.value = "";
+            }}
+          />
+        </label>
+      </div>
+    </div>
+  );
+}
 
 function AdminOperationsPanel({
   activeTab,
@@ -1737,6 +1954,17 @@ function AdminOperationsPanel({
   >(null);
   const [news, setNews] = useState<Database["public"]["Tables"]["news_posts"]["Row"][]>([]);
   const [editingNewsId, setEditingNewsId] = useState<string | null>(null);
+  const [newsTitleZh, setNewsTitleZh] = useState("");
+  const [newsTitleEn, setNewsTitleEn] = useState("");
+  const [newsExcerptZh, setNewsExcerptZh] = useState("");
+  const [newsExcerptEn, setNewsExcerptEn] = useState("");
+  const [newsSlug, setNewsSlug] = useState("");
+  const [newsCoverFile, setNewsCoverFile] = useState<File | null>(null);
+  const [newsCoverPreview, setNewsCoverPreview] = useState<string>("");
+  const [newsBodyBlocks, setNewsBodyBlocks] = useState<NewsBodyBlock[]>([]);
+  const [newsSelectedTags, setNewsSelectedTags] = useState<string[]>([]);
+  const newsTitleZhManualEnRef = useRef(false);
+  const newsExcerptZhManualEnRef = useRef(false);
   const [knowledge, setKnowledge] = useState<
     Database["public"]["Tables"]["assistant_knowledge_documents"]["Row"][]
   >([]);
@@ -1947,41 +2175,45 @@ function AdminOperationsPanel({
   const addNews = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canEdit) return;
-    const formElement = event.currentTarget;
-    const form = new FormData(formElement);
     setBusy(true);
     setMessage("");
-    const titleZh = String(form.get("titleZh") ?? "").trim();
-    const excerptZh = String(form.get("excerptZh") ?? "").trim();
-    const bodyZh = String(form.get("bodyZh") ?? "")
-      .split("\n")
-      .map((value) => value.trim())
-      .filter(Boolean);
+
+    // Upload cover if a file was selected
+    let coverUrl = newsCoverPreview;
+    if (newsCoverFile) {
+      const uploaded = await uploadNewsImage(newsCoverFile);
+      if (uploaded) coverUrl = uploaded;
+      else {
+        setBusy(false);
+        return;
+      }
+    }
+
+    // Build body_zh from text blocks for legacy compatibility
+    const bodyZh = newsBodyBlocks
+      .filter((b) => b.type === "text" && b.content.trim())
+      .map((b) => b.content.trim());
+
+    // Auto-translate body blocks text to EN
+    const bodyEnParts: string[] = [];
+    for (const block of newsBodyBlocks) {
+      if (block.type === "text" && block.content.trim()) {
+        const en = await englishFromChinese(block.content.trim(), "");
+        bodyEnParts.push(en || block.content.trim());
+      }
+    }
+
     const payload = {
-      slug: String(form.get("slug") ?? "").trim(),
-      title_en: String(form.get("titleEn") ?? "").trim() || (await englishFromChinese(titleZh)),
-      title_zh: titleZh,
-      excerpt_en:
-        String(form.get("excerptEn") ?? "").trim() || (await englishFromChinese(excerptZh)),
-      excerpt_zh: excerptZh,
-      body_en:
-        String(form.get("bodyEn") ?? "")
-          .split("\n")
-          .map((value) => value.trim())
-          .filter(Boolean).length > 0
-          ? String(form.get("bodyEn") ?? "")
-              .split("\n")
-              .map((value) => value.trim())
-              .filter(Boolean)
-          : bodyZh,
+      slug: newsSlug.trim(),
+      title_en: newsTitleEn.trim() || (await englishFromChinese(newsTitleZh, "")),
+      title_zh: newsTitleZh.trim(),
+      excerpt_en: newsExcerptEn.trim() || (await englishFromChinese(newsExcerptZh, "")),
+      excerpt_zh: newsExcerptZh.trim(),
+      body_en: bodyEnParts,
       body_zh: bodyZh,
-      cover_url: String(form.get("coverUrl") ?? "").trim() || null,
-      tags: normalizeStoredTags(
-        String(form.get("tags") ?? "")
-          .split(",")
-          .map((value) => value.trim())
-          .filter(Boolean),
-      ),
+      body_blocks: newsBodyBlocks as unknown as never,
+      cover_url: coverUrl || null,
+      tags: newsSelectedTags,
     };
     const { error } = editingNewsId
       ? await client.from("news_posts").update(payload).eq("id", editingNewsId)
@@ -1989,7 +2221,6 @@ function AdminOperationsPanel({
     setBusy(false);
     if (error) setMessage(error.message);
     else {
-      formElement.reset();
       setEditingNewsId(null);
       setMessage(editingNewsId ? "News updated." : "News published.");
       await queryClient.invalidateQueries({ queryKey: ["news"] });
@@ -2048,6 +2279,77 @@ function AdminOperationsPanel({
   };
 
   const editingNews = news.find((row) => row.id === editingNewsId) ?? null;
+
+  // Populate news form when editing
+  useEffect(() => {
+    if (editingNews) {
+      setNewsTitleZh(editingNews.title_zh);
+      setNewsTitleEn(editingNews.title_en);
+      setNewsExcerptZh(editingNews.excerpt_zh);
+      setNewsExcerptEn(editingNews.excerpt_en);
+      setNewsSlug(editingNews.slug);
+      setNewsCoverPreview(editingNews.cover_url ?? "");
+      setNewsCoverFile(null);
+      const raw = editingNews as unknown as Record<string, unknown>;
+      const rawBlocks = raw["body_blocks"];
+      const blocks = Array.isArray(rawBlocks) && rawBlocks.length > 0
+        ? (rawBlocks as NewsBodyBlock[])
+        : editingNews.body_zh.map((p) => ({ type: "text" as const, content: p }));
+      setNewsBodyBlocks(blocks);
+      setNewsSelectedTags(editingNews.tags);
+      newsTitleZhManualEnRef.current = true;
+      newsExcerptZhManualEnRef.current = true;
+    } else {
+      setNewsTitleZh("");
+      setNewsTitleEn("");
+      setNewsExcerptZh("");
+      setNewsExcerptEn("");
+      setNewsSlug("");
+      setNewsCoverPreview("");
+      setNewsCoverFile(null);
+      setNewsBodyBlocks([{ type: "text", content: "" }]);
+      setNewsSelectedTags([]);
+      newsTitleZhManualEnRef.current = false;
+      newsExcerptZhManualEnRef.current = false;
+    }
+  }, [editingNewsId]);
+
+  // Auto-translate title ZH → EN
+  useEffect(() => {
+    if (newsTitleZhManualEnRef.current || !newsTitleZh.trim()) return;
+    const timer = window.setTimeout(() => {
+      void englishFromChinese(newsTitleZh, "").then((t) => {
+        if (!newsTitleZhManualEnRef.current && t) setNewsTitleEn(t);
+      });
+    }, 700);
+    return () => window.clearTimeout(timer);
+  }, [newsTitleZh]);
+
+  // Auto-translate excerpt ZH → EN
+  useEffect(() => {
+    if (newsExcerptZhManualEnRef.current || !newsExcerptZh.trim()) return;
+    const timer = window.setTimeout(() => {
+      void englishFromChinese(newsExcerptZh, "").then((t) => {
+        if (!newsExcerptZhManualEnRef.current && t) setNewsExcerptEn(t);
+      });
+    }, 700);
+    return () => window.clearTimeout(timer);
+  }, [newsExcerptZh]);
+
+  const uploadNewsImage = async (file: File): Promise<string | null> => {
+    const id = editingNewsId ?? `draft-${Date.now()}`;
+    const path = `news/${id}/${Date.now()}-${file.name}`;
+    const { error } = await client.storage.from("model-media").upload(path, file, {
+      contentType: file.type,
+      upsert: false,
+    });
+    if (error) {
+      setMessage(`Image upload failed: ${error.message}`);
+      return null;
+    }
+    return client.storage.from("model-media").getPublicUrl(path).data.publicUrl;
+  };
+
   const inputClass =
     "mt-2 w-full border border-white/15 bg-slate-950 px-3 py-3 text-sm text-white outline-none focus:border-white/50";
   const sectionHeading =
@@ -2412,54 +2714,110 @@ function AdminOperationsPanel({
       {tab === "news" ? (
         <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_1.3fr]">
           <form key={editingNewsId ?? "new"} onSubmit={addNews} className="space-y-4">
-            <h3 className="text-xl font-light">{editingNewsId ? "Edit news" : "Publish news"}</h3>
-            {newsFormFields.map(([name, label]) => {
-              const defaults: Record<string, string> = {
-                slug: editingNews?.slug ?? "",
-                titleEn: editingNews?.title_en ?? "",
-                titleZh: editingNews?.title_zh ?? "",
-                excerptEn: editingNews?.excerpt_en ?? "",
-                excerptZh: editingNews?.excerpt_zh ?? "",
-                coverUrl: editingNews?.cover_url ?? "",
-                tags: (editingNews?.tags ?? []).join(", "),
-              };
-              return (
-                <label key={name} className="block text-sm text-white/65">
-                  {label}
-                  <input
-                    name={name}
-                    defaultValue={defaults[name] ?? ""}
-                    className={inputClass}
-                    required={name === "slug" || name === "titleZh" || name === "excerptZh"}
-                  />
-                </label>
-              );
-            })}
+            <h3 className="text-xl font-light">{editingNewsId ? "編輯新聞" : "發布新聞"}</h3>
             <label className="block text-sm text-white/65">
-              Body (English, one paragraph per line)
-              <textarea
-                name="bodyEn"
-                rows={4}
-                className={inputClass}
-                defaultValue={(editingNews?.body_en ?? []).join("\n")}
-              />
-            </label>
-            <label className="block text-sm text-white/65">
-              Body (中文，每行一段)
-              <textarea
-                name="bodyZh"
-                rows={4}
+              Slug（網址路徑）
+              <input
+                value={newsSlug}
+                onChange={(e) => setNewsSlug(e.target.value)}
                 className={inputClass}
                 required
-                defaultValue={(editingNews?.body_zh ?? []).join("\n")}
+                placeholder="spring-board-update"
               />
             </label>
+            <label className="block text-sm text-white/65">
+              標題（中文）
+              <input
+                value={newsTitleZh}
+                onChange={(e) => {
+                  newsTitleZhManualEnRef.current = false;
+                  setNewsTitleZh(e.target.value);
+                }}
+                className={inputClass}
+                required
+                placeholder="春季分類更新"
+              />
+            </label>
+            <label className="block text-sm text-white/65">
+              Title (English)（自動翻譯，可手動修改）
+              <input
+                value={newsTitleEn}
+                onChange={(e) => {
+                  newsTitleZhManualEnRef.current = true;
+                  setNewsTitleEn(e.target.value);
+                }}
+                className={inputClass}
+                placeholder="Auto-translated from Chinese"
+              />
+            </label>
+            <label className="block text-sm text-white/65">
+              摘要（中文）
+              <input
+                value={newsExcerptZh}
+                onChange={(e) => {
+                  newsExcerptZhManualEnRef.current = false;
+                  setNewsExcerptZh(e.target.value);
+                }}
+                className={inputClass}
+                required
+                placeholder="簡短摘要…"
+              />
+            </label>
+            <label className="block text-sm text-white/65">
+              Excerpt (English)（自動翻譯，可手動修改）
+              <input
+                value={newsExcerptEn}
+                onChange={(e) => {
+                  newsExcerptZhManualEnRef.current = true;
+                  setNewsExcerptEn(e.target.value);
+                }}
+                className={inputClass}
+                placeholder="Auto-translated from Chinese"
+              />
+            </label>
+            <div>
+              <p className="text-sm text-white/65">封面圖片（上傳）</p>
+              {(newsCoverPreview || newsCoverFile) && (
+                <img
+                  src={newsCoverFile ? URL.createObjectURL(newsCoverFile) : newsCoverPreview}
+                  alt="cover preview"
+                  className="mt-2 max-h-32 rounded object-contain"
+                />
+              )}
+              <label className="mt-2 inline-block cursor-pointer border border-white/20 px-3 py-2 text-xs text-white/70 hover:bg-white/5">
+                {newsCoverPreview || newsCoverFile ? "更換封面" : "選擇封面圖片"}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  disabled={!canEdit}
+                  className="sr-only"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] ?? null;
+                    setNewsCoverFile(file);
+                    if (file) setNewsCoverPreview("");
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            </div>
+            <NewsBlockEditor
+              blocks={newsBodyBlocks}
+              onChange={setNewsBodyBlocks}
+              onUploadImage={uploadNewsImage}
+              disabled={!canEdit}
+            />
+            <NewsTagAutocomplete
+              selectedTags={newsSelectedTags}
+              onAdd={(slug) => setNewsSelectedTags((prev) => [...prev, slug])}
+              onRemove={(slug) => setNewsSelectedTags((prev) => prev.filter((s) => s !== slug))}
+              disabled={!canEdit}
+            />
             <div className="flex flex-wrap gap-3">
               <button
                 disabled={!canEdit || busy}
                 className="label-xs bg-white px-5 py-3 text-slate-950 disabled:opacity-50"
               >
-                {editingNewsId ? "Save changes" : "Publish"}
+                {busy ? "儲存中…" : editingNewsId ? "儲存變更" : "發布"}
               </button>
               {editingNewsId ? (
                 <button
@@ -2468,7 +2826,7 @@ function AdminOperationsPanel({
                   onClick={() => setEditingNewsId(null)}
                   className="label-xs border border-white/20 px-5 py-3 text-white disabled:opacity-50"
                 >
-                  Cancel edit
+                  取消編輯
                 </button>
               ) : null}
             </div>
