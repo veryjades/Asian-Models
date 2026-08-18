@@ -3,9 +3,24 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** Admin completeness: tag-page sync, YouTube links, unlimited media + slot crop, Chinese-first Admin.
-**Last heartbeat:** 2026-08-16 +08:00 (`feature/dev-env-news-gate`; keyword pages now use live models + tag aliases)
+**Current task:** Apply `20260818140000_news_media_storage_policy.sql` to live Supabase; owner sign-in verify News block editor + cover upload.
+**Last heartbeat:** 2026-08-18 21:35 +08:00 (`feature/dev-env-news-gate` @ `4e5b1e4` pushed to origin; local dev on `:8091`; migration pending SQL apply.)
 **Phase 0 completion date:** 2026-08-10
+
+## Session heartbeat (2026-08-18, evening)
+
+- Pushed `4e5b1e4` (`feat: revamp News admin — block editor, cover upload, auto-translate, tag autocomplete`) to `origin/feature/dev-env-news-gate`.
+- Local dev server started: `http://127.0.0.1:8091` (`bunx vite dev --host 127.0.0.1 --port 8091 --strictPort`). Route probes returned HTTP 200 for `/`, `/admin`, `/news`, `/keywords/beauty`.
+- `bun run build` passes after the News revamp.
+- **Blocker:** live Supabase project `jkhxtuwqmmdetjqymzso` does not yet have `news_posts.body_blocks` or `news/` Storage RLS policies. REST probe returned `42703 column news_posts.body_blocks does not exist`. Apply `supabase/migrations/20260818140000_news_media_storage_policy.sql` via Dashboard SQL Editor or `scripts/apply-pending-migration.ps1` (needs `SUPABASE_ACCESS_TOKEN` or `SUPABASE_DB_URL`).
+- Cover upload and block editor **will fail on save** until the migration is applied.
+
+## Session heartbeat (2026-08-18, earlier)
+
+Long-thread chat compacted for a new Cursor session. No phase gate closed.
+HEAD `5228601` (`fix: sync Admin tags, YouTube, and media slots to the public site`)
+was on origin before the News revamp push. Untracked `rest-site.json` leftover REST dump
+— do not commit. Paste-ready briefing: `docs/SESSION_HANDOFF.md`.
 
 ## Current live backend
 
@@ -102,7 +117,7 @@ historical.
 - Viewer/Editor deny matrix was not re-run. News Admin→public unique-slug gate was previously verified then restored. **2026-08-16:** local `127.0.0.1:8091/admin` and Preview `/admin` were signed out, so same-row News edit refresh was not re-run. J Agent published retrieval and specialist-handoff UI passed locally.
 - Public media path: 0 `media_assets` rows. Remaining hover pairs are **post-launch Admin uploads** (D-025), not a Phase 2 blocker.
 - The owner-authorized Email provider setting is currently minimum 6 characters with no required character classes. Security advisor still reports `auth_leaked_password_protection` because Supabase makes leaked-password checks available only on Pro and above.
-- Asana MCP was unavailable (`plugin-asana-asana` error). Repo remains source of truth (D-028). Visual board: 模特經紀網站發佈計畫.
+- Asana MCP due-task list is not in the repo. Owner requested it 2026-08-18; run that in the new chat. Repo remains source of truth (D-028). Visual board: 模特經紀網站發佈計畫.
 
 ## Phase 0 readiness
 
@@ -117,9 +132,10 @@ historical.
 
 ## Next action
 
-On local `http://127.0.0.1:8091/admin`, assign Editorial / Beauty / Runway
-checkboxes on the new woman, save, then confirm `/keywords/editorial-model`,
-`/keywords/beauty`, and `/keywords/runway`. Paste a YouTube URL after save.
-Owner pastes live m.me / LINE OA URLs when they exist. Cover file-upload remains
+Owner: sign in at local `http://127.0.0.1:8091/admin` (not 8090). Tick Editorial /
+Beauty / Runway on the new woman, save, then confirm `/keywords/editorial-model`,
+`/keywords/beauty`, and `/keywords/runway`. Same signed-in session is still
+required for News Admin→public refresh. Paste a YouTube URL after save. Owner
+pastes live m.me / LINE OA URLs when they exist. Cover file-upload remains
 URL-only. Do not start a paid translation SDK or Phase 7 webhooks. Do not
-promote production.
+promote production. New chat: start from `docs/SESSION_HANDOFF.md`.

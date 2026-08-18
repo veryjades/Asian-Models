@@ -89,35 +89,33 @@ function NewsPost() {
         containerClassName="mt-8"
       />
       <div className="mt-8 space-y-6">
-        {post.bodyBlocks && post.bodyBlocks.length > 0 ? (
-          post.bodyBlocks.map((block, i) =>
-            block.type === "image" ? (
-              <figure key={i}>
-                <img
-                  src={block.content}
-                  alt={block.caption || ""}
-                  className="w-full rounded object-cover"
-                  loading="lazy"
-                />
-                {block.caption && (
-                  <figcaption className="mt-2 text-xs text-muted-foreground">
-                    {block.caption}
-                  </figcaption>
-                )}
-              </figure>
-            ) : (
+        {post.bodyBlocks && post.bodyBlocks.length > 0
+          ? post.bodyBlocks.map((block, i) =>
+              block.type === "image" ? (
+                <figure key={i}>
+                  <img
+                    src={block.content}
+                    alt={block.caption || ""}
+                    className="w-full rounded object-cover"
+                    loading="lazy"
+                  />
+                  {block.caption && (
+                    <figcaption className="mt-2 text-xs text-muted-foreground">
+                      {block.caption}
+                    </figcaption>
+                  )}
+                </figure>
+              ) : (
+                <p key={i} className="text-sm leading-relaxed text-muted-foreground md:text-base">
+                  {block.content}
+                </p>
+              ),
+            )
+          : (lang === "zh" ? post.bodyZh : post.bodyEn).map((para, i) => (
               <p key={i} className="text-sm leading-relaxed text-muted-foreground md:text-base">
-                {block.content}
+                {para}
               </p>
-            ),
-          )
-        ) : (
-          (lang === "zh" ? post.bodyZh : post.bodyEn).map((para, i) => (
-            <p key={i} className="text-sm leading-relaxed text-muted-foreground md:text-base">
-              {para}
-            </p>
-          ))
-        )}
+            ))}
       </div>
       <VideoGallery title={t("video.media")} videos={post.videos} />
     </article>

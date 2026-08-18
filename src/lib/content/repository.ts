@@ -240,9 +240,10 @@ const supabaseRepository: ContentRepository = {
       return data.map((row) => {
         const raw = row as unknown as Record<string, unknown>;
         const rawBlocks = raw["body_blocks"];
-        const blocks = Array.isArray(rawBlocks) && rawBlocks.length > 0
-          ? (rawBlocks as { type: "text" | "image"; content: string; caption?: string }[])
-          : undefined;
+        const blocks =
+          Array.isArray(rawBlocks) && rawBlocks.length > 0
+            ? (rawBlocks as { type: "text" | "image"; content: string; caption?: string }[])
+            : undefined;
         return {
           slug: row.slug,
           date: row.date,
@@ -273,9 +274,10 @@ const supabaseRepository: ContentRepository = {
       if (error || !data) return seedRepository.getNewsPost(slug);
       const raw = data as unknown as Record<string, unknown>;
       const rawBlocks = raw["body_blocks"];
-      const blocks = Array.isArray(rawBlocks) && rawBlocks.length > 0
-        ? (rawBlocks as { type: "text" | "image"; content: string; caption?: string }[])
-        : undefined;
+      const blocks =
+        Array.isArray(rawBlocks) && rawBlocks.length > 0
+          ? (rawBlocks as { type: "text" | "image"; content: string; caption?: string }[])
+          : undefined;
       return {
         slug: data.slug,
         date: data.date,

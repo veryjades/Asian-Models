@@ -1776,7 +1776,11 @@ function NewsTagAutocomplete({
             >
               {tag ? `${tag.labelZh} / ${tag.labelEn}` : slug}
               {!disabled && (
-                <button type="button" onClick={() => onRemove(slug)} className="ml-1 text-white/60 hover:text-white">
+                <button
+                  type="button"
+                  onClick={() => onRemove(slug)}
+                  className="ml-1 text-white/60 hover:text-white"
+                >
                   ×
                 </button>
               )}
@@ -1864,9 +1868,30 @@ function NewsBlockEditor({
               {block.type === "text" ? `段落 #${index + 1}` : `圖片 #${index + 1}`}
             </span>
             <div className="flex gap-2">
-              <button type="button" onClick={() => moveBlock(index, -1)} disabled={disabled || index === 0} className="text-xs text-white/50 hover:text-white disabled:opacity-30">↑</button>
-              <button type="button" onClick={() => moveBlock(index, 1)} disabled={disabled || index === blocks.length - 1} className="text-xs text-white/50 hover:text-white disabled:opacity-30">↓</button>
-              <button type="button" onClick={() => removeBlock(index)} disabled={disabled} className="text-xs text-red-300/70 hover:text-red-200 disabled:opacity-30">刪除</button>
+              <button
+                type="button"
+                onClick={() => moveBlock(index, -1)}
+                disabled={disabled || index === 0}
+                className="text-xs text-white/50 hover:text-white disabled:opacity-30"
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                onClick={() => moveBlock(index, 1)}
+                disabled={disabled || index === blocks.length - 1}
+                className="text-xs text-white/50 hover:text-white disabled:opacity-30"
+              >
+                ↓
+              </button>
+              <button
+                type="button"
+                onClick={() => removeBlock(index)}
+                disabled={disabled}
+                className="text-xs text-red-300/70 hover:text-red-200 disabled:opacity-30"
+              >
+                刪除
+              </button>
             </div>
           </div>
           {block.type === "text" ? (
@@ -1881,7 +1906,11 @@ function NewsBlockEditor({
           ) : (
             <div>
               {block.content && (
-                <img src={block.content} alt="block" className="mb-2 max-h-40 rounded object-contain" />
+                <img
+                  src={block.content}
+                  alt="block"
+                  className="mb-2 max-h-40 rounded object-contain"
+                />
               )}
               <input
                 type="text"
@@ -1904,7 +1933,9 @@ function NewsBlockEditor({
         >
           + 段落
         </button>
-        <label className={`border border-white/20 px-3 py-2 text-xs text-white/70 hover:bg-white/5 ${disabled ? "pointer-events-none opacity-40" : "cursor-pointer"}`}>
+        <label
+          className={`border border-white/20 px-3 py-2 text-xs text-white/70 hover:bg-white/5 ${disabled ? "pointer-events-none opacity-40" : "cursor-pointer"}`}
+        >
           + 圖片
           <input
             type="file"
@@ -2280,26 +2311,28 @@ function AdminOperationsPanel({
 
   const editingNews = news.find((row) => row.id === editingNewsId) ?? null;
 
-  // Populate news form when editing
+  // Populate news form when editing (only when switching rows, not on every news list refresh)
   useEffect(() => {
-    if (editingNews) {
-      setNewsTitleZh(editingNews.title_zh);
-      setNewsTitleEn(editingNews.title_en);
-      setNewsExcerptZh(editingNews.excerpt_zh);
-      setNewsExcerptEn(editingNews.excerpt_en);
-      setNewsSlug(editingNews.slug);
-      setNewsCoverPreview(editingNews.cover_url ?? "");
+    const row = editingNewsId ? (news.find((item) => item.id === editingNewsId) ?? null) : null;
+    if (row) {
+      setNewsTitleZh(row.title_zh);
+      setNewsTitleEn(row.title_en);
+      setNewsExcerptZh(row.excerpt_zh);
+      setNewsExcerptEn(row.excerpt_en);
+      setNewsSlug(row.slug);
+      setNewsCoverPreview(row.cover_url ?? "");
       setNewsCoverFile(null);
-      const raw = editingNews as unknown as Record<string, unknown>;
+      const raw = row as unknown as Record<string, unknown>;
       const rawBlocks = raw["body_blocks"];
-      const blocks = Array.isArray(rawBlocks) && rawBlocks.length > 0
-        ? (rawBlocks as NewsBodyBlock[])
-        : editingNews.body_zh.map((p) => ({ type: "text" as const, content: p }));
+      const blocks =
+        Array.isArray(rawBlocks) && rawBlocks.length > 0
+          ? (rawBlocks as NewsBodyBlock[])
+          : row.body_zh.map((p) => ({ type: "text" as const, content: p }));
       setNewsBodyBlocks(blocks);
-      setNewsSelectedTags(editingNews.tags);
+      setNewsSelectedTags(row.tags);
       newsTitleZhManualEnRef.current = true;
       newsExcerptZhManualEnRef.current = true;
-    } else {
+    } else if (!editingNewsId) {
       setNewsTitleZh("");
       setNewsTitleEn("");
       setNewsExcerptZh("");
@@ -2312,6 +2345,7 @@ function AdminOperationsPanel({
       newsTitleZhManualEnRef.current = false;
       newsExcerptZhManualEnRef.current = false;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only reset form when switching edit target
   }, [editingNewsId]);
 
   // Auto-translate title ZH → EN
