@@ -52,6 +52,28 @@ export const Route = createFileRoute("/news/$slug")({
             publisher: { "@type": "Organization", name: "J&J Model Agency" },
           }),
         },
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "Home",
+                item: "https://www.jjmodelagency.com/",
+              },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: "News",
+                item: "https://www.jjmodelagency.com/news",
+              },
+              { "@type": "ListItem", position: 3, name: loaderData.title },
+            ],
+          }),
+        },
       ],
     };
   },
@@ -100,7 +122,7 @@ function NewsPost() {
                     <figure key={i}>
                       <img
                         src={block.content}
-                        alt={block.caption || ""}
+                        alt={block.caption || pick(post.titleEn, post.titleZh)}
                         className="w-full rounded object-cover"
                         loading="lazy"
                       />
@@ -128,6 +150,20 @@ function NewsPost() {
               </p>
             ))}
       </div>
+      {post.tags.length > 0 && (
+        <div className="mt-10 flex flex-wrap gap-2">
+          {post.tags.map((tag) => (
+            <Link
+              key={tag}
+              to="/news"
+              search={{ tag }}
+              className="rounded-full border px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent"
+            >
+              {tag}
+            </Link>
+          ))}
+        </div>
+      )}
       <VideoGallery title={t("video.media")} videos={post.videos} />
     </article>
   );

@@ -68,6 +68,30 @@ export const Route = createFileRoute("/models/$board/$slug")({
         { property: "og:url", content: `/models/${params.board}/${params.slug}` },
       ],
       links: [{ rel: "canonical", href: `/models/${params.board}/${params.slug}` }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "Home",
+                item: "https://www.jjmodelagency.com/",
+              },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: params.board.charAt(0).toUpperCase() + params.board.slice(1),
+                item: `https://www.jjmodelagency.com/models/${params.board}`,
+              },
+              { "@type": "ListItem", position: 3, name: displayName },
+            ],
+          }),
+        },
+      ],
     };
   },
   component: ModelPage,

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { contentRepository } from "@/lib/content/repository";
 import { useI18n } from "@/lib/i18n";
@@ -11,6 +11,9 @@ const newsQuery = queryOptions({
 });
 
 export const Route = createFileRoute("/news/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    tag: typeof search.tag === "string" ? search.tag : undefined,
+  }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData({
       ...newsQuery,
@@ -45,14 +48,29 @@ export const Route = createFileRoute("/news/")({
 
 function NewsIndex() {
   const { data } = useSuspenseQuery(newsQuery);
+  const { tag } = useSearch({ from: "/news/" });
   const { pick, t, lang } = useI18n();
+
+  const filtered = tag
+    ? data.filter((p) => p.tags.some((t) => t.toLowerCase() === tag.toLowerCase()))
+    : data;
 
   return (
     <div className="mx-auto max-w-[1600px] px-5 py-10 md:px-10">
       <h1 className="text-3xl font-light md:text-4xl">{t("news.title")}</h1>
+      {tag && (
+        <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+          <span>
+            {lang === "zh" ? "篩選標籤" : "Filtered by"}: <strong>{tag}</strong>
+          </span>
+          <Link to="/news" search={{}} className="text-xs underline hover:text-foreground">
+            {lang === "zh" ? "清除" : "Clear"}
+          </Link>
+        </div>
+      )}
       <div className="gradient-accent mt-6 h-1 w-24" aria-hidden="true" />
       <ul className="mt-10 grid gap-12 md:grid-cols-2 xl:grid-cols-3">
-        {data.map((post) => (
+        {filtered.map((post) => (
           <li key={post.slug}>
             <Link
               to="/news/$slug"
@@ -80,6 +98,11 @@ function NewsIndex() {
           </li>
         ))}
       </ul>
+      {filtered.length === 0 && (
+        <p className="py-16 text-center text-sm text-muted-foreground">
+          {lang === "zh" ? "此標籤暫無新聞" : "No news found for this tag."}
+        </p>
+      )}
     </div>
   );
 }

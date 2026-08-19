@@ -40,6 +40,24 @@ export const Route = createFileRoute("/keywords/$slug")({
         { property: "og:url", content: `/keywords/${params.slug}` },
       ],
       links: [{ rel: "canonical", href: `/keywords/${params.slug}` }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "Home",
+                item: "https://www.jjmodelagency.com/",
+              },
+              { "@type": "ListItem", position: 2, name: keyword?.labelEn ?? params.slug },
+            ],
+          }),
+        },
+      ],
     };
   },
   component: KeywordPage,
