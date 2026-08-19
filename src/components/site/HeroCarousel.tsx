@@ -142,8 +142,10 @@ export function HeroCarousel() {
             onClick={() => setIndex(i)}
             aria-label={`${t("hero.goTo")} ${i + 1}`}
             aria-current={i === index}
-            className={`h-1.5 w-6 transition-opacity ${
-              i === index ? "gradient-accent opacity-100" : "bg-foreground/25 hover:opacity-70"
+            className={`h-2 w-2 rounded-full transition-all ${
+              i === index
+                ? "scale-125 gradient-accent opacity-100"
+                : "bg-foreground/25 hover:opacity-70"
             }`}
           />
         ))}

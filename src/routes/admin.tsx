@@ -1761,7 +1761,7 @@ function NewsTagAutocomplete({
 }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const suggestions = useMemo(() => (query ? searchNewsTags(query).slice(0, 8) : []), [query]);
+  const suggestions = useMemo(() => searchNewsTags(query).slice(0, 10), [query]);
 
   return (
     <div className="relative">

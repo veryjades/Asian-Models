@@ -10,6 +10,9 @@ export const MODEL_CATEGORY_OPTIONS = [
   { value: "talent", label: "Talent / 藝人" },
   { value: "host", label: "Host / 主持人" },
   { value: "actor", label: "Actor / 演員" },
+  { value: "singer", label: "Singer / 歌手" },
+  { value: "musician", label: "Musician / 音樂人" },
+  { value: "dancer", label: "Dancer / 舞者" },
 ] as const;
 
 export function normalizeModelCategory(value: string): string {

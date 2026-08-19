@@ -19,6 +19,7 @@ const dict: Dict = {
   "nav.men": { en: "Men", zh: "男模" },
   "nav.newFaces": { en: "New Faces", zh: "新面孔" },
   "nav.talent": { en: "Talent", zh: "藝人" },
+  "nav.singers": { en: "Singers", zh: "歌手" },
   "nav.news": { en: "News", zh: "消息" },
   "nav.about": { en: "About", zh: "關於" },
   "nav.contact": { en: "Contact", zh: "聯絡" },
