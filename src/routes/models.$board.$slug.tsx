@@ -7,6 +7,7 @@ import { VideoGallery } from "@/components/site/VideoGallery";
 import { AgencyImage } from "@/components/site/AgencyImage";
 import { QuickBooking } from "@/components/site/QuickBooking";
 import { seedKeywords } from "@/lib/content/keywords";
+import { agencySlotProps, PUBLIC_MEDIA_SLOTS } from "@/lib/content/mediaSlots";
 
 const languageLabels: Record<string, { en: string; zh: string }> = {
   Mandarin: { en: "Mandarin", zh: "中文" },
@@ -67,6 +68,30 @@ export const Route = createFileRoute("/models/$board/$slug")({
         { property: "og:url", content: `/models/${params.board}/${params.slug}` },
       ],
       links: [{ rel: "canonical", href: `/models/${params.board}/${params.slug}` }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "Home",
+                item: "https://www.jjmodelagency.com/",
+              },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: params.board.charAt(0).toUpperCase() + params.board.slice(1),
+                item: `https://www.jjmodelagency.com/models/${params.board}`,
+              },
+              { "@type": "ListItem", position: 3, name: displayName },
+            ],
+          }),
+        },
+      ],
     };
   },
   component: ModelPage,
@@ -123,10 +148,7 @@ function ModelPage() {
           <AgencyImage
             src={model.portrait}
             alt={model.name}
-            width={768}
-            height={1024}
-            aspectRatio="3 / 4"
-            fit="cover"
+            {...agencySlotProps(PUBLIC_MEDIA_SLOTS.modelProfile)}
           />
           <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             {pick(model.bioEn, model.bioZh)}
@@ -218,10 +240,7 @@ function Gallery({ title, images, model }: { title: string; images: string[]; mo
               src={src}
               alt={`${model.name} — ${title} ${i + 1}`}
               loading="lazy"
-              width={768}
-              height={1024}
-              aspectRatio="2 / 3"
-              fit="cover"
+              {...agencySlotProps(PUBLIC_MEDIA_SLOTS.modelGallery)}
             />
           </li>
         ))}

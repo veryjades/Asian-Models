@@ -274,6 +274,8 @@ export type Database = {
           about_body_en: string[];
           about_body_zh: string[];
           offices: Json;
+          messenger_url: string | null;
+          line_oa_url: string | null;
           updated_at: string;
         };
         Insert: {
@@ -285,6 +287,8 @@ export type Database = {
           about_body_en?: string[];
           about_body_zh?: string[];
           offices?: Json;
+          messenger_url?: string | null;
+          line_oa_url?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -296,6 +300,8 @@ export type Database = {
           about_body_en?: string[];
           about_body_zh?: string[];
           offices?: Json;
+          messenger_url?: string | null;
+          line_oa_url?: string | null;
           updated_at?: string;
         };
         Relationships: [];

@@ -1,6 +1,6 @@
 import type { VideoMedia } from "./media";
 
-export type BoardId = "women" | "men" | "new-faces" | "talent";
+export type BoardId = "women" | "men" | "new-faces" | "talent" | "singers";
 
 export type Board = {
   id: BoardId;
@@ -13,6 +13,7 @@ export const boards: Board[] = [
   { id: "men", labelEn: "Men", labelZh: "男模" },
   { id: "new-faces", labelEn: "New Faces", labelZh: "新面孔" },
   { id: "talent", labelEn: "Talent", labelZh: "藝人" },
+  { id: "singers", labelEn: "Singers", labelZh: "歌手" },
 ];
 
 export type ModelStats = {
@@ -63,6 +64,11 @@ export type Model = {
   socialLinks?: { platform: string; label: string; url: string }[];
 };
 
+export type NewsBodyBlock =
+  | { type: "heading"; content: string; level?: 2 | 3 }
+  | { type: "text"; content: string }
+  | { type: "image"; content: string; caption?: string };
+
 export type NewsPost = {
   slug: string;
   date: string;
@@ -72,6 +78,8 @@ export type NewsPost = {
   excerptZh: string;
   bodyEn: string[];
   bodyZh: string[];
+  /** Block-based body content (段落 + 圖片交替). Takes precedence over bodyEn/bodyZh when present. */
+  bodyBlocks?: NewsBodyBlock[];
   cover: string;
   /** Canonical keyword/tag slugs from the shared taxonomy registry. */
   tags: string[];

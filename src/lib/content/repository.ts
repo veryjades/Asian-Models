@@ -1,4 +1,5 @@
-import { seedKeywords, sortKeywords } from "./keywords";
+import { hasKeywordTag, normalizeStoredTags, seedKeywords, sortKeywords } from "./keywords";
+import { parseYouTubeId } from "./media";
 import { boards, type BoardId, type ContentRepository, type Model } from "./types";
 import { seedModels, seedNews } from "./seed";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -48,9 +49,11 @@ export const seedRepository: ContentRepository = {
     const keyword = seedKeywords.find((item) => item.slug === slug && item.active);
     if (!keyword) return null;
 
-    const models = sortModels(seedModels.filter((model) => model.tags.includes(keyword.slug)));
-    const news = seedNews
-      .filter((post) => post.tags.includes(keyword.slug))
+    const models = sortModels(
+      (await this.listModels()).filter((model) => hasKeywordTag(model.tags, keyword.slug)),
+    );
+    const news = (await this.listNews())
+      .filter((post) => hasKeywordTag(post.tags, keyword.slug))
       .sort((a, b) => b.date.localeCompare(a.date));
     const portfolio = models.filter((model) => model.gallery.length > 0);
 
@@ -101,7 +104,7 @@ const fallbackModel = (row: Database["public"]["Tables"]["models"]["Row"]): Mode
     ...(seed?.hoverPortrait ? { hoverPortrait: seed.hoverPortrait } : {}),
     gallery: seed?.gallery ?? [],
     digitals: seed?.digitals ?? [],
-    tags: row.tags.length ? row.tags : (seed?.tags ?? []),
+    tags: normalizeStoredTags(row.tags.length ? row.tags : (seed?.tags ?? [])),
     ...(seed?.videos ? { videos: seed.videos } : {}),
     socialLinks: [],
   };
@@ -174,13 +177,29 @@ const supabaseRepository: ContentRepository = {
         const gallery = assets
           .filter((asset) => asset.sort_order > 1 && asset.type === "image")
           .map((asset) => publicUrl(asset.file_url));
-        const videos = (videosByOwner.get(row.id) ?? []).map((video) => ({
-          id: `db-${video.id}`,
-          source: "youtube" as const,
-          src: video.youtube_url,
-          titleEn: video.title,
-          titleZh: video.title,
-        }));
+        const fileVideos = assets
+          .filter((asset) => asset.type === "video")
+          .map((asset) => ({
+            id: `file-${asset.owner_id}-${asset.sort_order}`,
+            source: "file" as const,
+            src: publicUrl(asset.file_url),
+            titleEn: "Showreel",
+            titleZh: "動態作品",
+          }));
+        const youtubeVideos = (videosByOwner.get(row.id) ?? []).flatMap((video) => {
+          const id = parseYouTubeId(video.youtube_url);
+          if (!id) return [];
+          return [
+            {
+              id: `db-${video.id}`,
+              source: "youtube" as const,
+              src: id,
+              titleEn: video.title,
+              titleZh: video.title,
+            },
+          ];
+        });
+        const videos = [...fileVideos, ...youtubeVideos];
         const socialLinks = (socialsByOwner.get(row.id) ?? []).map((social) => ({
           platform: social.platform,
           label: social.label,
@@ -218,25 +237,63 @@ const supabaseRepository: ContentRepository = {
       if (limit) query = query.limit(limit);
       const { data, error } = await query;
       if (error || !data?.length) return seedRepository.listNews(limit);
-      return data.map((row) => ({
-        slug: row.slug,
-        date: row.date,
-        titleEn: row.title_en,
-        titleZh: row.title_zh,
-        excerptEn: row.excerpt_en,
-        excerptZh: row.excerpt_zh,
-        bodyEn: row.body_en,
-        bodyZh: row.body_zh,
-        cover: row.cover_url ?? seedNews.find((post) => post.slug === row.slug)?.cover ?? "",
-        tags: row.tags,
-      }));
+      return data.map((row) => {
+        const raw = row as unknown as Record<string, unknown>;
+        const rawBlocks = raw["body_blocks"];
+        const blocks =
+          Array.isArray(rawBlocks) && rawBlocks.length > 0
+            ? (rawBlocks as { type: "text" | "image"; content: string; caption?: string }[])
+            : undefined;
+        return {
+          slug: row.slug,
+          date: row.date,
+          titleEn: row.title_en,
+          titleZh: row.title_zh,
+          excerptEn: row.excerpt_en,
+          excerptZh: row.excerpt_zh,
+          bodyEn: row.body_en,
+          bodyZh: row.body_zh,
+          ...(blocks ? { bodyBlocks: blocks } : {}),
+          cover: row.cover_url ?? seedNews.find((post) => post.slug === row.slug)?.cover ?? "",
+          tags: normalizeStoredTags(row.tags),
+        };
+      });
     } catch {
       return seedRepository.listNews(limit);
     }
   },
   async getNewsPost(slug) {
-    const posts = await this.listNews();
-    return posts.find((post) => post.slug === slug) ?? seedRepository.getNewsPost(slug);
+    try {
+      const client = getSupabaseBrowserClient();
+      const { data, error } = await client
+        .from("news_posts")
+        .select("*")
+        .eq("status", "published")
+        .eq("slug", slug)
+        .maybeSingle();
+      if (error || !data) return seedRepository.getNewsPost(slug);
+      const raw = data as unknown as Record<string, unknown>;
+      const rawBlocks = raw["body_blocks"];
+      const blocks =
+        Array.isArray(rawBlocks) && rawBlocks.length > 0
+          ? (rawBlocks as { type: "text" | "image"; content: string; caption?: string }[])
+          : undefined;
+      return {
+        slug: data.slug,
+        date: data.date,
+        titleEn: data.title_en,
+        titleZh: data.title_zh,
+        excerptEn: data.excerpt_en,
+        excerptZh: data.excerpt_zh,
+        bodyEn: data.body_en,
+        bodyZh: data.body_zh,
+        ...(blocks ? { bodyBlocks: blocks } : {}),
+        cover: data.cover_url ?? seedNews.find((post) => post.slug === data.slug)?.cover ?? "",
+        tags: normalizeStoredTags(data.tags),
+      };
+    } catch {
+      return seedRepository.getNewsPost(slug);
+    }
   },
 };
 

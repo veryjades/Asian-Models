@@ -1,20 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
-import type { CSSProperties } from "react";
+import { type CSSProperties, useState } from "react";
 import { contentRepository } from "@/lib/content/repository";
 import { HeroCarousel } from "@/components/site/HeroCarousel";
 import { AgencyImage } from "@/components/site/AgencyImage";
 import { ModelCard } from "@/components/site/ModelGrid";
 import { AskAssistant } from "@/components/site/AskAssistant";
 import { useI18n } from "@/lib/i18n";
-import type { Keyword } from "@/lib/content/types";
+import type { Keyword, NewsPost as NewsPostType } from "@/lib/content/types";
+import { agencySlotProps, PUBLIC_MEDIA_SLOTS } from "@/lib/content/mediaSlots";
 
 const homeQuery = queryOptions({
   queryKey: ["home"],
   queryFn: async () => {
     const [featured, news, keywords] = await Promise.all([
       contentRepository.listFeaturedModels(4),
-      contentRepository.listNews(3),
+      contentRepository.listNews(20),
       contentRepository.listKeywords({ activeOnly: true, limit: 15 }),
     ]);
 
@@ -74,41 +75,7 @@ function Index() {
         </ul>
       </section>
 
-      <section className="mx-auto max-w-[1600px] px-5 pb-6 md:px-10">
-        <h2 className="label-xs text-muted-foreground">{t("home.latest")}</h2>
-        <ul className="mt-6 grid gap-10 md:grid-cols-3">
-          {data.news.map((post) => (
-            <li key={post.slug}>
-              <Link
-                to="/news/$slug"
-                params={{ slug: post.slug }}
-                className="portrait-hover group block"
-              >
-                <AgencyImage
-                  src={post.cover}
-                  alt={pick(post.titleEn, post.titleZh)}
-                  loading="lazy"
-                  width={768}
-                  height={512}
-                  aspectRatio="3 / 2"
-                  fit="contain"
-                />
-                <p className="label-xs mt-4 text-muted-foreground">
-                  {new Date(post.date).toLocaleDateString(lang === "zh" ? "zh-TW" : "en-GB", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
-                <h3 className="mt-2 text-lg font-light">{pick(post.titleEn, post.titleZh)}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {pick(post.excerptEn, post.excerptZh)}
-                </p>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <NewsCarousel news={data.news} />
 
       <AskAssistant />
     </div>
@@ -143,6 +110,75 @@ function KeywordDynamicRunway({ keywords }: { keywords: Keyword[] }) {
           </a>
         ))}
       </div>
+    </section>
+  );
+}
+
+const NEWS_PER_PAGE = 4;
+
+function NewsCarousel({ news }: { news: NewsPostType[] }) {
+  const { t, pick, lang } = useI18n();
+  const totalPages = Math.max(1, Math.ceil(news.length / NEWS_PER_PAGE));
+  const [page, setPage] = useState(0);
+  const visible = news.slice(page * NEWS_PER_PAGE, page * NEWS_PER_PAGE + NEWS_PER_PAGE);
+
+  return (
+    <section className="mx-auto max-w-[1600px] px-5 pb-10 md:px-10">
+      <div className="flex items-baseline justify-between">
+        <h2 className="label-xs text-muted-foreground">{t("home.latest")}</h2>
+        <Link
+          to="/news"
+          search={{ tag: undefined }}
+          className="label-xs text-muted-foreground hover:text-foreground"
+        >
+          {lang === "zh" ? "全部新聞 →" : "All news →"}
+        </Link>
+      </div>
+      <ul className="mt-6 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        {visible.map((post) => (
+          <li key={post.slug}>
+            <Link
+              to="/news/$slug"
+              params={{ slug: post.slug }}
+              className="portrait-hover group block"
+            >
+              <AgencyImage
+                src={post.cover}
+                alt={pick(post.titleEn, post.titleZh)}
+                loading="lazy"
+                {...agencySlotProps(PUBLIC_MEDIA_SLOTS.newsCover)}
+              />
+              <p className="label-xs mt-4 text-muted-foreground">
+                {new Date(post.date).toLocaleDateString(lang === "zh" ? "zh-TW" : "en-GB", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
+              <h3 className="mt-2 text-lg font-light">{pick(post.titleEn, post.titleZh)}</h3>
+              <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+                {pick(post.excerptEn, post.excerptZh)}
+              </p>
+            </Link>
+          </li>
+        ))}
+      </ul>
+      {totalPages > 1 && (
+        <div className="mt-8 flex items-center justify-center gap-2">
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setPage(i)}
+              aria-label={`Page ${i + 1}`}
+              aria-current={i === page ? "true" : undefined}
+              className={`h-2 w-2 rounded-full transition-all ${
+                i === page ? "scale-125 bg-foreground" : "bg-foreground/25 hover:bg-foreground/50"
+              }`}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 }

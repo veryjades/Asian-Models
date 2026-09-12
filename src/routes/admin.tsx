@@ -1,5 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { createAuthAdapter, type AuthIdentity } from "@/lib/supabase/auth";
@@ -10,6 +19,15 @@ import {
   type ModelMediaMimeType,
 } from "@/lib/supabase/media";
 import type { Database } from "@/lib/supabase/database.types";
+import { seedKeywords, normalizeStoredTags } from "@/lib/content/keywords";
+import { MODEL_CATEGORY_OPTIONS, normalizeModelCategory } from "@/lib/content/modelCategories";
+import { NEWS_TAGS, searchNewsTags, type NewsTag } from "@/lib/content/newsTags";
+import { canonicalYouTubeUrl } from "@/lib/content/media";
+import { englishFromChinese } from "@/lib/i18n/translationAdapter";
+import { PUBLIC_MEDIA_SLOTS, slotHint } from "@/lib/content/mediaSlots";
+import { assertAllowedModelMedia } from "@/lib/supabase/media";
+import type { NewsBodyBlock } from "@/lib/content/types";
+import { NewsAdminWorkspace } from "@/components/admin/NewsAdminWorkspace";
 
 type ModelRow = Database["public"]["Tables"]["models"]["Row"];
 type MediaRow = Database["public"]["Tables"]["media_assets"]["Row"];
@@ -49,6 +67,14 @@ type ModelDraft = {
 };
 
 type Notice = { tone: "error" | "success"; text: string };
+
+function humanizeAuthError(message: string): string {
+  if (/failed to fetch|networkerror|load failed|network request failed/i.test(message)) {
+    return "無法連線到後端（Supabase）。請確認專案 Healthy、網路正常後再重新整理。";
+  }
+  if (/session missing/i.test(message)) return message;
+  return message;
+}
 type WorkspaceUser = {
   id: string;
   email: string | null;
@@ -99,6 +125,17 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+async function invalidatePublicContent(queryClient: ReturnType<typeof useQueryClient>) {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: ["board"] }),
+    queryClient.invalidateQueries({ queryKey: ["model"] }),
+    queryClient.invalidateQueries({ queryKey: ["home"] }),
+    queryClient.invalidateQueries({ queryKey: ["keyword"] }),
+    queryClient.invalidateQueries({ queryKey: ["news"] }),
+    queryClient.invalidateQueries({ queryKey: ["site-settings"] }),
+  ]);
+}
+
 function readJsonString(
   record: Database["public"]["Tables"]["models"]["Row"]["stats"],
   key: string,
@@ -117,20 +154,6 @@ const SOCIAL_PLATFORMS = [
   ["website", "Website"],
   ["other", "Other"],
 ] as const;
-
-function isYouTubeUrl(value: string) {
-  try {
-    const url = new URL(value);
-    return (
-      url.protocol === "https:" &&
-      ["youtube.com", "www.youtube.com", "youtu.be", "www.youtu.be"].includes(
-        url.hostname.toLowerCase(),
-      )
-    );
-  } catch {
-    return false;
-  }
-}
 
 export const Route = createFileRoute("/admin")({ component: AdminRoute });
 
@@ -178,7 +201,7 @@ function AdminRoute() {
         if (error) {
           setIdentity(null);
           if (!/session missing/i.test(error.message)) {
-            setNotice({ tone: "error", text: error.message });
+            setNotice({ tone: "error", text: humanizeAuthError(error.message) });
           }
           setAccess("signed-out");
           return;
@@ -450,7 +473,7 @@ function AdminSignIn({
       email.trim(),
       password,
     );
-    if (signInError) setError(signInError.message);
+    if (signInError) setError(humanizeAuthError(signInError.message));
     setBusy(false);
   };
 
@@ -466,7 +489,7 @@ function AdminSignIn({
       email.trim(),
       `${window.location.origin}/admin?reset=1`,
     );
-    if (resetError) setError(resetError.message);
+    if (resetError) setError(humanizeAuthError(resetError.message));
     else setResetSent(true);
     setBusy(false);
   };
@@ -549,11 +572,13 @@ function AdminDashboard({
   identity: AuthIdentity;
   onSignedOut: () => void;
 }) {
+  const queryClient = useQueryClient();
   const canEdit = identity.role === "admin" || identity.role === "editor";
   const [activeSection, setActiveSection] = useState<AdminSection>("models");
   const [models, setModels] = useState<ModelRow[]>([]);
   const [selectedModelId, setSelectedModelId] = useState<string | null>(null);
   const [draft, setDraft] = useState<ModelDraft>(EMPTY_DRAFT);
+  const bioEnManualRef = useRef(false);
   const [primaryFile, setPrimaryFile] = useState<File | null>(null);
   const [hoverFile, setHoverFile] = useState<File | null>(null);
   const [additionalFiles, setAdditionalFiles] = useState<File[]>([]);
@@ -626,6 +651,26 @@ function AdminDashboard({
   }, [primaryFile, hoverFile]);
 
   useEffect(() => {
+    bioEnManualRef.current = false;
+  }, [selectedModelId, createModalOpen]);
+
+  useEffect(() => {
+    if (!canEdit) return;
+    const zh = draft.bioZh.trim();
+    if (!zh || bioEnManualRef.current) return;
+
+    const timer = window.setTimeout(() => {
+      void englishFromChinese(zh, "").then((translated) => {
+        if (!bioEnManualRef.current && translated) {
+          setDraft((current) => ({ ...current, bioEn: translated }));
+        }
+      });
+    }, 700);
+
+    return () => window.clearTimeout(timer);
+  }, [canEdit, draft.bioZh]);
+
+  useEffect(() => {
     let disposed = false;
     const urls: string[] = [];
     const loadPreviews = async () => {
@@ -666,7 +711,7 @@ function AdminDashboard({
       nameZh: model.name_zh ?? "",
       gender: model.gender === "men" ? "men" : "women",
       board: (model.board as ModelBoard) ?? (model.gender === "men" ? "men" : "women"),
-      category: model.category,
+      category: normalizeModelCategory(model.category),
       city: model.city ?? "",
       cityZh: model.city_zh ?? "",
       height: model.height?.toString() ?? heightStat,
@@ -741,6 +786,7 @@ function AdminDashboard({
   }, [createModalOpen]);
 
   const persistMedia = async (modelId: string, file: File, sortOrder: number, replace = false) => {
+    assertAllowedModelMedia(file);
     const mime = file.type as ModelMediaMimeType;
     const extension =
       mime === "image/jpeg"
@@ -803,9 +849,12 @@ function AdminDashboard({
       return;
     }
     const title = videoTitle.trim();
-    const url = videoUrl.trim();
-    if (!title || !isYouTubeUrl(url)) {
-      setNotice({ tone: "error", text: "Enter a title and a valid HTTPS YouTube URL." });
+    const url = canonicalYouTubeUrl(videoUrl);
+    if (!title || !url) {
+      setNotice({
+        tone: "error",
+        text: "Enter a title and a valid YouTube URL (watch, youtu.be, Shorts, or mobile).",
+      });
       return;
     }
     const { error } = await client.from("model_video_links").insert({
@@ -821,6 +870,7 @@ function AdminDashboard({
     setVideoTitle("");
     setVideoUrl("");
     await loadRelations(selectedModelId);
+    await invalidatePublicContent(queryClient);
     setNotice({ tone: "success", text: "YouTube link added." });
   };
 
@@ -883,25 +933,23 @@ function AdminDashboard({
     event.preventDefault();
     if (!canEdit) return;
     const creating = !selectedModelId;
-    const name = draft.name.trim();
-    const displayName = draft.displayName.trim();
-    const category = draft.category.trim();
+    const nameZh = draft.nameZh.trim();
+    const name = (draft.name.trim() || (await englishFromChinese(nameZh)) || nameZh).trim();
+    const displayName = (
+      draft.displayName.trim() ||
+      (await englishFromChinese(nameZh)) ||
+      name
+    ).trim();
+    const category = normalizeModelCategory(draft.category.trim() || draft.board);
+    if (!nameZh) {
+      setNotice({ tone: "error", text: "請先填寫繁體中文姓名。" });
+      return;
+    }
     if (!name || !displayName || !category) {
       setNotice({ tone: "error", text: "Name, display name, and category are required." });
       return;
     }
-    if (draft.status === "active" && !draft.nameZh.trim()) {
-      setNotice({
-        tone: "error",
-        text: "Traditional Chinese name is required for an active profile.",
-      });
-      return;
-    }
-    const slug = slugify(draft.slug || name);
-    if (!slug) {
-      setNotice({ tone: "error", text: "A public slug is required." });
-      return;
-    }
+    const slug = slugify(draft.slug || name) || `model-${Date.now().toString(36)}`;
     setSaving(true);
     setNotice(null);
     const height = draft.height.trim() ? Number.parseInt(draft.height, 10) : null;
@@ -922,30 +970,30 @@ function AdminDashboard({
       waist: draft.waist.trim(),
       hips: draft.hips.trim(),
     };
+    const cityZh = draft.cityZh.trim();
+    const bioZh = draft.bioZh.trim();
+    const tags = normalizeStoredTags([...draft.tags.split(","), draft.board, draft.gender]);
     const payload = {
       slug,
       name,
       display_name: displayName,
-      name_zh: draft.nameZh.trim() || null,
+      name_zh: nameZh || null,
       gender: draft.gender,
       board: draft.board,
       category,
-      city: draft.city.trim() || null,
-      city_zh: draft.cityZh.trim() || null,
+      city: (await englishFromChinese(cityZh, draft.city)) || cityZh || null,
+      city_zh: cityZh || null,
       height,
       nationality: draft.nationality.trim() || null,
       languages: draft.languages
         .split(",")
         .map((language) => language.trim())
         .filter(Boolean),
-      bio: draft.bioEn.trim() || draft.bioZh.trim() || null,
-      bio_en: draft.bioEn.trim() || null,
-      bio_zh: draft.bioZh.trim() || null,
+      bio: bioZh || draft.bioEn.trim() || null,
+      bio_en: (await englishFromChinese(bioZh, draft.bioEn)) || null,
+      bio_zh: bioZh || null,
       featured: draft.featured,
-      tags: draft.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
+      tags,
       stats,
       measurements,
       status: draft.status,
@@ -983,6 +1031,7 @@ function AdminDashboard({
       setAdditionalFiles([]);
       await loadModels();
       await loadRelations(saved.id);
+      await invalidatePublicContent(queryClient);
       setNotice({
         tone: draft.status === "active" ? "success" : "error",
         text:
@@ -1189,35 +1238,47 @@ function AdminDashboard({
               <section className="border border-white/15 bg-white/[0.03] p-5 md:p-7">
                 <div className="grid gap-5 md:grid-cols-2">
                   <Field
-                    label="Public slug"
+                    label="繁體中文姓名（必填，前台主顯示）"
+                    value={draft.nameZh}
+                    disabled={!canEdit}
+                    onChange={(value) => setDraft((current) => ({ ...current, nameZh: value }))}
+                    placeholder="陳妤欣"
+                  />
+                  <Field
+                    label="Public slug（可留空自動產生）"
                     value={draft.slug}
                     disabled={!canEdit}
                     onChange={(value) => setDraft((current) => ({ ...current, slug: value }))}
                     placeholder="chen-yu-xin"
                   />
                   <Field
-                    label="English name / record key"
-                    value={draft.name}
+                    label="城市／市場（繁中）"
+                    value={draft.cityZh}
                     disabled={!canEdit}
-                    onChange={(value) => setDraft((current) => ({ ...current, name: value }))}
-                    placeholder="Chen Yu-Xin"
+                    onChange={(value) => setDraft((current) => ({ ...current, cityZh: value }))}
+                    placeholder="台北"
                   />
-                  <Field
-                    label="English display name"
-                    value={draft.displayName}
-                    disabled={!canEdit}
-                    onChange={(value) =>
-                      setDraft((current) => ({ ...current, displayName: value }))
-                    }
-                    placeholder="Chen Yu-Xin"
-                  />
-                  <Field
-                    label="繁體中文姓名（前台繁中主顯示）"
-                    value={draft.nameZh}
-                    disabled={!canEdit}
-                    onChange={(value) => setDraft((current) => ({ ...current, nameZh: value }))}
-                    placeholder="陳妤欣"
-                  />
+                  <label className="block text-sm text-white/65">
+                    類目 Category
+                    <select
+                      value={
+                        MODEL_CATEGORY_OPTIONS.some((option) => option.value === draft.category)
+                          ? draft.category
+                          : normalizeModelCategory(draft.category)
+                      }
+                      disabled={!canEdit}
+                      onChange={(event) =>
+                        setDraft((current) => ({ ...current, category: event.target.value }))
+                      }
+                      className="mt-2 w-full border border-white/20 bg-slate-950 px-3 py-3 text-white outline-none focus:border-white/60"
+                    >
+                      {MODEL_CATEGORY_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                   <label className="block text-sm text-white/65">
                     Gender
                     <select
@@ -1255,27 +1316,6 @@ function AdminDashboard({
                     </select>
                   </label>
                   <Field
-                    label="Category"
-                    value={draft.category}
-                    disabled={!canEdit}
-                    onChange={(value) => setDraft((current) => ({ ...current, category: value }))}
-                    placeholder="Editorial"
-                  />
-                  <Field
-                    label="City / market (English)"
-                    value={draft.city}
-                    disabled={!canEdit}
-                    onChange={(value) => setDraft((current) => ({ ...current, city: value }))}
-                    placeholder="Taipei"
-                  />
-                  <Field
-                    label="城市／市場（繁中）"
-                    value={draft.cityZh}
-                    disabled={!canEdit}
-                    onChange={(value) => setDraft((current) => ({ ...current, cityZh: value }))}
-                    placeholder="台北"
-                  />
-                  <Field
                     label="Height (cm)"
                     value={draft.height}
                     disabled={!canEdit}
@@ -1300,7 +1340,7 @@ function AdminDashboard({
                     placeholder="Mandarin, English"
                   />
                   <label className="block text-sm text-white/65">
-                    Status
+                    狀態 Status（Active＝前台可見；Inactive / Archived＝下架）
                     <select
                       value={draft.status}
                       disabled={!canEdit}
@@ -1312,9 +1352,9 @@ function AdminDashboard({
                       }
                       className="mt-2 w-full border border-white/20 bg-slate-950 px-3 py-3 text-white outline-none focus:border-white/60"
                     >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                      <option value="archived">Archived</option>
+                      <option value="active">Active / 上架</option>
+                      <option value="inactive">Inactive / 下架</option>
+                      <option value="archived">Archived / 封存</option>
                     </select>
                   </label>
                   <label className="flex items-center gap-3 self-end pb-3 text-sm text-white/65">
@@ -1327,34 +1367,36 @@ function AdminDashboard({
                       }
                       className="h-4 w-4 accent-white"
                     />
-                    Featured on homepage
+                    首頁精選區顯示（不控制上下架；上下架請改 Status）
                   </label>
                 </div>
                 <div className="mt-5 grid gap-5 md:grid-cols-2">
                   <label className="block text-sm text-white/65">
-                    Bio (English)
-                    <textarea
-                      value={draft.bioEn}
-                      disabled={!canEdit}
-                      onChange={(event) =>
-                        setDraft((current) => ({ ...current, bioEn: event.target.value }))
-                      }
-                      rows={5}
-                      className="mt-2 w-full resize-y border border-white/20 bg-slate-950 px-3 py-3 text-white outline-none focus:border-white/60"
-                      placeholder="Short casting and editorial notes"
-                    />
-                  </label>
-                  <label className="block text-sm text-white/65">
-                    個人簡介（繁中）
+                    個人簡介（繁中，前台主文）
                     <textarea
                       value={draft.bioZh}
                       disabled={!canEdit}
-                      onChange={(event) =>
-                        setDraft((current) => ({ ...current, bioZh: event.target.value }))
-                      }
+                      onChange={(event) => {
+                        bioEnManualRef.current = false;
+                        setDraft((current) => ({ ...current, bioZh: event.target.value }));
+                      }}
                       rows={5}
                       className="mt-2 w-full resize-y border border-white/20 bg-slate-950 px-3 py-3 text-white outline-none focus:border-white/60"
                       placeholder="模特簡介、工作經驗與風格描述"
+                    />
+                  </label>
+                  <label className="block text-sm text-white/65">
+                    English bio（可手動修改；前台 EN 會自動翻譯中文）
+                    <textarea
+                      value={draft.bioEn}
+                      disabled={!canEdit}
+                      onChange={(event) => {
+                        bioEnManualRef.current = true;
+                        setDraft((current) => ({ ...current, bioEn: event.target.value }));
+                      }}
+                      rows={5}
+                      className="mt-2 w-full resize-y border border-white/20 bg-slate-950 px-3 py-3 text-white outline-none focus:border-white/60"
+                      placeholder="Auto-translated from Chinese; edit if needed"
                     />
                   </label>
                 </div>
@@ -1383,13 +1425,46 @@ function AdminDashboard({
                   ))}
                 </div>
                 <div className="mt-5">
-                  <Field
-                    label="Tags / keywords (comma separated slugs)"
-                    value={draft.tags}
-                    disabled={!canEdit}
-                    onChange={(value) => setDraft((current) => ({ ...current, tags: value }))}
-                    placeholder="editorial, runway, beauty"
-                  />
+                  <p className="text-sm text-white/65">公開標籤（對應 /keywords 頁面）</p>
+                  <p className="mt-1 text-xs text-white/40">
+                    勾選 Editorial / Beauty / Runway 才會出現在對應關鍵字頁，例如
+                    <code className="mx-1 text-white/55">/keywords/editorial-model</code>、
+                    <code className="mx-1 text-white/55">/keywords/beauty</code>、
+                    <code className="text-white/55">/keywords/runway</code>
+                    。儲存時會寫入 canonical slug。
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {seedKeywords
+                      .filter((keyword) => keyword.active)
+                      .map((keyword) => {
+                        const selected = normalizeStoredTags(draft.tags.split(",")).includes(
+                          keyword.slug,
+                        );
+                        return (
+                          <label
+                            key={keyword.slug}
+                            className={`inline-flex items-center gap-2 border px-3 py-2 text-xs ${selected ? "border-white bg-white text-slate-950" : "border-white/20 text-white/70"}`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selected}
+                              disabled={!canEdit}
+                              onChange={() => {
+                                const current = new Set(normalizeStoredTags(draft.tags.split(",")));
+                                if (current.has(keyword.slug)) current.delete(keyword.slug);
+                                else current.add(keyword.slug);
+                                setDraft((draftState) => ({
+                                  ...draftState,
+                                  tags: [...current].join(", "),
+                                }));
+                              }}
+                              className="h-3.5 w-3.5 accent-white"
+                            />
+                            {keyword.labelZh} / {keyword.labelEn}
+                          </label>
+                        );
+                      })}
+                  </div>
                 </div>
               </section>
 
@@ -1405,20 +1480,20 @@ function AdminDashboard({
                     </p>
                   </div>
                   <span className="text-xs uppercase tracking-[0.16em] text-white/40">
-                    JPG / PNG / WEBP · 50 MB max
+                    JPG / PNG / WEBP · {slotHint(PUBLIC_MEDIA_SLOTS.modelCard)}
                   </span>
                 </div>
                 <div className="mt-6 grid gap-5 md:grid-cols-2">
                   <UploadSlot
                     label="01 / Primary profile photo"
-                    hint="Shown before hover"
+                    hint={slotHint(PUBLIC_MEDIA_SLOTS.modelCard)}
                     preview={previewPrimary}
                     disabled={!canEdit}
                     onFile={setPrimaryFile}
                   />
                   <UploadSlot
-                    label="02 / Hover photo (optional)"
-                    hint="Shown after hover when uploaded"
+                    label="02 / Hover photo (optional, D-025)"
+                    hint={slotHint(PUBLIC_MEDIA_SLOTS.modelCard)}
                     preview={previewHover}
                     disabled={!canEdit}
                     onFile={setHoverFile}
@@ -1438,20 +1513,31 @@ function AdminDashboard({
                     </p>
                   </div>
                   <span className="text-xs uppercase tracking-[0.16em] text-white/40">
-                    JPG / PNG / WEBP / MP4 · 50 MB max each
+                    可新增多張照片與 MP4，沒有數量上限。照片{" "}
+                    {slotHint(PUBLIC_MEDIA_SLOTS.modelGallery)}
+                    ；影片 {slotHint(PUBLIC_MEDIA_SLOTS.videoFrame)}。YouTube
+                    連結請用下方欄位，與上傳檔案分開。
                   </span>
                 </div>
                 <div className="mt-6">
                   <MultiUploadSlot
-                    disabled={!canEdit || !selectedModelId}
+                    disabled={!canEdit}
                     selectedCount={additionalFiles.length}
-                    onFiles={setAdditionalFiles}
+                    onFiles={(files) => {
+                      try {
+                        files.forEach(assertAllowedModelMedia);
+                        setAdditionalFiles(files);
+                      } catch (error) {
+                        setNotice({
+                          tone: "error",
+                          text:
+                            error instanceof Error
+                              ? error.message
+                              : "One or more files exceed the size or type limit.",
+                        });
+                      }
+                    }}
                   />
-                  {!selectedModelId && (
-                    <p className="mt-3 text-xs text-white/40">
-                      Save the profile first, then add gallery media.
-                    </p>
-                  )}
                 </div>
                 {mediaRows.filter((row) => row.sort_order > 1).length > 0 && (
                   <ul className="mt-6 divide-y divide-white/10 border border-white/10">
@@ -1486,8 +1572,8 @@ function AdminDashboard({
                   <p className="label-xs text-white/45">VIDEO LINKS</p>
                   <h3 className="mt-2 text-2xl font-light">YouTube references</h3>
                   <p className="mt-2 text-sm leading-6 text-white/50">
-                    Store interviews, runway reels, or casting references without embedding them in
-                    the profile record.
+                    Store interviews or reels as a YouTube URL (watch, youtu.be, Shorts, m.youtube).
+                    This is separate from uploaded MP4 files.
                   </p>
                   <div className="mt-5 space-y-4">
                     <Field
@@ -1670,6 +1756,8 @@ function AdminDashboard({
   );
 }
 
+type NewsStatus = "draft" | "published" | "archived";
+
 function AdminOperationsPanel({
   activeTab,
   client,
@@ -1686,6 +1774,7 @@ function AdminOperationsPanel({
   onSessionExpired: () => void;
 }) {
   const tab = activeTab;
+  const queryClient = useQueryClient();
   const [inquiries, setInquiries] = useState<Database["public"]["Tables"]["inquiries"]["Row"][]>(
     [],
   );
@@ -1699,6 +1788,18 @@ function AdminOperationsPanel({
     Database["public"]["Tables"]["site_settings"]["Row"] | null
   >(null);
   const [news, setNews] = useState<Database["public"]["Tables"]["news_posts"]["Row"][]>([]);
+  const [editingNewsId, setEditingNewsId] = useState<string | null>(null);
+  const [newsTitleZh, setNewsTitleZh] = useState("");
+  const [newsTitleEn, setNewsTitleEn] = useState("");
+  const [newsExcerptZh, setNewsExcerptZh] = useState("");
+  const [newsExcerptEn, setNewsExcerptEn] = useState("");
+  const [newsSlug, setNewsSlug] = useState("");
+  const [newsCoverFile, setNewsCoverFile] = useState<File | null>(null);
+  const [newsCoverPreview, setNewsCoverPreview] = useState<string>("");
+  const [newsBodyBlocks, setNewsBodyBlocks] = useState<NewsBodyBlock[]>([]);
+  const [newsSelectedTags, setNewsSelectedTags] = useState<string[]>([]);
+  const newsTitleZhManualEnRef = useRef(false);
+  const newsExcerptZhManualEnRef = useRef(false);
   const [knowledge, setKnowledge] = useState<
     Database["public"]["Tables"]["assistant_knowledge_documents"]["Row"][]
   >([]);
@@ -1864,22 +1965,35 @@ function AdminOperationsPanel({
     setBusy(true);
     setMessage("");
     const form = new FormData(event.currentTarget);
-    const { error } = await client.from("site_settings").upsert({
-      id: "global",
+    const aboutTitleZh = String(form.get("aboutTitleZh") ?? "").trim();
+    const aboutBodyZh = String(form.get("aboutBodyZh") ?? "")
+      .split("\n")
+      .map((value) => value.trim())
+      .filter(Boolean);
+    const payload = {
+      id: "global" as const,
       admin_email: String(form.get("adminEmail") ?? "").trim(),
       about_published: form.get("aboutPublished") === "on",
-      about_title_en: String(form.get("aboutTitleEn") ?? "").trim(),
-      about_title_zh: String(form.get("aboutTitleZh") ?? "").trim(),
-      about_body_en: String(form.get("aboutBodyEn") ?? "")
-        .split("\n")
-        .map((value) => value.trim())
-        .filter(Boolean),
-      about_body_zh: String(form.get("aboutBodyZh") ?? "")
-        .split("\n")
-        .map((value) => value.trim())
-        .filter(Boolean),
+      about_title_en:
+        String(form.get("aboutTitleEn") ?? "").trim() || (await englishFromChinese(aboutTitleZh)),
+      about_title_zh: aboutTitleZh,
+      about_body_en: (() => {
+        const english = String(form.get("aboutBodyEn") ?? "")
+          .split("\n")
+          .map((value) => value.trim())
+          .filter(Boolean);
+        return english.length ? english : aboutBodyZh;
+      })(),
+      about_body_zh: aboutBodyZh,
       offices: settings.offices,
-    });
+      messenger_url: String(form.get("messengerUrl") ?? "").trim() || null,
+      line_oa_url: String(form.get("lineOaUrl") ?? "").trim() || null,
+    };
+    let { error } = await client.from("site_settings").upsert(payload);
+    if (error && /messenger_url|line_oa_url|schema cache|column/i.test(error.message)) {
+      const { messenger_url: _messenger, line_oa_url: _line, ...withoutChannels } = payload;
+      ({ error } = await client.from("site_settings").upsert(withoutChannels));
+    }
     setBusy(false);
     if (error) {
       setMessage(error.message);
@@ -1889,42 +2003,63 @@ function AdminOperationsPanel({
       return;
     }
     setMessage("About and notification settings saved.");
+    await invalidatePublicContent(queryClient);
     await load();
   };
 
   const addNews = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canEdit) return;
-    const formElement = event.currentTarget;
-    const form = new FormData(formElement);
     setBusy(true);
     setMessage("");
-    const { error } = await client.from("news_posts").insert({
-      slug: String(form.get("slug") ?? "").trim(),
-      title_en: String(form.get("titleEn") ?? "").trim(),
-      title_zh: String(form.get("titleZh") ?? "").trim(),
-      excerpt_en: String(form.get("excerptEn") ?? "").trim(),
-      excerpt_zh: String(form.get("excerptZh") ?? "").trim(),
-      body_en: String(form.get("bodyEn") ?? "")
-        .split("\n")
-        .map((value) => value.trim())
-        .filter(Boolean),
-      body_zh: String(form.get("bodyZh") ?? "")
-        .split("\n")
-        .map((value) => value.trim())
-        .filter(Boolean),
-      cover_url: String(form.get("coverUrl") ?? "").trim() || null,
-      status: "published",
-      tags: String(form.get("tags") ?? "")
-        .split(",")
-        .map((value) => value.trim())
-        .filter(Boolean),
-    });
+
+    // Upload cover if a file was selected
+    let coverUrl = newsCoverPreview;
+    if (newsCoverFile) {
+      const uploaded = await uploadNewsImage(newsCoverFile);
+      if (uploaded) coverUrl = uploaded;
+      else {
+        setBusy(false);
+        return;
+      }
+    }
+
+    // Build body_zh from text blocks for legacy compatibility
+    const bodyZh = newsBodyBlocks
+      .filter((b) => b.type === "text" && b.content.trim())
+      .map((b) => b.content.trim());
+
+    // Auto-translate body blocks text to EN
+    const bodyEnParts: string[] = [];
+    for (const block of newsBodyBlocks) {
+      if (block.type === "text" && block.content.trim()) {
+        const en = await englishFromChinese(block.content.trim(), "");
+        bodyEnParts.push(en || block.content.trim());
+      }
+    }
+
+    const payload = {
+      slug: newsSlug.trim(),
+      title_en: newsTitleEn.trim() || (await englishFromChinese(newsTitleZh, "")),
+      title_zh: newsTitleZh.trim(),
+      excerpt_en: newsExcerptEn.trim() || (await englishFromChinese(newsExcerptZh, "")),
+      excerpt_zh: newsExcerptZh.trim(),
+      body_en: bodyEnParts,
+      body_zh: bodyZh,
+      body_blocks: newsBodyBlocks as unknown as never,
+      cover_url: coverUrl || null,
+      tags: newsSelectedTags,
+    };
+    const { error } = editingNewsId
+      ? await client.from("news_posts").update(payload).eq("id", editingNewsId)
+      : await client.from("news_posts").insert({ ...payload, status: "published" });
     setBusy(false);
     if (error) setMessage(error.message);
     else {
-      formElement.reset();
-      setMessage("News published.");
+      setEditingNewsId(null);
+      setMessage(editingNewsId ? "News updated." : "News published.");
+      await queryClient.invalidateQueries({ queryKey: ["news"] });
+      await invalidatePublicContent(queryClient);
       await load();
     }
   };
@@ -1962,6 +2097,7 @@ function AdminOperationsPanel({
     const { error } = await client.from("news_posts").delete().eq("id", id);
     if (error) setMessage(error.message);
     else {
+      if (editingNewsId === id) setEditingNewsId(null);
       setMessage("News item deleted.");
       await load();
     }
@@ -1975,6 +2111,81 @@ function AdminOperationsPanel({
       setMessage("Knowledge document deleted.");
       await load();
     }
+  };
+
+  const editingNews = news.find((row) => row.id === editingNewsId) ?? null;
+
+  // Populate news form when editing (only when switching rows, not on every news list refresh)
+  useEffect(() => {
+    const row = editingNewsId ? (news.find((item) => item.id === editingNewsId) ?? null) : null;
+    if (row) {
+      setNewsTitleZh(row.title_zh);
+      setNewsTitleEn(row.title_en);
+      setNewsExcerptZh(row.excerpt_zh);
+      setNewsExcerptEn(row.excerpt_en);
+      setNewsSlug(row.slug);
+      setNewsCoverPreview(row.cover_url ?? "");
+      setNewsCoverFile(null);
+      const raw = row as unknown as Record<string, unknown>;
+      const rawBlocks = raw["body_blocks"];
+      const blocks =
+        Array.isArray(rawBlocks) && rawBlocks.length > 0
+          ? (rawBlocks as NewsBodyBlock[])
+          : row.body_zh.map((p) => ({ type: "text" as const, content: p }));
+      setNewsBodyBlocks(blocks);
+      setNewsSelectedTags(row.tags);
+      newsTitleZhManualEnRef.current = true;
+      newsExcerptZhManualEnRef.current = true;
+    } else if (!editingNewsId) {
+      setNewsTitleZh("");
+      setNewsTitleEn("");
+      setNewsExcerptZh("");
+      setNewsExcerptEn("");
+      setNewsSlug("");
+      setNewsCoverPreview("");
+      setNewsCoverFile(null);
+      setNewsBodyBlocks([{ type: "text", content: "" }]);
+      setNewsSelectedTags([]);
+      newsTitleZhManualEnRef.current = false;
+      newsExcerptZhManualEnRef.current = false;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only reset form when switching edit target
+  }, [editingNewsId]);
+
+  // Auto-translate title ZH → EN
+  useEffect(() => {
+    if (newsTitleZhManualEnRef.current || !newsTitleZh.trim()) return;
+    const timer = window.setTimeout(() => {
+      void englishFromChinese(newsTitleZh, "").then((t) => {
+        if (!newsTitleZhManualEnRef.current && t) setNewsTitleEn(t);
+      });
+    }, 700);
+    return () => window.clearTimeout(timer);
+  }, [newsTitleZh]);
+
+  // Auto-translate excerpt ZH → EN
+  useEffect(() => {
+    if (newsExcerptZhManualEnRef.current || !newsExcerptZh.trim()) return;
+    const timer = window.setTimeout(() => {
+      void englishFromChinese(newsExcerptZh, "").then((t) => {
+        if (!newsExcerptZhManualEnRef.current && t) setNewsExcerptEn(t);
+      });
+    }, 700);
+    return () => window.clearTimeout(timer);
+  }, [newsExcerptZh]);
+
+  const uploadNewsImage = async (file: File): Promise<string | null> => {
+    const id = editingNewsId ?? `draft-${Date.now()}`;
+    const path = `news/${id}/${Date.now()}-${file.name}`;
+    const { error } = await client.storage.from("model-media").upload(path, file, {
+      contentType: file.type,
+      upsert: false,
+    });
+    if (error) {
+      setMessage(`Image upload failed: ${error.message}`);
+      return null;
+    }
+    return client.storage.from("model-media").getPublicUrl(path).data.publicUrl;
   };
 
   const inputClass =
@@ -2277,7 +2488,6 @@ function AdminOperationsPanel({
               name="aboutTitleEn"
               defaultValue={settings.about_title_en}
               className={inputClass}
-              required
             />
           </label>
           <label className="text-sm text-white/65">
@@ -2307,6 +2517,30 @@ function AdminOperationsPanel({
               className={inputClass}
             />
           </label>
+          <label className="text-sm text-white/65">
+            Facebook Messenger URL (m.me)
+            <input
+              name="messengerUrl"
+              type="url"
+              defaultValue={settings.messenger_url ?? ""}
+              placeholder="https://m.me/your-page"
+              className={inputClass}
+            />
+          </label>
+          <label className="text-sm text-white/65">
+            LINE Official Account URL
+            <input
+              name="lineOaUrl"
+              type="url"
+              defaultValue={settings.line_oa_url ?? ""}
+              placeholder="https://line.me/R/ti/p/@your-oa"
+              className={inputClass}
+            />
+          </label>
+          <p className="md:col-span-2 text-xs text-white/45">
+            J Agent 轉接專人 uses these HTTPS deep links. Leave blank until the live page exists. Do
+            not paste a fake URL. Messenger and LINE webhooks stay Phase 7.
+          </p>
           <button
             disabled={!canEdit || busy}
             className="label-xs w-fit bg-white px-5 py-3 text-slate-950 disabled:opacity-50"
@@ -2316,65 +2550,12 @@ function AdminOperationsPanel({
         </form>
       ) : null}
       {tab === "news" ? (
-        <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_1.3fr]">
-          <form onSubmit={addNews} className="space-y-4">
-            <h3 className="text-xl font-light">Publish news</h3>
-            {[
-              ["slug", "Slug"],
-              ["titleEn", "Title (English)"],
-              ["titleZh", "Title (中文)"],
-              ["excerptEn", "Excerpt (English)"],
-              ["excerptZh", "Excerpt (中文)"],
-              ["coverUrl", "Cover URL"],
-              ["tags", "Tags (comma separated)"],
-            ].map(([name, label]) => (
-              <label key={name} className="block text-sm text-white/65">
-                {label}
-                <input name={name} className={inputClass} required={name !== "coverUrl"} />
-              </label>
-            ))}
-            <label className="block text-sm text-white/65">
-              Body (English, one paragraph per line)
-              <textarea name="bodyEn" rows={4} className={inputClass} required />
-            </label>
-            <label className="block text-sm text-white/65">
-              Body (中文，每行一段)
-              <textarea name="bodyZh" rows={4} className={inputClass} required />
-            </label>
-            <button
-              disabled={!canEdit || busy}
-              className="label-xs bg-white px-5 py-3 text-slate-950 disabled:opacity-50"
-            >
-              Publish
-            </button>
-          </form>
-          <div>
-            <h3 className="text-xl font-light">Published / draft stories ({news.length})</h3>
-            <ul className="mt-4 divide-y divide-white/10 border border-white/10">
-              {news.map((row) => (
-                <li key={row.id} className="p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <strong>{row.title_en}</strong>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-white/45">{row.status}</span>
-                      <button
-                        type="button"
-                        disabled={!canDelete || busy}
-                        onClick={() => void deleteNews(row.id)}
-                        className="text-xs text-red-200/75 underline disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                  <p className="mt-1 text-xs text-white/45">
-                    /{row.slug} · {row.date}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+        <NewsAdminWorkspace
+          client={client}
+          canEdit={canEdit}
+          canDelete={canDelete}
+          onMessage={setMessage}
+        />
       ) : null}
       {tab === "knowledge" ? (
         <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_1.3fr]">
@@ -2491,12 +2672,12 @@ function UploadSlot({
       <label
         className={`mt-3 block overflow-hidden border border-dashed border-white/25 bg-black/20 ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:border-white/65"}`}
       >
-        <div className="aspect-[3/4] w-full">
+        <div className="aspect-[2/3] w-full">
           {preview ? (
             <img
               src={preview}
               alt="Selected model media preview"
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover object-center"
             />
           ) : (
             <div className="flex h-full items-center justify-center p-8 text-center text-sm leading-6 text-white/35">

@@ -19,6 +19,7 @@ const dict: Dict = {
   "nav.men": { en: "Men", zh: "男模" },
   "nav.newFaces": { en: "New Faces", zh: "新面孔" },
   "nav.talent": { en: "Talent", zh: "藝人" },
+  "nav.singers": { en: "Singers", zh: "歌手" },
   "nav.news": { en: "News", zh: "消息" },
   "nav.about": { en: "About", zh: "關於" },
   "nav.contact": { en: "Contact", zh: "聯絡" },
@@ -248,7 +249,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       lang,
       setLang,
       t: (key) => dict[key]?.[lang] ?? key,
-      pick: (en, zh) => (lang === "zh" && zh ? zh : en),
+      pick: (en, zh) => {
+        if (lang === "zh") return zh || en;
+        return en || zh || "";
+      },
     }),
     [lang, setLang],
   );

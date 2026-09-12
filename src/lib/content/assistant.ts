@@ -91,7 +91,7 @@ export const assistantAnswers: AssistantAnswer[] = [
     questionEn: "Where can I see the models?",
     questionZh: "我可以在哪裡看到模特兒？",
     answerEn:
-      "The boards are Women, Men, New Faces and Talent. Each profile carries statistics, portfolio and digitals.",
+      "The boards are Women, Men, New Faces, Talent and Singers. Each profile carries statistics, portfolio and digitals.",
     answerZh: "分類包含女模、男模、新面孔與藝人。每位模特兒的頁面皆有身型資料、作品集與生活照。",
     link: {
       to: "/models/$board",

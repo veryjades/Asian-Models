@@ -1,4 +1,5 @@
 import { contentRepository } from "./repository";
+import { seedSpecialistChannels } from "./seed";
 import type { Keyword, Model, NewsPost } from "./types";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -19,12 +20,19 @@ export type AssistantRetrievalResult = {
   candidates: AssistantCandidate[];
   matchedKeywords: Keyword[];
   relatedNews: NewsPost[];
+  relatedAbout: { titleEn: string; titleZh: string; excerptEn: string; excerptZh: string } | null;
   relatedKnowledge: Array<{
     titleEn: string;
     titleZh: string;
     contentEn: string;
     contentZh: string;
   }>;
+  specialistHandoff: {
+    offered: boolean;
+    messengerUrl: string | null;
+    lineOaUrl: string | null;
+  };
+  covered: boolean;
   answerEn: string;
   answerZh: string;
 };
@@ -36,6 +44,9 @@ type SearchIntent = {
   japanMarket: boolean;
   requiredTags: string[];
   hasSearchIntent: boolean;
+  wantsHandoff: boolean;
+  wantsAbout: boolean;
+  wantsNews: boolean;
 };
 
 const cityLabelsZh: Record<string, string> = {
@@ -113,6 +124,34 @@ function detectIntent(input: string): SearchIntent {
       japanMarket ||
       requiredTags.length > 0 ||
       hasAny(query, ["找模特", "找人", "推薦", "適合", "model", "talent", "who"]),
+    wantsHandoff: hasAny(query, [
+      "專人",
+      "轉接",
+      "真人",
+      "客服",
+      "顧問",
+      "specialist",
+      "messenger",
+      "facebook",
+      "line oa",
+      "line官方",
+      "官方帳號",
+      "handoff",
+      "talk to someone",
+      "speak to someone",
+    ]),
+    wantsAbout: hasAny(query, [
+      "about",
+      "agency",
+      "office",
+      "offices",
+      "經紀",
+      "關於",
+      "公司",
+      "辦公室",
+      "據點",
+    ]),
+    wantsNews: hasAny(query, ["news", "press", "新聞", "消息", "報導", "公告"]),
   };
 }
 
@@ -197,35 +236,88 @@ function scoreCandidate(candidate: AssistantCandidate, intent: SearchIntent) {
   return score;
 }
 
-export async function retrieveModelRecommendations(
-  input: string,
-): Promise<AssistantRetrievalResult | null> {
-  const intent = detectIntent(input);
+function scoreText(haystack: string, terms: string[]) {
+  const text = haystack.toLowerCase();
+  return terms.reduce((score, term) => score + (text.includes(term) ? 1 : 0), 0);
+}
 
-  const [models, keywords, news] = await Promise.all([
-    contentRepository.listModels(),
-    contentRepository.listKeywords(),
-    contentRepository.listNews(),
-  ]);
-  let relatedKnowledge: AssistantRetrievalResult["relatedKnowledge"] = [];
+function queryTerms(input: string) {
+  return input
+    .toLowerCase()
+    .split(/[\s,，。？?！!、/]+/)
+    .filter((term) => term.length > 1);
+}
+
+type PublishedAbout = {
+  titleEn: string;
+  titleZh: string;
+  bodyEn: string[];
+  bodyZh: string[];
+  messengerUrl: string | null;
+  lineOaUrl: string | null;
+};
+
+async function loadPublishedAbout(): Promise<PublishedAbout | null> {
+  try {
+    const client = getSupabaseBrowserClient();
+    const withChannels = await client
+      .from("site_settings")
+      .select(
+        "about_title_en, about_title_zh, about_body_en, about_body_zh, messenger_url, line_oa_url",
+      )
+      .eq("id", "global")
+      .maybeSingle();
+    const row =
+      withChannels.data ??
+      (
+        await client
+          .from("site_settings")
+          .select("about_title_en, about_title_zh, about_body_en, about_body_zh")
+          .eq("id", "global")
+          .maybeSingle()
+      ).data;
+    if (!row) return null;
+    const channels = row as typeof row & {
+      messenger_url?: string | null;
+      line_oa_url?: string | null;
+    };
+    return {
+      titleEn: row.about_title_en,
+      titleZh: row.about_title_zh,
+      bodyEn: row.about_body_en ?? [],
+      bodyZh: row.about_body_zh ?? [],
+      messengerUrl: channels.messenger_url?.trim() || seedSpecialistChannels.messengerUrl,
+      lineOaUrl: channels.line_oa_url?.trim() || seedSpecialistChannels.lineOaUrl,
+    };
+  } catch {
+    return {
+      titleEn: "",
+      titleZh: "",
+      bodyEn: [],
+      bodyZh: [],
+      messengerUrl: seedSpecialistChannels.messengerUrl,
+      lineOaUrl: seedSpecialistChannels.lineOaUrl,
+    };
+  }
+}
+
+async function loadKnowledgeOverlay(terms: string[]) {
   try {
     const { data } = await getSupabaseBrowserClient()
       .from("assistant_knowledge_documents")
       .select("title_en, title_zh, content_en, content_zh, tags")
       .eq("published", true)
       .limit(30);
-    const terms = input
-      .toLowerCase()
-      .split(/\s+/)
-      .filter((term) => term.length > 1);
-    relatedKnowledge = (data ?? [])
+    return (data ?? [])
       .map((row) => ({
         row,
         score: terms.reduce(
           (score, term) =>
             score +
             (row.title_en.toLowerCase().includes(term) ||
+            row.title_zh.toLowerCase().includes(term) ||
             row.content_en.toLowerCase().includes(term) ||
+            row.content_zh.toLowerCase().includes(term) ||
             row.tags.some((tag) => tag.toLowerCase().includes(term))
               ? 1
               : 0),
@@ -242,23 +334,46 @@ export async function retrieveModelRecommendations(
         contentZh: row.content_zh,
       }));
   } catch {
-    relatedKnowledge = [];
+    return [];
   }
-  if (!intent.hasSearchIntent) {
-    if (!relatedKnowledge.length) return null;
-    const first = relatedKnowledge[0]!;
-    return {
-      candidates: [],
-      matchedKeywords: [],
-      relatedNews: [],
-      relatedKnowledge,
-      answerEn: first.contentEn,
-      answerZh: first.contentZh,
-    };
-  }
+}
+
+export async function retrieveModelRecommendations(
+  input: string,
+): Promise<AssistantRetrievalResult | null> {
+  const intent = detectIntent(input);
+  const terms = queryTerms(input);
+
+  const [models, keywords, news, about] = await Promise.all([
+    contentRepository.listModels(),
+    contentRepository.listKeywords(),
+    contentRepository.listNews(),
+    loadPublishedAbout(),
+  ]);
+
   const matchedKeywords = keywords.filter((keyword) => intent.requiredTags.includes(keyword.slug));
-  const candidates = models
-    .filter((model) => modelMatches(model, intent))
+  const intentCandidates = intent.hasSearchIntent
+    ? models.filter((model) => modelMatches(model, intent))
+    : [];
+  const termCandidates = terms.length
+    ? models.filter((model) => {
+        const haystack = [
+          model.name,
+          model.nameZh,
+          model.city,
+          model.cityZh,
+          model.bioEn,
+          model.bioZh,
+          model.tags.join(" "),
+        ].join(" ");
+        return scoreText(haystack, terms) > 0;
+      })
+    : [];
+  const merged = [
+    ...intentCandidates,
+    ...termCandidates.filter((model) => !intentCandidates.includes(model)),
+  ];
+  const candidates = merged
     .map((model) => candidateFor(model, intent, keywords))
     .sort(
       (a, b) =>
@@ -266,30 +381,85 @@ export async function retrieveModelRecommendations(
         a.model.name.localeCompare(b.model.name),
     )
     .slice(0, 4);
-  const candidateTags = new Set(candidates.flatMap(({ model }) => model.tags));
-  const relatedNews = news
-    .filter((post) => post.tags.some((tag) => candidateTags.has(tag)))
-    .slice(0, 2);
 
-  if (candidates.length === 0) {
-    return {
-      candidates: [],
-      matchedKeywords,
-      relatedNews: [],
-      relatedKnowledge,
-      answerEn:
-        "I couldn't find an exact match in the current board. Please share the market, language, and campaign type and I’ll narrow the active roster.",
-      answerZh:
-        "目前名單沒有完全符合的人選。請告訴我市場、語言與拍攝類型，我會再從現有資料中精準篩選。",
-    };
+  const relatedNews = news
+    .map((post) => ({
+      post,
+      score:
+        scoreText(
+          [
+            post.titleEn,
+            post.titleZh,
+            post.excerptEn,
+            post.excerptZh,
+            ...post.bodyEn,
+            ...post.bodyZh,
+          ].join(" "),
+          terms,
+        ) + (post.tags.some((tag) => intent.requiredTags.includes(tag)) ? 2 : 0),
+    }))
+    .filter((item) => item.score > 0 || intent.wantsNews)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 2)
+    .map((item) => item.post);
+
+  const aboutHaystack = about
+    ? [about.titleEn, about.titleZh, ...about.bodyEn, ...about.bodyZh].join(" ")
+    : "";
+  const aboutScore = about ? scoreText(aboutHaystack, terms) : 0;
+  const relatedAbout =
+    about && (intent.wantsAbout || aboutScore > 0)
+      ? {
+          titleEn: about.titleEn,
+          titleZh: about.titleZh,
+          excerptEn: about.bodyEn[0] ?? about.titleEn,
+          excerptZh: about.bodyZh[0] ?? about.titleZh,
+        }
+      : null;
+
+  const covered = candidates.length > 0 || relatedNews.length > 0 || Boolean(relatedAbout);
+  const relatedKnowledge = covered ? [] : await loadKnowledgeOverlay(terms);
+  const specialistHandoff = {
+    offered: intent.wantsHandoff || !covered,
+    messengerUrl: about?.messengerUrl ?? null,
+    lineOaUrl: about?.lineOaUrl ?? null,
+  };
+
+  if (!covered && !relatedKnowledge.length && !specialistHandoff.offered) {
+    return null;
+  }
+
+  let answerEn =
+    "I can connect you with a booking specialist if this does not cover your question.";
+  let answerZh = "如果這些公開資料還不夠，我可以幫你轉接專人。";
+  if (candidates.length) {
+    answerEn = `I found ${candidates.length} matching ${candidates.length === 1 ? "model" : "models"} from the published roster.`;
+    answerZh = `我從目前公開名單中找到 ${candidates.length} 位符合條件的模特兒。`;
+  } else if (relatedAbout) {
+    answerEn = relatedAbout.excerptEn;
+    answerZh = relatedAbout.excerptZh;
+  } else if (relatedNews.length) {
+    answerEn = `This matches published News: ${relatedNews.map((post) => post.titleEn).join(", ")}.`;
+    answerZh = `這與已發佈的新聞相符：${relatedNews.map((post) => post.titleZh).join("、")}。`;
+  } else if (relatedKnowledge.length) {
+    answerEn = relatedKnowledge[0]!.contentEn;
+    answerZh = relatedKnowledge[0]!.contentZh;
+  } else if (specialistHandoff.offered) {
+    answerEn =
+      "I could not match that from published About, News, or the roster. I can hand you to a specialist through booking, Messenger, or LINE.";
+    answerZh =
+      "公開的關於我們、新聞與模特名單沒有對應答案。我可以幫你轉接專人：預約、Messenger 或 LINE。";
   }
 
   return {
     candidates,
     matchedKeywords,
     relatedNews,
+    relatedAbout,
     relatedKnowledge,
-    answerEn: `I found ${candidates.length} matching ${candidates.length === 1 ? "model" : "models"} from the current roster.`,
-    answerZh: `我從目前名單中找到 ${candidates.length} 位符合條件的模特兒。`,
+    specialistHandoff,
+    covered,
+    answerEn,
+    answerZh,
   };
 }
