@@ -64,7 +64,10 @@ export type Model = {
   socialLinks?: { platform: string; label: string; url: string }[];
 };
 
-export type NewsBodyBlock = { type: "text" | "image"; content: string; caption?: string };
+export type NewsBodyBlock =
+  | { type: "heading"; content: string; level?: 2 | 3 }
+  | { type: "text"; content: string }
+  | { type: "image"; content: string; caption?: string };
 
 export type NewsPost = {
   slug: string;

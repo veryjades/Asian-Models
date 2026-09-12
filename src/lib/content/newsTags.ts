@@ -9,6 +9,9 @@ export type NewsTag = {
 };
 
 export const NEWS_TAGS: NewsTag[] = [
+  // --- Primary categories ---
+  { slug: "fashion", labelEn: "Fashion", labelZh: "時尚" },
+  { slug: "culture", labelEn: "Culture", labelZh: "文化" },
   // --- Fashion categories ---
   { slug: "runway", labelEn: "Runway", labelZh: "伸展台" },
   { slug: "editorial", labelEn: "Editorial", labelZh: "編輯" },
@@ -148,6 +151,35 @@ export const NEWS_TAGS: NewsTag[] = [
 /** Default suggestions shown when the input is empty. */
 export const DEFAULT_NEWS_TAGS = NEWS_TAGS.slice(0, 10);
 
+/** Primary editorial categories for timeline filters (類別為輔). */
+export const NEWS_CATEGORIES = [
+  { slug: "fashion", labelEn: "Fashion", labelZh: "時尚", seoPriority: 100 },
+  { slug: "trend", labelEn: "Trend", labelZh: "流行", seoPriority: 95 },
+  { slug: "beauty", labelEn: "Beauty", labelZh: "美容", seoPriority: 90 },
+  { slug: "culture", labelEn: "Culture", labelZh: "文化", seoPriority: 85 },
+  { slug: "luxury", labelEn: "Luxury", labelZh: "名牌", seoPriority: 88 },
+  { slug: "runway", labelEn: "Runway", labelZh: "伸展台", seoPriority: 80 },
+  { slug: "campaign", labelEn: "Campaign", labelZh: "廣告", seoPriority: 78 },
+  { slug: "editorial", labelEn: "Editorial", labelZh: "編輯", seoPriority: 76 },
+  { slug: "sustainability", labelEn: "Sustainability", labelZh: "永續", seoPriority: 70 },
+  { slug: "celebrity", labelEn: "Celebrity", labelZh: "名人", seoPriority: 72 },
+] as const;
+
+export type NewsCategorySlug = (typeof NEWS_CATEGORIES)[number]["slug"];
+
+const SEO_ALIASES: Record<string, string[]> = {
+  fashion: ["時尚", "時裝", "fashion"],
+  trend: ["流行", "趨勢", "trend"],
+  beauty: ["美容", "美妝", "beauty"],
+  culture: ["文化", "藝術", "culture"],
+  luxury: ["名牌", "精品", "奢華", "luxury"],
+  runway: ["伸展台", "走秀", "runway"],
+  campaign: ["廣告", "campaign"],
+  editorial: ["編輯", "editorial"],
+  sustainability: ["永續", "環保", "sustainability"],
+  celebrity: ["名人", "明星", "celebrity"],
+};
+
 export function searchNewsTags(query: string): NewsTag[] {
   const q = query.trim().toLowerCase();
   if (!q) return DEFAULT_NEWS_TAGS;
@@ -155,4 +187,45 @@ export function searchNewsTags(query: string): NewsTag[] {
     (tag) =>
       tag.slug.includes(q) || tag.labelEn.toLowerCase().includes(q) || tag.labelZh.includes(q),
   );
+}
+
+/**
+ * Lexicon SEO tag suggestions from title/excerpt/body.
+ * No vendor AI — matches Chinese/English labels and aliases, ranked by SEO priority.
+ */
+export function suggestNewsTagsFromContent(text: string, limit = 8): string[] {
+  const hay = text.toLowerCase();
+  if (!hay.trim()) return [];
+
+  const scored = NEWS_TAGS.map((tag) => {
+    let score = 0;
+    if (hay.includes(tag.labelZh.toLowerCase())) score += 55;
+    if (hay.includes(tag.labelEn.toLowerCase())) score += 45;
+    const slugWords = tag.slug.replace(/-/g, " ");
+    if (hay.includes(slugWords)) score += 30;
+    if (hay.includes(tag.slug)) score += 20;
+
+    const aliases = SEO_ALIASES[tag.slug];
+    if (aliases) {
+      for (const alias of aliases) {
+        if (hay.includes(alias.toLowerCase())) score += 50;
+      }
+    }
+
+    const category = NEWS_CATEGORIES.find((c) => c.slug === tag.slug);
+    if (category && score > 0) score += category.seoPriority / 10;
+
+    return { slug: tag.slug, score };
+  })
+    .filter((row) => row.score > 0)
+    .sort((a, b) => b.score - a.score || a.slug.localeCompare(b.slug));
+
+  return scored.slice(0, limit).map((row) => row.slug);
+}
+
+export function primaryCategoryFromTags(tags: string[]): NewsCategorySlug | null {
+  for (const category of NEWS_CATEGORIES) {
+    if (tags.includes(category.slug)) return category.slug;
+  }
+  return null;
 }

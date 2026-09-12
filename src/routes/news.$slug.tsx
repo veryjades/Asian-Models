@@ -114,10 +114,12 @@ function NewsPost() {
         {...agencySlotProps(PUBLIC_MEDIA_SLOTS.newsCover)}
         containerClassName="mt-8"
       />
-      <div className="mt-8 space-y-6">
+      <div className="mt-8 space-y-8">
         {post.bodyBlocks && post.bodyBlocks.length > 0
           ? (() => {
-              const textBlocks = post.bodyBlocks.filter((b) => b.type === "text");
+              const textBlocks = post.bodyBlocks.filter(
+                (b) => b.type === "text" || b.type === "heading",
+              );
               const enParagraphs = post.bodyEn.length >= textBlocks.length ? post.bodyEn : [];
               let textIndex = 0;
               return post.bodyBlocks.map((block, i) => {
@@ -138,18 +140,38 @@ function NewsPost() {
                     </figure>
                   );
                 }
+                if (block.type === "heading") {
+                  const zhText = block.content;
+                  const enText = enParagraphs[textIndex] ?? zhText;
+                  textIndex++;
+                  const Tag = block.level === 3 ? "h3" : "h2";
+                  return (
+                    <Tag
+                      key={i}
+                      className="font-serif text-2xl font-normal tracking-tight text-foreground md:text-3xl"
+                    >
+                      {lang === "zh" ? zhText : enText}
+                    </Tag>
+                  );
+                }
                 const zhText = block.content;
                 const enText = enParagraphs[textIndex] ?? zhText;
                 textIndex++;
                 return (
-                  <p key={i} className="text-sm leading-relaxed text-muted-foreground md:text-base">
+                  <p
+                    key={i}
+                    className="font-serif text-sm leading-8 text-muted-foreground md:text-base md:leading-8"
+                  >
                     {lang === "zh" ? zhText : enText}
                   </p>
                 );
               });
             })()
           : (lang === "zh" ? post.bodyZh : post.bodyEn).map((para, i) => (
-              <p key={i} className="text-sm leading-relaxed text-muted-foreground md:text-base">
+              <p
+                key={i}
+                className="font-serif text-sm leading-8 text-muted-foreground md:text-base md:leading-8"
+              >
                 {para}
               </p>
             ))}
