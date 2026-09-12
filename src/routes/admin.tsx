@@ -65,6 +65,14 @@ type ModelDraft = {
 };
 
 type Notice = { tone: "error" | "success"; text: string };
+
+function humanizeAuthError(message: string): string {
+  if (/failed to fetch|networkerror|load failed|network request failed/i.test(message)) {
+    return "無法連線到後端（Supabase）。請確認專案 Healthy、網路正常後再重新整理。";
+  }
+  if (/session missing/i.test(message)) return message;
+  return message;
+}
 type WorkspaceUser = {
   id: string;
   email: string | null;
@@ -191,7 +199,7 @@ function AdminRoute() {
         if (error) {
           setIdentity(null);
           if (!/session missing/i.test(error.message)) {
-            setNotice({ tone: "error", text: error.message });
+            setNotice({ tone: "error", text: humanizeAuthError(error.message) });
           }
           setAccess("signed-out");
           return;
@@ -463,7 +471,7 @@ function AdminSignIn({
       email.trim(),
       password,
     );
-    if (signInError) setError(signInError.message);
+    if (signInError) setError(humanizeAuthError(signInError.message));
     setBusy(false);
   };
 
@@ -479,7 +487,7 @@ function AdminSignIn({
       email.trim(),
       `${window.location.origin}/admin?reset=1`,
     );
-    if (resetError) setError(resetError.message);
+    if (resetError) setError(humanizeAuthError(resetError.message));
     else setResetSent(true);
     setBusy(false);
   };

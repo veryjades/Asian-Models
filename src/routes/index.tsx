@@ -126,7 +126,11 @@ function NewsCarousel({ news }: { news: NewsPostType[] }) {
     <section className="mx-auto max-w-[1600px] px-5 pb-10 md:px-10">
       <div className="flex items-baseline justify-between">
         <h2 className="label-xs text-muted-foreground">{t("home.latest")}</h2>
-        <Link to="/news" className="label-xs text-muted-foreground hover:text-foreground">
+        <Link
+          to="/news"
+          search={{ tag: undefined }}
+          className="label-xs text-muted-foreground hover:text-foreground"
+        >
           {lang === "zh" ? "全部新聞 →" : "All news →"}
         </Link>
       </div>

@@ -1,7 +1,7 @@
 # Asian Stars Agency — Task Board
 
 **Current phase:** Phase 2 — Application Foundation
-**Last updated:** 2026-08-16
+**Last updated:** 2026-09-12
 
 ## Master acceptance checklist
 

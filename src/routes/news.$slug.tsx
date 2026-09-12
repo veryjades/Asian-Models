@@ -93,7 +93,11 @@ function NewsPost() {
 
   return (
     <article className="mx-auto max-w-3xl px-5 py-10 md:px-10">
-      <Link to="/news" className="label-xs text-muted-foreground hover:text-foreground">
+      <Link
+        to="/news"
+        search={{ tag: undefined }}
+        className="label-xs text-muted-foreground hover:text-foreground"
+      >
         ← {t("news.back")}
       </Link>
       <p className="label-xs mt-8 text-muted-foreground">

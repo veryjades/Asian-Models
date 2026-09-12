@@ -12,7 +12,7 @@ const newsQuery = queryOptions({
 
 export const Route = createFileRoute("/news/")({
   validateSearch: (search: Record<string, unknown>) => ({
-    tag: typeof search.tag === "string" ? search.tag : undefined,
+    tag: typeof search["tag"] === "string" ? (search["tag"] as string) : undefined,
   }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData({
@@ -63,7 +63,11 @@ function NewsIndex() {
           <span>
             {lang === "zh" ? "篩選標籤" : "Filtered by"}: <strong>{tag}</strong>
           </span>
-          <Link to="/news" search={{}} className="text-xs underline hover:text-foreground">
+          <Link
+            to="/news"
+            search={{ tag: undefined }}
+            className="text-xs underline hover:text-foreground"
+          >
             {lang === "zh" ? "清除" : "Clear"}
           </Link>
         </div>

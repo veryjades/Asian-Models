@@ -3,17 +3,24 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** Apply `20260818140000_news_media_storage_policy.sql` to live Supabase; owner sign-in verify News block editor + cover upload.
-**Last heartbeat:** 2026-08-18 21:35 +08:00 (`feature/dev-env-news-gate` @ `4e5b1e4` pushed to origin; local dev on `:8091`; migration pending SQL apply.)
+**Current task:** Owner sign-in verify News cover/block save; paste Messenger/LINE deep-link URLs in Admin (JAG-002). Storage `news/` RLS policies still need owner confirm if cover upload fails.
+**Last heartbeat:** 2026-09-12 22:40 +08:00 (`feature/dev-env-news-gate`; Preview SSO disabled for public share; CI search-param fix + Admin network error copy in progress.)
 **Phase 0 completion date:** 2026-08-10
+
+## Session heartbeat (2026-09-12)
+
+- Public no-login Preview: `https://asian-models-git-feature-dev-env-news-gate-asian-models.vercel.app/` (Vercel Authentication SSO disabled for the project).
+- Production alias remains older: `https://asian-models-rho.vercel.app/`.
+- Live REST: `news_posts.body_blocks` column is present (3 published rows). Full migration file still includes Storage policies for `news/` prefix — confirm via Admin cover upload after sign-in.
+- Transient DNS to `jkhxtuwqmmdetjqymzso.supabase.co` caused Admin "Failed to fetch"; project Dashboard shows Healthy; connectivity re-verified AUTH + REST.
+- Next owner actions: sign in `/admin`, verify News save, paste `messenger_url` / `line_oa_url`. External Student Pack domain/email/monitoring stays Phase 8; Messenger/LINE **webhooks** stay Phase 7.
 
 ## Session heartbeat (2026-08-18, evening)
 
 - Pushed `4e5b1e4` (`feat: revamp News admin — block editor, cover upload, auto-translate, tag autocomplete`) to `origin/feature/dev-env-news-gate`.
 - Local dev server started: `http://127.0.0.1:8091` (`bunx vite dev --host 127.0.0.1 --port 8091 --strictPort`). Route probes returned HTTP 200 for `/`, `/admin`, `/news`, `/keywords/beauty`.
 - `bun run build` passes after the News revamp.
-- **Blocker:** live Supabase project `jkhxtuwqmmdetjqymzso` does not yet have `news_posts.body_blocks` or `news/` Storage RLS policies. REST probe returned `42703 column news_posts.body_blocks does not exist`. Apply `supabase/migrations/20260818140000_news_media_storage_policy.sql` via Dashboard SQL Editor or `scripts/apply-pending-migration.ps1` (needs `SUPABASE_ACCESS_TOKEN` or `SUPABASE_DB_URL`).
-- Cover upload and block editor **will fail on save** until the migration is applied.
+- **Historical blocker note:** `body_blocks` was missing on 2026-08-18; as of 2026-09-12 REST returns the column. Still verify `news/` Storage RLS if uploads fail.
 
 ## Session heartbeat (2026-08-18, earlier)
 
