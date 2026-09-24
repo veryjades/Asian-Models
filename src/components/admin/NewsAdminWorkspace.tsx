@@ -581,7 +581,7 @@ export function NewsAdminWorkspace({
       }
 
       setSaveProgress(45);
-      setSavePhase("組裝內容與翻譯…");
+      setSavePhase("自動翻譯英文…");
       const tags = [...newsSelectedTags];
       if (primaryCategory && !tags.includes(primaryCategory)) tags.unshift(primaryCategory);
 
@@ -591,18 +591,23 @@ export function NewsAdminWorkspace({
 
       const editing = news.find((row) => row.id === editingNewsId) ?? null;
       const priorBodyEn = editing?.body_en ?? [];
+      const textBlocks = newsBodyBlocks.filter(
+        (b) => (b.type === "text" || b.type === "heading") && b.content.trim(),
+      );
       const bodyEnParts: string[] = [];
-      for (const block of newsBodyBlocks) {
-        if ((block.type === "text" || block.type === "heading") && block.content.trim()) {
-          const prior = priorBodyEn[bodyEnParts.length] ?? "";
-          // Never store Chinese into body_en — empty means public EN falls back via pick().
-          const en = await englishFromChinese(block.content.trim(), prior);
-          bodyEnParts.push(en);
-        }
+      for (const [i, block] of textBlocks.entries()) {
+        const prior = priorBodyEn[i] ?? "";
+        // Never store Chinese into body_en — empty means public EN falls back via pick().
+        const en = await englishFromChinese(block.content.trim(), prior);
+        bodyEnParts.push(en);
+        setSaveProgress(45 + Math.round(((i + 1) / Math.max(textBlocks.length, 1)) * 25));
+        setSavePhase(`自動翻譯英文… ${i + 1}/${textBlocks.length}`);
       }
 
       const titleEn = await englishFromChinese(newsTitleZh, newsTitleEn);
       const excerptEn = await englishFromChinese(newsExcerptZh, newsExcerptEn);
+      setSaveProgress(72);
+      setSavePhase("組裝內容…");
       const serializedBlocks = serializeNewsBodyBlocks(newsBodyBlocks);
       const coverWithFocal = coverUrl ? withCoverFocalParam(coverUrl, coverObjectPosition) : "";
       // Focal is always durable on cover_url (?fp=X-Y). The DB column is optional

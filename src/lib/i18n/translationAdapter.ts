@@ -15,7 +15,17 @@ export interface TranslationAdapter {
   translate(request: TranslationRequest): Promise<string>;
 }
 
-/** True when Han characters dominate Latin letters — not usable as English. */
+const HAN_RE = /[\u4e00-\u9fff]/;
+
+/** Any Han character — fashion titles mix brands + Chinese and still need translation. */
+export function containsHan(text: string): boolean {
+  return HAN_RE.test(text);
+}
+
+/**
+ * True when Han characters dominate Latin letters.
+ * Used to spot Chinese leftovers wrongly stored in EN fields.
+ */
 export function isPrimarilyChinese(text: string): boolean {
   const trimmed = text.trim();
   if (!trimmed) return false;
@@ -29,11 +39,14 @@ export function isPrimarilyChinese(text: string): boolean {
   return han >= Math.max(1, latin);
 }
 
-/** Prefer stored English only when it is non-empty and not Chinese. */
+/**
+ * Prefer stored English only when it is non-empty and has no Han characters.
+ * Mixed ZH/EN brand titles must not count as English (they need translation).
+ */
 export function usableEnglish(en: string | null | undefined, zhFallback = ""): string {
   const trimmed = en?.trim() ?? "";
   if (!trimmed) return "";
-  if (isPrimarilyChinese(trimmed)) return "";
+  if (containsHan(trimmed)) return "";
   if (zhFallback.trim() && trimmed === zhFallback.trim()) return "";
   return trimmed;
 }
@@ -58,8 +71,8 @@ async function fetchMyMemoryChunk(text: string): Promise<string> {
   };
   if (payload.responseStatus && payload.responseStatus !== 200) return "";
   const translated = payload.responseData?.translatedText?.trim() ?? "";
-  // Reject echo / failed payloads that are still Chinese.
-  if (!translated || isPrimarilyChinese(translated)) return "";
+  // Reject echo / failed payloads that still contain Han.
+  if (!translated || containsHan(translated)) return "";
   return translated;
 }
 
@@ -72,16 +85,20 @@ const httpTranslationAdapter: TranslationAdapter = {
   async translate({ text }) {
     const trimmed = text.trim();
     if (!trimmed) return "";
-    // Already English (or Latin-only heading) — keep as-is.
-    if (!isPrimarilyChinese(trimmed)) return trimmed;
+    // Latin-only (or no Han) — keep as-is. Any Han → always translate.
+    // Do NOT use "primarily Chinese" here: "Irina Shayk於Versace…" has more
+    // Latin letters than Han and was wrongly skipped, leaving empty EN fields.
+    if (!containsHan(trimmed)) return trimmed;
     try {
       if (trimmed.length <= MYMEMORY_MAX_CHARS) {
+        const once = await fetchMyMemoryChunk(trimmed);
+        if (once) return once;
+        // One retry for transient quota/network blips.
         return await fetchMyMemoryChunk(trimmed);
       }
-      // Chunk long paragraphs on sentence-ish boundaries so MyMemory stays under limit.
       const parts: string[] = [];
       let buffer = "";
-      const pieces = trimmed.split(/(?<=[。！？\n])/);
+      const pieces = trimmed.split(/(?<=[。！？；;\n])/);
       for (const piece of pieces) {
         if ((buffer + piece).length > MYMEMORY_MAX_CHARS && buffer) {
           parts.push(buffer);
@@ -93,7 +110,14 @@ const httpTranslationAdapter: TranslationAdapter = {
       if (buffer) parts.push(buffer);
       const out: string[] = [];
       for (const part of parts) {
-        const translated = await fetchMyMemoryChunk(part.trim());
+        const chunk = part.trim();
+        if (!chunk) continue;
+        if (!containsHan(chunk)) {
+          out.push(chunk);
+          continue;
+        }
+        let translated = await fetchMyMemoryChunk(chunk);
+        if (!translated) translated = await fetchMyMemoryChunk(chunk);
         if (!translated) return "";
         out.push(translated);
       }
@@ -113,7 +137,7 @@ export function getTranslationAdapter(): TranslationAdapter {
 
 /**
  * Fill English from Chinese. If `existingEn` is already usable English, keep it.
- * Never returns Chinese text as a successful translation.
+ * Never returns text that still contains Han characters.
  */
 export async function englishFromChinese(zh: string, existingEn = ""): Promise<string> {
   const kept = usableEnglish(existingEn, zh);
