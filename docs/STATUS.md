@@ -14,6 +14,12 @@
 - **Fix:** `usableEnglish` / reject Chinese-as-EN; never write Chinese into `body_en`; chunk MyMemory; Admin「產生英文」+ re-save rewrites English.
 - **Owner:** open Miss-S&M (shows 英文未齊) → just「發布到前台」— no special「產生英文」step; save auto-translates like other posts.
 
+## Session heartbeat (2026-09-24, mixed-title EN skip bug)
+
+- **Why draft→publish still left EN empty:** Fashion titles like Miss-S&M have more Latin brand letters than Han, so `isPrimarilyChinese` was false → adapter skipped MyMemory and echoed ZH → `usableEnglish` then wiped it to `""`. Body paragraphs with brand names hit the same path.
+- **Fix:** Any Han → always translate; EN fields must not contain Han. Verified Miss-S&M title/heading/body → real English via MyMemory.
+- **Owner:** hard-refresh Admin → open Miss-S&M → 發布到前台 (watch「自動翻譯英文…」) → confirm EN on https://pre.jmodel.me/news/Miss-S&M
+
 ## Session heartbeat (2026-09-24, cover_object_position schema error)
 
 - **What the error means:** Admin wrote `cover_object_position` but that column is **not** on live `news_posts` yet (migration file only; SQL Editor not run). PostgREST returns *Could not find the 'cover_object_position' column … in the schema cache*.
