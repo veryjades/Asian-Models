@@ -3,9 +3,18 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** Owner sign-in verify News cover/block save; paste Messenger/LINE deep-link URLs in Admin (JAG-002). Storage `news/` RLS policies still need owner confirm if cover upload fails.
-**Last heartbeat:** 2026-09-12 22:40 +08:00 (`feature/dev-env-news-gate`; Preview SSO disabled for public share; CI search-param fix + Admin network error copy in progress.)
+**Current task:** Owner verify News draft→publish + cover upload; optional paste Messenger/LINE deep links anytime (JAG-002).
+**Last heartbeat:** 2026-09-24 13:35 +08:00 (`feature/dev-env-news-gate` @ `d9ebfcb`+; CI green on PR #11; public `/news` timeline+category filters; admin dead News code removed.)
 **Phase 0 completion date:** 2026-08-10
+
+## Session heartbeat (2026-09-24)
+
+- PR [#11](https://github.com/veryjades/Asian-Models/pull/11) checks green (typecheck/lint/build + Vercel).
+- News Admin: timeline + categories + draft/publish/archive + SEO auto-tags shipped (`d9ebfcb`).
+- Public `/news`: month timeline sections + category chips (時尚/流行/美容…).
+- Live `news_posts` count ≈ 5 published. If Admin cover upload fails, paste Storage policies from `supabase/migrations/20260818140000_news_media_storage_policy.sql` (body_blocks already live).
+- Preview (no Vercel login): `https://asian-models-git-feature-dev-env-news-gate-asian-models.vercel.app/`
+- Still deferred: Student Pack domain/email (Phase 8), Messenger/LINE webhooks (Phase 7). Deep-link URLs can wait.
 
 ## Session heartbeat (2026-09-12)
 

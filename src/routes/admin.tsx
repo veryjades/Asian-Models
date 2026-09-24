@@ -21,12 +21,10 @@ import {
 import type { Database } from "@/lib/supabase/database.types";
 import { seedKeywords, normalizeStoredTags } from "@/lib/content/keywords";
 import { MODEL_CATEGORY_OPTIONS, normalizeModelCategory } from "@/lib/content/modelCategories";
-import { NEWS_TAGS, searchNewsTags, type NewsTag } from "@/lib/content/newsTags";
 import { canonicalYouTubeUrl } from "@/lib/content/media";
 import { englishFromChinese } from "@/lib/i18n/translationAdapter";
 import { PUBLIC_MEDIA_SLOTS, slotHint } from "@/lib/content/mediaSlots";
 import { assertAllowedModelMedia } from "@/lib/supabase/media";
-import type { NewsBodyBlock } from "@/lib/content/types";
 import { NewsAdminWorkspace } from "@/components/admin/NewsAdminWorkspace";
 
 type ModelRow = Database["public"]["Tables"]["models"]["Row"];
@@ -1756,8 +1754,6 @@ function AdminDashboard({
   );
 }
 
-type NewsStatus = "draft" | "published" | "archived";
-
 function AdminOperationsPanel({
   activeTab,
   client,
@@ -1787,19 +1783,6 @@ function AdminOperationsPanel({
   const [settings, setSettings] = useState<
     Database["public"]["Tables"]["site_settings"]["Row"] | null
   >(null);
-  const [news, setNews] = useState<Database["public"]["Tables"]["news_posts"]["Row"][]>([]);
-  const [editingNewsId, setEditingNewsId] = useState<string | null>(null);
-  const [newsTitleZh, setNewsTitleZh] = useState("");
-  const [newsTitleEn, setNewsTitleEn] = useState("");
-  const [newsExcerptZh, setNewsExcerptZh] = useState("");
-  const [newsExcerptEn, setNewsExcerptEn] = useState("");
-  const [newsSlug, setNewsSlug] = useState("");
-  const [newsCoverFile, setNewsCoverFile] = useState<File | null>(null);
-  const [newsCoverPreview, setNewsCoverPreview] = useState<string>("");
-  const [newsBodyBlocks, setNewsBodyBlocks] = useState<NewsBodyBlock[]>([]);
-  const [newsSelectedTags, setNewsSelectedTags] = useState<string[]>([]);
-  const newsTitleZhManualEnRef = useRef(false);
-  const newsExcerptZhManualEnRef = useRef(false);
   const [knowledge, setKnowledge] = useState<
     Database["public"]["Tables"]["assistant_knowledge_documents"]["Row"][]
   >([]);
@@ -1812,29 +1795,21 @@ function AdminOperationsPanel({
   const [accessBusy, setAccessBusy] = useState(false);
 
   const load = useCallback(async () => {
-    const [
-      inquiryResult,
-      applicationResult,
-      notificationResult,
-      settingsResult,
-      newsResult,
-      knowledgeResult,
-    ] = await Promise.all([
-      client.from("inquiries").select("*").order("created_at", { ascending: false }),
-      client.from("scout_applications").select("*").order("created_at", { ascending: false }),
-      client.from("admin_notifications").select("*").order("created_at", { ascending: false }),
-      client.from("site_settings").select("*").eq("id", "global").maybeSingle(),
-      client.from("news_posts").select("*").order("date", { ascending: false }),
-      client
-        .from("assistant_knowledge_documents")
-        .select("*")
-        .order("updated_at", { ascending: false }),
-    ]);
+    const [inquiryResult, applicationResult, notificationResult, settingsResult, knowledgeResult] =
+      await Promise.all([
+        client.from("inquiries").select("*").order("created_at", { ascending: false }),
+        client.from("scout_applications").select("*").order("created_at", { ascending: false }),
+        client.from("admin_notifications").select("*").order("created_at", { ascending: false }),
+        client.from("site_settings").select("*").eq("id", "global").maybeSingle(),
+        client
+          .from("assistant_knowledge_documents")
+          .select("*")
+          .order("updated_at", { ascending: false }),
+      ]);
     setInquiries(inquiryResult.data ?? []);
     setApplications(applicationResult.data ?? []);
     setNotifications(notificationResult.data ?? []);
     setSettings(settingsResult.data ?? null);
-    setNews(newsResult.data ?? []);
     setKnowledge(knowledgeResult.data ?? []);
     const authLost = [settingsResult, inquiryResult, applicationResult].some((result) =>
       /session missing|jwt|permission denied for table site_settings/i.test(
@@ -2007,63 +1982,6 @@ function AdminOperationsPanel({
     await load();
   };
 
-  const addNews = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!canEdit) return;
-    setBusy(true);
-    setMessage("");
-
-    // Upload cover if a file was selected
-    let coverUrl = newsCoverPreview;
-    if (newsCoverFile) {
-      const uploaded = await uploadNewsImage(newsCoverFile);
-      if (uploaded) coverUrl = uploaded;
-      else {
-        setBusy(false);
-        return;
-      }
-    }
-
-    // Build body_zh from text blocks for legacy compatibility
-    const bodyZh = newsBodyBlocks
-      .filter((b) => b.type === "text" && b.content.trim())
-      .map((b) => b.content.trim());
-
-    // Auto-translate body blocks text to EN
-    const bodyEnParts: string[] = [];
-    for (const block of newsBodyBlocks) {
-      if (block.type === "text" && block.content.trim()) {
-        const en = await englishFromChinese(block.content.trim(), "");
-        bodyEnParts.push(en || block.content.trim());
-      }
-    }
-
-    const payload = {
-      slug: newsSlug.trim(),
-      title_en: newsTitleEn.trim() || (await englishFromChinese(newsTitleZh, "")),
-      title_zh: newsTitleZh.trim(),
-      excerpt_en: newsExcerptEn.trim() || (await englishFromChinese(newsExcerptZh, "")),
-      excerpt_zh: newsExcerptZh.trim(),
-      body_en: bodyEnParts,
-      body_zh: bodyZh,
-      body_blocks: newsBodyBlocks as unknown as never,
-      cover_url: coverUrl || null,
-      tags: newsSelectedTags,
-    };
-    const { error } = editingNewsId
-      ? await client.from("news_posts").update(payload).eq("id", editingNewsId)
-      : await client.from("news_posts").insert({ ...payload, status: "published" });
-    setBusy(false);
-    if (error) setMessage(error.message);
-    else {
-      setEditingNewsId(null);
-      setMessage(editingNewsId ? "News updated." : "News published.");
-      await queryClient.invalidateQueries({ queryKey: ["news"] });
-      await invalidatePublicContent(queryClient);
-      await load();
-    }
-  };
-
   const addKnowledge = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canEdit) return;
@@ -2092,17 +2010,6 @@ function AdminOperationsPanel({
     }
   };
 
-  const deleteNews = async (id: string) => {
-    if (!canDelete) return;
-    const { error } = await client.from("news_posts").delete().eq("id", id);
-    if (error) setMessage(error.message);
-    else {
-      if (editingNewsId === id) setEditingNewsId(null);
-      setMessage("News item deleted.");
-      await load();
-    }
-  };
-
   const deleteKnowledge = async (id: string) => {
     if (!canDelete) return;
     const { error } = await client.from("assistant_knowledge_documents").delete().eq("id", id);
@@ -2111,81 +2018,6 @@ function AdminOperationsPanel({
       setMessage("Knowledge document deleted.");
       await load();
     }
-  };
-
-  const editingNews = news.find((row) => row.id === editingNewsId) ?? null;
-
-  // Populate news form when editing (only when switching rows, not on every news list refresh)
-  useEffect(() => {
-    const row = editingNewsId ? (news.find((item) => item.id === editingNewsId) ?? null) : null;
-    if (row) {
-      setNewsTitleZh(row.title_zh);
-      setNewsTitleEn(row.title_en);
-      setNewsExcerptZh(row.excerpt_zh);
-      setNewsExcerptEn(row.excerpt_en);
-      setNewsSlug(row.slug);
-      setNewsCoverPreview(row.cover_url ?? "");
-      setNewsCoverFile(null);
-      const raw = row as unknown as Record<string, unknown>;
-      const rawBlocks = raw["body_blocks"];
-      const blocks =
-        Array.isArray(rawBlocks) && rawBlocks.length > 0
-          ? (rawBlocks as NewsBodyBlock[])
-          : row.body_zh.map((p) => ({ type: "text" as const, content: p }));
-      setNewsBodyBlocks(blocks);
-      setNewsSelectedTags(row.tags);
-      newsTitleZhManualEnRef.current = true;
-      newsExcerptZhManualEnRef.current = true;
-    } else if (!editingNewsId) {
-      setNewsTitleZh("");
-      setNewsTitleEn("");
-      setNewsExcerptZh("");
-      setNewsExcerptEn("");
-      setNewsSlug("");
-      setNewsCoverPreview("");
-      setNewsCoverFile(null);
-      setNewsBodyBlocks([{ type: "text", content: "" }]);
-      setNewsSelectedTags([]);
-      newsTitleZhManualEnRef.current = false;
-      newsExcerptZhManualEnRef.current = false;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only reset form when switching edit target
-  }, [editingNewsId]);
-
-  // Auto-translate title ZH → EN
-  useEffect(() => {
-    if (newsTitleZhManualEnRef.current || !newsTitleZh.trim()) return;
-    const timer = window.setTimeout(() => {
-      void englishFromChinese(newsTitleZh, "").then((t) => {
-        if (!newsTitleZhManualEnRef.current && t) setNewsTitleEn(t);
-      });
-    }, 700);
-    return () => window.clearTimeout(timer);
-  }, [newsTitleZh]);
-
-  // Auto-translate excerpt ZH → EN
-  useEffect(() => {
-    if (newsExcerptZhManualEnRef.current || !newsExcerptZh.trim()) return;
-    const timer = window.setTimeout(() => {
-      void englishFromChinese(newsExcerptZh, "").then((t) => {
-        if (!newsExcerptZhManualEnRef.current && t) setNewsExcerptEn(t);
-      });
-    }, 700);
-    return () => window.clearTimeout(timer);
-  }, [newsExcerptZh]);
-
-  const uploadNewsImage = async (file: File): Promise<string | null> => {
-    const id = editingNewsId ?? `draft-${Date.now()}`;
-    const path = `news/${id}/${Date.now()}-${file.name}`;
-    const { error } = await client.storage.from("model-media").upload(path, file, {
-      contentType: file.type,
-      upsert: false,
-    });
-    if (error) {
-      setMessage(`Image upload failed: ${error.message}`);
-      return null;
-    }
-    return client.storage.from("model-media").getPublicUrl(path).data.publicUrl;
   };
 
   const inputClass =
