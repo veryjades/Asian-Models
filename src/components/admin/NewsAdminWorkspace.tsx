@@ -104,6 +104,28 @@ function readCoverObjectPosition(row: NewsRow): string {
   return readCoverFocal(row.cover_url ?? "").objectPosition;
 }
 
+/** True when stored English is missing or still Chinese — save/publish will backfill. */
+function newsEnglishNeedsBackfill(row: NewsRow, blocks: NewsBodyBlock[]): boolean {
+  if (row.title_zh.trim() && !usableEnglish(row.title_en, row.title_zh)) return true;
+  if (row.excerpt_zh.trim() && !usableEnglish(row.excerpt_en, row.excerpt_zh)) return true;
+  const textBlocks = blocks.filter(
+    (b) => (b.type === "text" || b.type === "heading") && b.content.trim(),
+  );
+  if (textBlocks.length === 0) return false;
+  const bodyEn = row.body_en ?? [];
+  if (bodyEn.length < textBlocks.length) return true;
+  return textBlocks.some((block, i) => !usableEnglish(bodyEn[i], block.content));
+}
+
+function blocksFromNewsRow(row: NewsRow): NewsBodyBlock[] {
+  const raw = row as unknown as Record<string, unknown>;
+  const rawBlocks = raw["body_blocks"];
+  if (Array.isArray(rawBlocks) && rawBlocks.length > 0) {
+    return rawBlocks as NewsBodyBlock[];
+  }
+  return row.body_zh.map((p) => ({ type: "text" as const, content: p }));
+}
+
 function NewsTagChips({
   selectedTags,
   onAdd,
@@ -370,22 +392,16 @@ export function NewsAdminWorkspace({
   const startEdit = (row: NewsRow) => {
     setEditingNewsId(row.id);
     setNewsTitleZh(row.title_zh);
-    setNewsTitleEn(row.title_en);
+    setNewsTitleEn(usableEnglish(row.title_en, row.title_zh));
     setNewsExcerptZh(row.excerpt_zh);
-    setNewsExcerptEn(row.excerpt_en);
+    setNewsExcerptEn(usableEnglish(row.excerpt_en, row.excerpt_zh));
     setNewsSlug(row.slug);
     setNewsDate(row.date);
     setNewsCoverPreview(row.cover_url ?? "");
     setNewsCoverFile(null);
     const position = readCoverObjectPosition(row);
     setCoverObjectPosition(position);
-    const raw = row as unknown as Record<string, unknown>;
-    const rawBlocks = raw["body_blocks"];
-    const blocks =
-      Array.isArray(rawBlocks) && rawBlocks.length > 0
-        ? (rawBlocks as NewsBodyBlock[])
-        : row.body_zh.map((p) => ({ type: "text" as const, content: p }));
-    const nextBlocks = blocks.length ? blocks : [];
+    const nextBlocks = blocksFromNewsRow(row);
     setNewsBodyBlocks(nextBlocks);
     setNewsSelectedTags(row.tags);
     const category = primaryCategoryFromTags(row.tags) ?? "";
@@ -393,22 +409,33 @@ export function NewsAdminWorkspace({
     titleManualEnRef.current = true;
     excerptManualEnRef.current = true;
     setSavedStatus(row.status as NewsStatus);
-    setSavedSnapshot(
-      buildFormSnapshot({
-        titleZh: row.title_zh,
-        titleEn: row.title_en,
-        excerptZh: row.excerpt_zh,
-        excerptEn: row.excerpt_en,
-        slug: row.slug,
-        date: row.date,
-        coverUrl: row.cover_url ?? "",
-        coverFileKey: "",
-        coverObjectPosition: position,
-        blocks: nextBlocks,
-        tags: row.tags,
-        category,
-      }),
-    );
+    const needsEnglish = newsEnglishNeedsBackfill(row, nextBlocks);
+    if (needsEnglish) {
+      // Leave dirty so「發布到前台」stays clickable — save() already auto-translates.
+      // Other posts already have EN in DB; this is only for failed/empty EN rows.
+      setSavedSnapshot(null);
+      onMessage(
+        "此篇英文未齊全（上次存檔時翻譯沒寫入）。直接按「發布到前台」會自動補譯，與其他新聞相同，不必另外按產生英文。",
+      );
+    } else {
+      setSavedSnapshot(
+        buildFormSnapshot({
+          titleZh: row.title_zh,
+          titleEn: usableEnglish(row.title_en, row.title_zh),
+          excerptZh: row.excerpt_zh,
+          excerptEn: usableEnglish(row.excerpt_en, row.excerpt_zh),
+          slug: row.slug,
+          date: row.date,
+          coverUrl: row.cover_url ?? "",
+          coverFileKey: "",
+          coverObjectPosition: position,
+          blocks: nextBlocks,
+          tags: row.tags,
+          category,
+        }),
+      );
+      onMessage("");
+    }
     setSaveProgress(0);
     setSavePhase("");
   };
@@ -495,10 +522,10 @@ export function NewsAdminWorkspace({
       }
       setSaveProgress(100);
       if (!titleEn && !excerptEn && bodyOk === 0) {
-        onMessage("英文未產出，請手動填 Title/Excerpt 或稍後再試。");
+        onMessage("預覽未產出英文，直接按「發布到前台」仍會再試一次自動翻譯。");
       } else {
         onMessage(
-          `已產生英文（標題／摘要${textBlocks.length ? `；內文可譯 ${bodyOk}/${textBlocks.length}` : ""}）。請再按「存成草稿」或「發布到前台」寫入。`,
+          `預覽完成（標題／摘要${textBlocks.length ? `；內文可譯 ${bodyOk}/${textBlocks.length}` : ""}）。請按「存成草稿」或「發布到前台」寫入。`,
         );
       }
     } finally {
@@ -688,7 +715,7 @@ export function NewsAdminWorkspace({
         !bodyEnReady;
       if (enMissing) {
         onMessage(
-          "已儲存，但英文未齊全（標題／摘要／內文）。請按「產生英文」後再存一次，或手動填英文。",
+          "已儲存，但自動翻譯未齊全。可再按一次「發布到前台」重試，或手動改 Title/Excerpt 後再存。",
         );
       } else {
         onMessage(
@@ -861,10 +888,17 @@ export function NewsAdminWorkspace({
                           <strong className="text-sm font-normal text-white">
                             {row.title_zh || row.title_en}
                           </strong>
-                          <span
-                            className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] ${statusClass(row.status)}`}
-                          >
-                            {statusLabel(row.status)}
+                          <span className="flex shrink-0 flex-col items-end gap-1">
+                            <span
+                              className={`rounded px-1.5 py-0.5 text-[10px] ${statusClass(row.status)}`}
+                            >
+                              {statusLabel(row.status)}
+                            </span>
+                            {newsEnglishNeedsBackfill(row, blocksFromNewsRow(row)) ? (
+                              <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] text-amber-100">
+                                英文未齊
+                              </span>
+                            ) : null}
                           </span>
                         </div>
                         <p className="mt-1 text-[11px] text-white/40">
@@ -972,9 +1006,13 @@ export function NewsAdminWorkspace({
           disabled={!canEdit || busy}
           onClick={() => void generateEnglish()}
           className="border border-white/20 px-3 py-2 text-xs text-white/70 hover:bg-white/5 disabled:opacity-40"
+          title="選用。存成草稿／發布到前台時會自動翻譯英文。"
         >
-          產生英文
+          預覽英文（選用）
         </button>
+        <p className="text-[11px] text-white/40">
+          存檔與發布會自動補英文；此鈕只是先預覽標題／摘要，不是必按。
+        </p>
 
         <div>
           <p className="text-sm text-white/65">主類別（輔）</p>

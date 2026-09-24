@@ -12,7 +12,7 @@
 - **Symptom:** `Miss-S&M` on EN locale still shows Chinese title/body.
 - **Live data:** `title_en`/`excerpt_en` empty; `body_en` stored Chinese (old save used `en || zh` fallback when translate failed).
 - **Fix:** `usableEnglish` / reject Chinese-as-EN; never write Chinese into `body_en`; chunk MyMemory; Admin「產生英文」+ re-save rewrites English.
-- **Owner:** https://pre.jmodel.me/admin → open Miss-S&M → 產生英文 → 發布到前台 → confirm EN article.
+- **Owner:** open Miss-S&M (shows 英文未齊) → just「發布到前台」— no special「產生英文」step; save auto-translates like other posts.
 
 ## Session heartbeat (2026-09-24, cover_object_position schema error)
 
