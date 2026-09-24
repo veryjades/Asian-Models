@@ -6,8 +6,10 @@ export {
   createModelMediaAdapter,
   createModelMediaPath,
   MODEL_MEDIA_BUCKET,
+  MODEL_IMAGE_MAX_BYTES,
   MODEL_MEDIA_MAX_BYTES,
   MODEL_MEDIA_MIME_TYPES,
+  MODEL_VIDEO_MAX_BYTES,
 } from "./media";
 export type { AppRole, AuthAdapter, AuthIdentity } from "./auth";
 export type { Database, Json } from "./database.types";

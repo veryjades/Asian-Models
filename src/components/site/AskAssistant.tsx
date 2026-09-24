@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { QuickBooking } from "@/components/site/QuickBooking";
 import { useI18n } from "@/lib/i18n";
 import { assistantAnswers, matchAnswer, type AssistantAnswer } from "@/lib/content/assistant";
@@ -7,6 +7,8 @@ import {
   retrieveModelRecommendations,
   type AssistantRetrievalResult,
 } from "@/lib/content/assistantRetrieval";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createInquiry } from "@/lib/supabase/submissions";
 
 type Turn =
   | { role: "user"; text: string }
@@ -146,6 +148,17 @@ export function AskAssistant() {
                       : "Female models for a beauty campaign"}
                   </button>
                 </li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      ask(lang === "zh" ? "請幫我轉接專人" : "Please connect me to a specialist")
+                    }
+                    className="w-full border border-border px-3 py-2 text-left text-xs text-foreground transition-colors hover:bg-secondary"
+                  >
+                    {lang === "zh" ? "請幫我轉接專人" : "Connect me to a specialist"}
+                  </button>
+                </li>
                 {assistantAnswers.slice(0, 5).map((a) => (
                   <li key={a.id}>
                     <button
@@ -201,12 +214,37 @@ export function AskAssistant() {
                             ))}
                           </div>
                         ) : null}
+                        {turn.retrieval?.relatedAbout ? (
+                          <p className="mt-3 text-xs text-muted-foreground">
+                            <Link
+                              to="/about"
+                              onClick={() => setOpen(false)}
+                              className="border-b border-foreground pb-1"
+                            >
+                              {pick(
+                                turn.retrieval.relatedAbout.titleEn,
+                                turn.retrieval.relatedAbout.titleZh,
+                              )}
+                            </Link>
+                          </p>
+                        ) : null}
                         {turn.retrieval?.relatedNews.length ? (
                           <p className="mt-3 text-xs text-muted-foreground">
-                            {pick(
-                              `Related signals: ${turn.retrieval.relatedNews.map((post) => post.titleEn).join(" · ")}`,
-                              `相關消息：${turn.retrieval.relatedNews.map((post) => post.titleZh).join("・")}`,
-                            )}
+                            {pick("Related News", "相關新聞")}
+                            {": "}
+                            {turn.retrieval.relatedNews.map((post, index) => (
+                              <span key={post.slug}>
+                                {index ? " · " : ""}
+                                <Link
+                                  to="/news/$slug"
+                                  params={{ slug: post.slug }}
+                                  onClick={() => setOpen(false)}
+                                  className="border-b border-foreground pb-0.5"
+                                >
+                                  {pick(post.titleEn, post.titleZh)}
+                                </Link>
+                              </span>
+                            ))}
                           </p>
                         ) : null}
                         {turn.retrieval?.relatedKnowledge.length ? (
@@ -220,6 +258,13 @@ export function AskAssistant() {
                               </p>
                             ))}
                           </div>
+                        ) : null}
+                        {turn.retrieval?.specialistHandoff.offered ? (
+                          <SpecialistHandoff
+                            messengerUrl={turn.retrieval.specialistHandoff.messengerUrl}
+                            lineOaUrl={turn.retrieval.specialistHandoff.lineOaUrl}
+                            onClose={() => setOpen(false)}
+                          />
                         ) : null}
                         {turn.link && (
                           <Link
@@ -265,5 +310,145 @@ export function AskAssistant() {
         </div>
       )}
     </>
+  );
+}
+
+function isHttpsUrl(value: string | null) {
+  if (!value) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function SpecialistHandoff({
+  messengerUrl,
+  lineOaUrl,
+  onClose,
+}: {
+  messengerUrl: string | null;
+  lineOaUrl: string | null;
+  onClose: () => void;
+}) {
+  const { pick } = useI18n();
+  const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+  const messengerHref = isHttpsUrl(messengerUrl) ? messengerUrl : null;
+  const lineHref = isHttpsUrl(lineOaUrl) ? lineOaUrl : null;
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    setErrorMessage("");
+    setState("sending");
+    try {
+      const client = getSupabaseBrowserClient();
+      const { error } = await createInquiry(client, {
+        kind: "contact",
+        enquiry_type: "assistant-handoff",
+        name: String(form.get("name") ?? "").trim(),
+        email: String(form.get("email") ?? "").trim(),
+        message: String(form.get("message") ?? "").trim(),
+        subject: "J Agent specialist handoff",
+      });
+      if (error) throw error;
+      setState("done");
+    } catch (error) {
+      setState("error");
+      setErrorMessage(error instanceof Error ? error.message : "Unable to send your enquiry.");
+    }
+  }
+
+  return (
+    <div className="mt-3 border border-border p-3">
+      <p className="label-xs text-foreground">{pick("Talk to a specialist", "轉接專人")}</p>
+      <p className="mt-2 text-xs text-muted-foreground">
+        {pick(
+          "Book, send an enquiry, or open Messenger / LINE. Official URLs come from Admin About settings.",
+          "可預約、送出詢問，或開啟 Messenger / LINE。官方網址來自後台 About 設定。",
+        )}
+      </p>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <QuickBooking />
+        {messengerHref ? (
+          <a
+            href={messengerHref}
+            target="_blank"
+            rel="noreferrer"
+            className="label-xs border-b border-foreground pb-1"
+          >
+            Messenger
+          </a>
+        ) : (
+          <span className="text-xs text-muted-foreground">
+            {pick("Messenger URL not set", "尚未設定 Messenger 網址")}
+          </span>
+        )}
+        {lineHref ? (
+          <a
+            href={lineHref}
+            target="_blank"
+            rel="noreferrer"
+            className="label-xs border-b border-foreground pb-1"
+          >
+            LINE
+          </a>
+        ) : (
+          <span className="text-xs text-muted-foreground">
+            {pick("LINE OA URL not set", "尚未設定 LINE 官方帳號網址")}
+          </span>
+        )}
+      </div>
+      {state === "done" ? (
+        <p className="mt-3 text-xs text-muted-foreground">
+          {pick("Enquiry received. A specialist will follow up.", "詢問已送出，專人會再聯繫。")}
+        </p>
+      ) : (
+        <form onSubmit={onSubmit} className="mt-3 grid gap-2">
+          <input
+            name="name"
+            required
+            maxLength={200}
+            placeholder={pick("Name", "姓名")}
+            className="border-b border-border bg-transparent py-1 text-xs outline-none focus:border-foreground"
+          />
+          <input
+            name="email"
+            type="email"
+            required
+            maxLength={200}
+            placeholder={pick("Email", "電子郵件")}
+            className="border-b border-border bg-transparent py-1 text-xs outline-none focus:border-foreground"
+          />
+          <textarea
+            name="message"
+            required
+            maxLength={1000}
+            rows={3}
+            placeholder={pick("What do you need?", "請說明需求")}
+            className="border-b border-border bg-transparent py-1 text-xs outline-none focus:border-foreground"
+          />
+          {state === "error" ? (
+            <p className="text-xs text-muted-foreground">{errorMessage}</p>
+          ) : null}
+          <button
+            type="submit"
+            disabled={state === "sending"}
+            className="label-xs w-fit border border-foreground px-3 py-2 disabled:opacity-50"
+          >
+            {state === "sending" ? pick("Sending…", "送出中…") : pick("Send enquiry", "送出詢問")}
+          </button>
+        </form>
+      )}
+      <Link
+        to="/contact"
+        onClick={onClose}
+        className="label-xs mt-3 inline-block border-b border-foreground pb-1"
+      >
+        {pick("Full contact form", "完整聯絡表單")}
+      </Link>
+    </div>
   );
 }

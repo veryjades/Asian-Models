@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { AgencyImage } from "@/components/site/AgencyImage";
 import { spotlightLabels, spotlightSlides, type SpotlightSlide } from "@/lib/content/spotlight";
+import { PUBLIC_MEDIA_SLOTS } from "@/lib/content/mediaSlots";
 
 const INTERVAL = 6000;
 
@@ -16,11 +17,11 @@ function SlideBody({ slide }: { slide: SpotlightSlide }) {
       <AgencyImage
         src={slide.image}
         alt={pick(slide.titleEn, slide.titleZh)}
-        width={1920}
-        height={1024}
+        width={PUBLIC_MEDIA_SLOTS.hero.width}
+        height={PUBLIC_MEDIA_SLOTS.hero.height}
         containerClassName="aspect-video md:aspect-auto md:h-[calc(100vh-4.25rem)]"
-        fit={slide.imageFit}
-        objectPosition={slide.objectPosition}
+        fit="cover"
+        objectPosition="50% 50%"
       />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-background/85 via-background/30 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 px-5 pb-10 md:px-10 md:pb-14">
@@ -141,8 +142,10 @@ export function HeroCarousel() {
             onClick={() => setIndex(i)}
             aria-label={`${t("hero.goTo")} ${i + 1}`}
             aria-current={i === index}
-            className={`h-1.5 w-6 transition-opacity ${
-              i === index ? "gradient-accent opacity-100" : "bg-foreground/25 hover:opacity-70"
+            className={`h-2 w-2 rounded-full transition-all ${
+              i === index
+                ? "scale-125 gradient-accent opacity-100"
+                : "bg-foreground/25 hover:opacity-70"
             }`}
           />
         ))}

@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { AgencyImage } from "@/components/site/AgencyImage";
 import type { Model } from "@/lib/content/types";
 import { useI18n } from "@/lib/i18n";
+import { agencySlotProps, PUBLIC_MEDIA_SLOTS } from "@/lib/content/mediaSlots";
 
 export function ModelGrid({ models }: { models: Model[] }) {
   const { pick, t } = useI18n();
@@ -35,9 +36,7 @@ export function ModelCard({ model }: { model: Model }) {
             src={model.portrait}
             alt={`${model.name} — ${model.city}`}
             loading="lazy"
-            width={768}
-            height={1024}
-            fit="cover"
+            {...agencySlotProps(PUBLIC_MEDIA_SLOTS.modelCard)}
             containerClassName="model-card-primary absolute inset-0 h-full w-full"
           />
           {model.hoverPortrait ? (
@@ -46,9 +45,7 @@ export function ModelCard({ model }: { model: Model }) {
               alt=""
               aria-hidden="true"
               loading="lazy"
-              width={768}
-              height={1024}
-              fit="cover"
+              {...agencySlotProps(PUBLIC_MEDIA_SLOTS.modelCard)}
               containerClassName="model-card-hover-image absolute inset-0 h-full w-full"
             />
           ) : null}

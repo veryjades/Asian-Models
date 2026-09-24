@@ -1,9 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "./database.types";
+import { MODEL_IMAGE_MAX_BYTES, MODEL_VIDEO_MAX_BYTES } from "@/lib/content/mediaSlots";
 
 export const MODEL_MEDIA_BUCKET = "model-media" as const;
-export const MODEL_MEDIA_MAX_BYTES = 50 * 1024 * 1024;
+export { MODEL_IMAGE_MAX_BYTES, MODEL_VIDEO_MAX_BYTES };
+/** @deprecated Use image/video-specific limits. Kept as the larger cap. */
+export const MODEL_MEDIA_MAX_BYTES = MODEL_VIDEO_MAX_BYTES;
 
 export const MODEL_MEDIA_MIME_TYPES = [
   "image/jpeg",
@@ -48,11 +51,17 @@ export function createModelMediaPath(owner: MediaOwner, ownerId: string, filenam
 }
 
 export function assertAllowedModelMedia(file: Pick<Blob, "size" | "type">): void {
-  if (file.size > MODEL_MEDIA_MAX_BYTES) {
-    throw new Error("Model media must be 50 MiB or smaller.");
-  }
   if (!(MODEL_MEDIA_MIME_TYPES as readonly string[]).includes(file.type)) {
     throw new Error("Model media must be JPEG, PNG, WebP, or MP4.");
+  }
+  const isVideo = file.type.startsWith("video/");
+  const limit = isVideo ? MODEL_VIDEO_MAX_BYTES : MODEL_IMAGE_MAX_BYTES;
+  if (file.size > limit) {
+    throw new Error(
+      isVideo
+        ? "Uploaded videos must be 50 MiB or smaller."
+        : "Uploaded photos must be 10 MiB or smaller.",
+    );
   }
 }
 

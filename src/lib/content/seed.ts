@@ -607,3 +607,9 @@ export const seedNews: NewsPost[] = [
     tags: ["scouting", "asia", "new-faces", "natural-test", "beauty", "print-model"],
   },
 ];
+
+/** D-020: empty until Admin pastes live m.me / LINE OA URLs. Never invent a page. */
+export const seedSpecialistChannels = {
+  messengerUrl: null as string | null,
+  lineOaUrl: null as string | null,
+};

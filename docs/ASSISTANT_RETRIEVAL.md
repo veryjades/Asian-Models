@@ -9,6 +9,12 @@ or a production security boundary.
 
 ## Implemented now
 
+`src/lib/content/assistantRetrieval.ts` reads published models, News, and About
+through the existing repository / public `site_settings` path first (D-019 / D-022).
+Manual knowledge documents are overlay-only. Specialist handoff (D-020 / D-023)
+offers in-app enquiry, Quick Booking, and Admin-editable Messenger / LINE OA
+deep links. Webhooks stay Phase 7. Dual-field bilingual stays until Phase 6 (D-021).
+
 `src/lib/content/assistantRetrieval.ts` reads only through the existing
 `ContentRepository` boundary and returns a stable result shape containing:
 

@@ -94,6 +94,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&family=Noto+Sans+TC:wght@200;300;400;500&display=swap",
       },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "alternate", hrefLang: "zh-TW", href: "https://www.jjmodelagency.com/" },
+      { rel: "alternate", hrefLang: "en", href: "https://www.jjmodelagency.com/" },
+      { rel: "alternate", hrefLang: "x-default", href: "https://www.jjmodelagency.com/" },
     ],
     scripts: [
       {
@@ -102,7 +105,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@context": "https://schema.org",
           "@type": "Organization",
           name: "J&J Model Agency",
-          description: "Model management house representing faces across Asia.",
+          url: "https://www.jjmodelagency.com",
+          description:
+            "A bilingual model management house representing faces across Taipei, Tokyo, Seoul and Singapore for editorial, campaign and runway.",
+          address: [
+            { "@type": "PostalAddress", addressLocality: "Taipei", addressCountry: "TW" },
+            { "@type": "PostalAddress", addressLocality: "Tokyo", addressCountry: "JP" },
+            { "@type": "PostalAddress", addressLocality: "Seoul", addressCountry: "KR" },
+            { "@type": "PostalAddress", addressLocality: "Singapore", addressCountry: "SG" },
+          ],
+          knowsLanguage: ["zh-TW", "en", "ja", "ko"],
         }),
       },
     ],

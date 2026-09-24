@@ -3,9 +3,105 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** CMS-002 About save/refresh verified locally; production remains blocked.
-**Last heartbeat:** 2026-08-15 +08:00 (CMS-002 About UI save → public REST → `/about` h1; title restored)
+**Current task:** News cover focal — URL `?fp=` fallback so save works without DB column; owner re-publish covers.
+**Last heartbeat:** 2026-09-24 18:45 +08:00 — Miss-S&M EN empty/Chinese body_en; translation save hardened.
 **Phase 0 completion date:** 2026-08-10
+
+## Session heartbeat (2026-09-24, news EN not switching)
+
+- **Symptom:** `Miss-S&M` on EN locale still shows Chinese title/body.
+- **Live data:** `title_en`/`excerpt_en` empty; `body_en` stored Chinese (old save used `en || zh` fallback when translate failed).
+- **Fix:** `usableEnglish` / reject Chinese-as-EN; never write Chinese into `body_en`; chunk MyMemory; Admin「產生英文」+ re-save rewrites English.
+- **Owner:** open Miss-S&M (shows 英文未齊) → just「發布到前台」— no special「產生英文」step; save auto-translates like other posts.
+
+## Session heartbeat (2026-09-24, mixed-title EN skip bug)
+
+- **Why draft→publish still left EN empty:** Fashion titles like Miss-S&M have more Latin brand letters than Han, so `isPrimarilyChinese` was false → adapter skipped MyMemory and echoed ZH → `usableEnglish` then wiped it to `""`. Body paragraphs with brand names hit the same path.
+- **Fix:** Any Han → always translate; EN fields must not contain Han. Verified Miss-S&M title/heading/body → real English via MyMemory.
+- **Owner:** hard-refresh Admin → open Miss-S&M → 發布到前台 (watch「自動翻譯英文…」) → confirm EN on https://pre.jmodel.me/news/Miss-S&M
+
+## Session heartbeat (2026-09-24, cover_object_position schema error)
+
+- **What the error means:** Admin wrote `cover_object_position` but that column is **not** on live `news_posts` yet (migration file only; SQL Editor not run). PostgREST returns *Could not find the 'cover_object_position' column … in the schema cache*.
+- **Why button stayed active / covers beheaded:** Save aborted on that error → dirty state never cleared; public pages never got a stored focal.
+- **Fix shipped:** Focal encoded on `cover_url` as `?fp=X-Y`; write retries without the missing column (no schema-cache toast). Public `mapNewsCover` reads `fp` → `object-position`.
+- **Owner:** Hard-refresh https://pre.jmodel.me/admin → reopen each post → drag focal toward heads → 發布到前台. Confirm LATEST cards keep faces. Optional: run `supabase/migrations/20260924160000_news_cover_object_position.sql` in SQL Editor.
+
+## Session heartbeat (2026-09-24, News EN / focal / reorder)
+
+- Root cause of Chinese-on-EN cards: Preview used empty translation adapter; HTTP MyMemory adapter is now default (D-029, no vendor SDK). Disable with `VITE_DISABLE_HTTP_TRANSLATION=1`.
+- Admin「產生英文」fills title/excerpt EN; save still translates body on write.
+- News cover focal: click 3:2 preview + vertical slider → stored via `cover_url?fp=` (and column when present).
+- Block rows:「上移／下移」+ drag handle ⋮⋮; new blocks prepend at top.
+- Verify on https://pre.jmodel.me/admin after deploy.
+
+## Session heartbeat (2026-09-24, News Admin UX)
+
+- Block editor: select 小標/內文/圖 → 新增; per-row type change, reorder, delete; new article starts with empty blocks.
+- Dirty state: after draft save → grey「草稿已存」; after publish → black「已前台發布」; editing re-enables buttons.
+- Save/publish shows progress bar; completion messages「草稿已存」/「已前台發布」.
+- Cover/block uploads use ASCII paths `news/<id>/img-{ts}.{ext}` (avoids broken covers from Chinese filenames).
+- Verify: https://pre.jmodel.me/admin — re-upload any previously broken cover.
+
+## Session heartbeat (2026-09-24, news cover freeze)
+
+- Bug: Admin「選擇封面」freeze — `URL.createObjectURL` ran on every render in `NewsAdminWorkspace`.
+- Fix: blob URL via `useEffect` + `revokeObjectURL` (same pattern as model media in `admin.tsx`).
+- Verify on https://pre.jmodel.me/admin after deploy.
+
+## Session heartbeat (2026-09-24, preview subdomain verified)
+
+- **DOM-002 Complete.** `pre.jmodel.me` CNAME live; Vercel `configured_correctly`; HTTPS 200.
+- Maps to git branch `feature/dev-env-news-gate` (latest Preview).
+- Live Preview URL: https://pre.jmodel.me/
+- Production remains https://jmodel.me/ (older until Phase 8 promote).
+
+## Session heartbeat (2026-09-24, preview subdomain)
+
+- **DOM-002 In progress.** Vercel project domain `pre.jmodel.me` → git branch `feature/dev-env-news-gate` (Preview).
+- Removed unused `preview.jmodel.me`. Apex + `www` remain Production.
+- **Owner Namecheap:** CNAME Host `pre` → `82db007ae5d7dc2e.vercel-dns-017.com.` (TTL Automatic).
+- After DNS: agent verifies HTTPS on https://pre.jmodel.me/
+
+## Session heartbeat (2026-09-24, domain verified)
+
+- **DOM-001 Complete.** Owner fixed Namecheap (removed GitHub Pages A + wrong Host `0`).
+- `nslookup`: apex → `216.198.79.1` / `64.29.17.1`; `www` → `82db007ae5d7dc2e.vercel-dns-017.com`.
+- `vercel domains verify`: both hosts `configured_correctly` / project verified.
+- Certificate issued for `jmodel.me` + `www.jmodel.me`; HTTPS 200 + HSTS.
+- Live: https://jmodel.me/ and https://www.jmodel.me/ (Vercel **Production**, not feature Preview).
+- Latest News Admin work remains on Preview until Phase 8 promote.
+
+## Session heartbeat (2026-09-24)
+
+- PR [#11](https://github.com/veryjades/Asian-Models/pull/11) checks green (typecheck/lint/build + Vercel).
+- News Admin: timeline + categories + draft/publish/archive + SEO auto-tags shipped (`d9ebfcb`).
+- Public `/news`: month timeline sections + category chips (時尚/流行/美容…).
+- Live `news_posts` count ≈ 5 published. If Admin cover upload fails, paste Storage policies from `supabase/migrations/20260818140000_news_media_storage_policy.sql` (body_blocks already live).
+- Preview (no Vercel login): `https://asian-models-git-feature-dev-env-news-gate-asian-models.vercel.app/`
+- Messenger/LINE webhooks stay Phase 7. Deep-link URLs can wait.
+
+## Session heartbeat (2026-09-12)
+
+- Public no-login Preview: `https://asian-models-git-feature-dev-env-news-gate-asian-models.vercel.app/` (Vercel Authentication SSO disabled for the project).
+- Production alias remains older: `https://asian-models-rho.vercel.app/`.
+- Live REST: `news_posts.body_blocks` column is present (3 published rows). Full migration file still includes Storage policies for `news/` prefix — confirm via Admin cover upload after sign-in.
+- Transient DNS to `jkhxtuwqmmdetjqymzso.supabase.co` caused Admin "Failed to fetch"; project Dashboard shows Healthy; connectivity re-verified AUTH + REST.
+- Next owner actions: sign in `/admin`, verify News save, paste `messenger_url` / `line_oa_url`. External Student Pack domain/email/monitoring stays Phase 8; Messenger/LINE **webhooks** stay Phase 7.
+
+## Session heartbeat (2026-08-18, evening)
+
+- Pushed `4e5b1e4` (`feat: revamp News admin — block editor, cover upload, auto-translate, tag autocomplete`) to `origin/feature/dev-env-news-gate`.
+- Local dev server started: `http://127.0.0.1:8091` (`bunx vite dev --host 127.0.0.1 --port 8091 --strictPort`). Route probes returned HTTP 200 for `/`, `/admin`, `/news`, `/keywords/beauty`.
+- `bun run build` passes after the News revamp.
+- **Historical blocker note:** `body_blocks` was missing on 2026-08-18; as of 2026-09-12 REST returns the column. Still verify `news/` Storage RLS if uploads fail.
+
+## Session heartbeat (2026-08-18, earlier)
+
+Long-thread chat compacted for a new Cursor session. No phase gate closed.
+HEAD `5228601` (`fix: sync Admin tags, YouTube, and media slots to the public site`)
+was on origin before the News revamp push. Untracked `rest-site.json` leftover REST dump
+— do not commit. Paste-ready briefing: `docs/SESSION_HANDOFF.md`.
 
 ## Current live backend
 
@@ -96,12 +192,13 @@ historical.
 
 ## Blockers
 
-- Governance gate: [PR #6](https://github.com/veryjades/Asian-Models/pull/6) is merged into `feature/mock-assets` as `2db6fd6`. [PR #7](https://github.com/veryjades/Asian-Models/pull/7) is merged into `feature/phase-1-foundation`. Do not retarget PR #5 to `main` until PR #4 is reviewed and merged. `main` protection requires CI plus one human approval.
-- Production remains blocked: DNS/SSL, monitoring/Sentry, backup, email delivery, PR #4/#5 review chain, and current-commit Preview QA are incomplete. Do not promote production.
-- Email delivery is blocked (B-005): live Edge Function Secrets show **No custom secrets created**. `RESEND_API_KEY` / `RESEND_FROM` cannot be invented; creating a Resend account would need owner OTP.
-- Viewer/Editor deny matrix was not re-run in this session (no extra accounts). News Admin→public edit/refresh, JAgent live retrieval, and uploaded media remain unverified.
-- Public media path is blocked by empty storage: 0 `media_assets` rows and 0 `model-media` objects. Remaining hover pairs are deferred and are not a launch blocker.
+- Governance gate: [PR #6](https://github.com/veryjades/Asian-Models/pull/6) is merged into `feature/mock-assets` as `2db6fd6`. [PR #7](https://github.com/veryjades/Asian-Models/pull/7) is merged into `feature/phase-1-foundation`. Do not retarget PR #5 to `main` until PR #4 is reviewed and merged (D-027, Phase 8/9). `main` protection requires CI plus one human approval.
+- Production remains blocked: DNS/SSL, monitoring/Sentry, backup, email delivery, PR #4/#5 review chain. Do not promote this development environment (D-018/D-024). Student Pack extras are Phase 8.
+- Email delivery is blocked (B-005 / D-026): no custom Edge Function secrets. Student Pack SMTP first; not a Phase 2 fail.
+- Viewer/Editor deny matrix was not re-run. News Admin→public unique-slug gate was previously verified then restored. **2026-08-16:** local `127.0.0.1:8091/admin` and Preview `/admin` were signed out, so same-row News edit refresh was not re-run. J Agent published retrieval and specialist-handoff UI passed locally.
+- Public media path: 0 `media_assets` rows. Remaining hover pairs are **post-launch Admin uploads** (D-025), not a Phase 2 blocker.
 - The owner-authorized Email provider setting is currently minimum 6 characters with no required character classes. Security advisor still reports `auth_leaked_password_protection` because Supabase makes leaked-password checks available only on Pro and above.
+- Asana MCP due-task list is not in the repo. Owner requested it 2026-08-18; run that in the new chat. Repo remains source of truth (D-028). Visual board: 模特經紀網站發佈計畫.
 
 ## Phase 0 readiness
 
@@ -112,11 +209,14 @@ historical.
 - Phase 1 foundation is recorded as applied and verified. P2-002 documents the Auth claims, Storage paths, and RLS policy matrix; D-015/D-016 authorize the bounded content/public-media connection already present.
 - Product/domain scope, user journeys, content ownership, and acceptance criteria must remain recorded before any further implementation.
 - A Phase 1 architecture note must be created under `docs/architecture/` if the approved design requires one.
-- AI, Messenger/Facebook webhook, pricing, and production automation remain prohibited. Existing Supabase/Admin/content exceptions are limited to D-012 through D-017 and must not silently expand.
+- AI, translation vendor SDKs, Messenger/LINE webhooks, pricing, and production automation remain prohibited. D-012 through D-031 authorize the current development slice only. D-029 is a no-SDK adapter.
 
 ## Next action
 
-CMS-002 About save/refresh is verified on local `:8090` with the owner Admin
-JWT. Next: News/JAgent/media hard gates, email secret (B-005), and PR #4/#5
-review. Do not reset the password, generate images, invent email keys,
-retarget PR #5 to `main`, or promote production.
+Owner: sign in at local `http://127.0.0.1:8091/admin` (not 8090). Tick Editorial /
+Beauty / Runway on the new woman, save, then confirm `/keywords/editorial-model`,
+`/keywords/beauty`, and `/keywords/runway`. Same signed-in session is still
+required for News Admin→public refresh. Paste a YouTube URL after save. Owner
+pastes live m.me / LINE OA URLs when they exist. Cover file-upload remains
+URL-only. Do not start a paid translation SDK or Phase 7 webhooks. Do not
+promote production. New chat: start from `docs/SESSION_HANDOFF.md`.

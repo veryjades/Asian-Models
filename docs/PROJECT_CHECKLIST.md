@@ -35,7 +35,7 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 ## 3. Content CMS
 
 - [x] Add editable About page content (bilingual copy, offices, contact metadata, publish state). Live anon column-read of published About returns HTTP 200 (`admin_email` / `select=*` stay 401). Owner Admin UI Save of `About GATE-20260815-2248` on local `:8090` POSTed with a Bearer user JWT; publishable-key REST and English `/about` h1 read the same row; title restored to `About`.
-- [~] Add News CRUD (slug, date, bilingual title/excerpt/body, cover media, tags, publish state, ordering). Publish/list/delete are implemented; edit and cover upload UI remain.
+- [~] Add News CRUD (slug, date, bilingual title/excerpt/body, cover media, tags, publish state, ordering). Publish/list/delete/edit URL fields are implemented; cover file-upload UI remains. Same-row Admin→public refresh needs a signed-in Admin session.
 - [ ] Add News media upload/replace/delete with the same crop and private-storage rules.
 - [x] Bind public About and News routes to published Supabase content with a safe seed fallback. Live counts: `news_count=3`, `settings_count=1`; local `/about` and `/news` return 200.
 - [~] **Hard gate:** About Admin→public save/refresh is verified (`About GATE-20260815-2248` on `/about` + REST, then restored). News Admin→public edit/refresh remains.
@@ -50,7 +50,7 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 - [ ] **Hard gate:** a published knowledge document added in Admin must be retrievable by JAgent without a code or deploy change.
 - [ ] Keep provider calls server-side and behind an abstraction; no API key in browser code.
 - [x] Show retrieved context/source signals in the JAgent response and define a safe fallback when no match exists.
-- [ ] Verify Chinese and English queries for models, booking, About, News, and agency policy.
+- [~] Verify Chinese and English queries for models, booking, About, News, and agency policy. Local 2026-08-16: `我要找男模` returned four published male models; `請幫我轉接專人` showed enquiry + Quick Booking + empty Messenger/LINE placeholders.
 - [ ] Record RAG security, relevance, latency, and no-answer checks.
 
 ## 5. Admin UX and permissions
@@ -75,7 +75,7 @@ Status markers: `[x]` verified complete · `[~]` in progress · `[ ]` not starte
 ## 7. Project operations
 
 - [x] Keep this checklist, `TASKS.md`, and `docs/STATUS.md` synchronized after each work session.
-- [~] Keep the Asana launch plan aligned with these acceptance gates and completion percentages. GOV-003 confirmed project 模特經紀網站發佈計畫 is 2/17 complete (12%) with status 存在風險.
+- [~] Keep the Asana launch plan aligned with these acceptance gates. Asana is the visual board only (D-028); repository control docs remain source of truth. The old 2/17 (12%) snapshot is not engineering truth.
 - [ ] Keep Notion/launch documentation linked to the same source-of-truth checklist.
 
 ## 8. Enquiries, applications, and administrator notifications

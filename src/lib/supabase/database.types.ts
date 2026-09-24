@@ -274,6 +274,8 @@ export type Database = {
           about_body_en: string[];
           about_body_zh: string[];
           offices: Json;
+          messenger_url: string | null;
+          line_oa_url: string | null;
           updated_at: string;
         };
         Insert: {
@@ -285,6 +287,8 @@ export type Database = {
           about_body_en?: string[];
           about_body_zh?: string[];
           offices?: Json;
+          messenger_url?: string | null;
+          line_oa_url?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -296,6 +300,8 @@ export type Database = {
           about_body_en?: string[];
           about_body_zh?: string[];
           offices?: Json;
+          messenger_url?: string | null;
+          line_oa_url?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -312,11 +318,14 @@ export type Database = {
           body_en: string[];
           body_zh: string[];
           cover_url: string | null;
+          /** Optional until migration 20260924160000 is applied on the live project. */
+          cover_object_position?: string;
           tags: string[];
           status: string;
           created_at: string;
           updated_at: string;
           published_at: string | null;
+          body_blocks: unknown;
         };
         Insert: {
           id?: string;
@@ -329,11 +338,13 @@ export type Database = {
           body_en?: string[];
           body_zh?: string[];
           cover_url?: string | null;
+          cover_object_position?: string;
           tags?: string[];
           status?: string;
           created_at?: string;
           updated_at?: string;
           published_at?: string | null;
+          body_blocks?: unknown;
         };
         Update: Partial<Database["public"]["Tables"]["news_posts"]["Insert"]>;
         Relationships: [];

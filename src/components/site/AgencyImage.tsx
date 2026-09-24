@@ -40,7 +40,6 @@ export function AgencyImage({
   ...imgProps
 }: AgencyImageProps) {
   const frameStyle = aspectRatio ? ({ aspectRatio } as CSSProperties) : undefined;
-  const imageStyle = { objectFit: fit, objectPosition, ...style } as CSSProperties;
 
   return (
     <div className={cn("overflow-hidden bg-muted", containerClassName)} style={frameStyle}>
@@ -57,8 +56,8 @@ export function AgencyImage({
           src={src}
           alt={alt}
           className={cn("block h-full w-full", className)}
-          style={imageStyle}
           {...imgProps}
+          style={{ objectFit: fit, objectPosition, ...style }}
         />
       </picture>
     </div>

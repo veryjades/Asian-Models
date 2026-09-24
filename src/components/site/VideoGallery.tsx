@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { youTubeEmbedUrl, youTubeThumbnail, type VideoMedia } from "@/lib/content/media";
+import { PUBLIC_MEDIA_SLOTS } from "@/lib/content/mediaSlots";
 
 function VideoItem({ video }: { video: VideoMedia }) {
   const { pick, t } = useI18n();
@@ -11,7 +12,10 @@ function VideoItem({ video }: { video: VideoMedia }) {
     const poster = video.poster ?? youTubeThumbnail(video.src);
     return (
       <figure className="bg-background">
-        <div className="relative aspect-video w-full overflow-hidden bg-muted">
+        <div
+          className="relative w-full overflow-hidden bg-muted"
+          style={{ aspectRatio: PUBLIC_MEDIA_SLOTS.videoFrame.aspectRatio }}
+        >
           {playing ? (
             <iframe
               src={`${youTubeEmbedUrl(video.src)}&autoplay=1`}
@@ -57,7 +61,8 @@ function VideoItem({ video }: { video: VideoMedia }) {
         controls
         preload="metadata"
         playsInline
-        className="aspect-video w-full bg-muted object-cover"
+        className="w-full bg-muted object-cover object-center"
+        style={{ aspectRatio: PUBLIC_MEDIA_SLOTS.videoFrame.aspectRatio }}
       />
       <figcaption className="label-xs px-1 py-3 text-muted-foreground">{title}</figcaption>
     </figure>

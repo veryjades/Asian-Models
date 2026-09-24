@@ -11,6 +11,7 @@ const navItems: NavItem[] = [
   { to: "/models/$board", params: { board: "men" }, key: "nav.men" },
   { to: "/models/$board", params: { board: "new-faces" }, key: "nav.newFaces" },
   { to: "/models/$board", params: { board: "talent" }, key: "nav.talent" },
+  { to: "/models/$board", params: { board: "singers" }, key: "nav.singers" },
   { to: "/news", key: "nav.news" },
   { to: "/about", key: "nav.about" },
   { to: "/contact", key: "nav.contact" },
