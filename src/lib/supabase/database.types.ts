@@ -318,7 +318,8 @@ export type Database = {
           body_en: string[];
           body_zh: string[];
           cover_url: string | null;
-          cover_object_position: string;
+          /** Optional until migration 20260924160000 is applied on the live project. */
+          cover_object_position?: string;
           tags: string[];
           status: string;
           created_at: string;

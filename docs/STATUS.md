@@ -3,17 +3,24 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** News EN adapter + cover focal + block drag reorder — Owner apply SQL then re-save Vogue post.
-**Last heartbeat:** 2026-09-24 15:55 +08:00 — translation default HTTP; cover_object_position; block drag.
+**Current task:** News cover focal — URL `?fp=` fallback so save works without DB column; owner re-publish covers.
+**Last heartbeat:** 2026-09-24 16:40 +08:00 — schema-cache error explained; save no longer depends on missing column.
 **Phase 0 completion date:** 2026-08-10
+
+## Session heartbeat (2026-09-24, cover_object_position schema error)
+
+- **What the error means:** Admin wrote `cover_object_position` but that column is **not** on live `news_posts` yet (migration file only; SQL Editor not run). PostgREST returns *Could not find the 'cover_object_position' column … in the schema cache*.
+- **Why button stayed active / covers beheaded:** Save aborted on that error → dirty state never cleared; public pages never got a stored focal.
+- **Fix shipped:** Focal encoded on `cover_url` as `?fp=X-Y`; write retries without the missing column (no schema-cache toast). Public `mapNewsCover` reads `fp` → `object-position`.
+- **Owner:** Hard-refresh https://pre.jmodel.me/admin → reopen each post → drag focal toward heads → 發布到前台. Confirm LATEST cards keep faces. Optional: run `supabase/migrations/20260924160000_news_cover_object_position.sql` in SQL Editor.
 
 ## Session heartbeat (2026-09-24, News EN / focal / reorder)
 
 - Root cause of Chinese-on-EN cards: Preview used empty translation adapter; HTTP MyMemory adapter is now default (D-029, no vendor SDK). Disable with `VITE_DISABLE_HTTP_TRANSLATION=1`.
 - Admin「產生英文」fills title/excerpt EN; save still translates body on write.
-- News cover focal: click 3:2 preview + vertical slider → `cover_object_position`. Migration `20260924160000_news_cover_object_position.sql` — **Owner must paste in Supabase SQL Editor**.
-- Block rows:「上移／下移」+ drag handle ⋮⋮.
-- Verify on https://pre.jmodel.me/admin after deploy + SQL: open Vogue post → 產生英文 → set focal → save/publish.
+- News cover focal: click 3:2 preview + vertical slider → stored via `cover_url?fp=` (and column when present).
+- Block rows:「上移／下移」+ drag handle ⋮⋮; new blocks prepend at top.
+- Verify on https://pre.jmodel.me/admin after deploy.
 
 ## Session heartbeat (2026-09-24, News Admin UX)
 

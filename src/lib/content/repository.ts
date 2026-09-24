@@ -2,8 +2,19 @@ import { hasKeywordTag, normalizeStoredTags, seedKeywords, sortKeywords } from "
 import { parseYouTubeId } from "./media";
 import { boards, type BoardId, type ContentRepository, type Model } from "./types";
 import { seedModels, seedNews } from "./seed";
+import { readCoverFocal } from "./newsCoverFocal";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database, Json } from "@/lib/supabase/database.types";
+
+function mapNewsCover(coverUrl: string | null | undefined, rawPosition: unknown) {
+  const fromUrl = readCoverFocal(coverUrl ?? "");
+  const fromColumn =
+    typeof rawPosition === "string" && rawPosition.trim() ? rawPosition.trim() : "";
+  return {
+    cover: fromUrl.src || coverUrl || "",
+    coverObjectPosition: fromColumn || fromUrl.objectPosition,
+  };
+}
 
 /**
  * Seed-backed implementation. Reads from bundled content so the site is fully
@@ -254,11 +265,10 @@ const supabaseRepository: ContentRepository = {
           bodyEn: row.body_en,
           bodyZh: row.body_zh,
           ...(blocks ? { bodyBlocks: blocks } : {}),
-          cover: row.cover_url ?? seedNews.find((post) => post.slug === row.slug)?.cover ?? "",
-          coverObjectPosition:
-            typeof raw["cover_object_position"] === "string" && raw["cover_object_position"]
-              ? (raw["cover_object_position"] as string)
-              : "50% 50%",
+          ...mapNewsCover(
+            row.cover_url ?? seedNews.find((post) => post.slug === row.slug)?.cover ?? "",
+            raw["cover_object_position"],
+          ),
           tags: normalizeStoredTags(row.tags),
         };
       });
@@ -292,11 +302,10 @@ const supabaseRepository: ContentRepository = {
         bodyEn: data.body_en,
         bodyZh: data.body_zh,
         ...(blocks ? { bodyBlocks: blocks } : {}),
-        cover: data.cover_url ?? seedNews.find((post) => post.slug === data.slug)?.cover ?? "",
-        coverObjectPosition:
-          typeof raw["cover_object_position"] === "string" && raw["cover_object_position"]
-            ? (raw["cover_object_position"] as string)
-            : "50% 50%",
+        ...mapNewsCover(
+          data.cover_url ?? seedNews.find((post) => post.slug === data.slug)?.cover ?? "",
+          raw["cover_object_position"],
+        ),
         tags: normalizeStoredTags(data.tags),
       };
     } catch {

@@ -13,7 +13,7 @@ export type PublicMediaSlot = {
   width: number;
   height: number;
   fit: MediaFit;
-  objectPosition: "50% 50%";
+  objectPosition: string;
   maxBytes: number;
 };
 
@@ -73,7 +73,8 @@ export const PUBLIC_MEDIA_SLOTS = {
     width: 1600,
     height: 1067,
     fit: "cover",
-    objectPosition: "50% 50%",
+    // Top-biased default so portrait uploads keep heads in a 3:2 landscape crop.
+    objectPosition: "50% 15%",
     maxBytes: IMAGE_MAX,
   },
   videoFrame: {

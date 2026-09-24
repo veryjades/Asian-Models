@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { NewsBlockEditor } from "@/components/admin/NewsBlockEditor";
+import { NewsBlockEditor, serializeNewsBodyBlocks } from "@/components/admin/NewsBlockEditor";
 import type { NewsBodyBlock } from "@/lib/content/types";
 import {
   NEWS_CATEGORIES,
@@ -14,10 +14,25 @@ import {
   type NewsTag,
 } from "@/lib/content/newsTags";
 import { englishFromChinese } from "@/lib/i18n/translationAdapter";
+import {
+  DEFAULT_NEWS_COVER_POSITION,
+  formatObjectPosition,
+  parseObjectPosition,
+  readCoverFocal,
+  withCoverFocalParam,
+} from "@/lib/content/newsCoverFocal";
 import type { Database } from "@/lib/supabase/database.types";
 
 type NewsRow = Database["public"]["Tables"]["news_posts"]["Row"];
 type NewsStatus = "draft" | "published" | "archived";
+type NewsWritePayload = Database["public"]["Tables"]["news_posts"]["Insert"];
+
+/** Live DB may not have cover_object_position yet — remember after first schema miss. */
+let coverObjectPositionColumnOk: boolean | null = null;
+
+function isMissingCoverObjectPositionColumn(message: string): boolean {
+  return /cover_object_position|schema cache|Could not find the .* column/i.test(message);
+}
 
 async function invalidateNewsQueries(queryClient: ReturnType<typeof useQueryClient>) {
   await Promise.all([
@@ -78,21 +93,11 @@ function buildFormSnapshot(input: FormSnapshot): string {
   return JSON.stringify(input);
 }
 
-function parseObjectPosition(value: string): { x: number; y: number } {
-  const match = value.trim().match(/^([\d.]+)%\s+([\d.]+)%$/);
-  if (!match) return { x: 50, y: 50 };
-  return { x: Number(match[1]), y: Number(match[2]) };
-}
-
-function formatObjectPosition(x: number, y: number): string {
-  const clamp = (n: number) => Math.min(100, Math.max(0, Math.round(n)));
-  return `${clamp(x)}% ${clamp(y)}%`;
-}
-
 function readCoverObjectPosition(row: NewsRow): string {
   const raw = row as unknown as Record<string, unknown>;
-  const value = raw["cover_object_position"];
-  return typeof value === "string" && value.trim() ? value.trim() : "50% 50%";
+  const column = raw["cover_object_position"];
+  if (typeof column === "string" && column.trim()) return column.trim();
+  return readCoverFocal(row.cover_url ?? "").objectPosition;
 }
 
 function NewsTagChips({
@@ -218,7 +223,7 @@ export function NewsAdminWorkspace({
   const [newsCoverFile, setNewsCoverFile] = useState<File | null>(null);
   const [newsCoverPreview, setNewsCoverPreview] = useState("");
   const [newsCoverBlobUrl, setNewsCoverBlobUrl] = useState("");
-  const [coverObjectPosition, setCoverObjectPosition] = useState("50% 50%");
+  const [coverObjectPosition, setCoverObjectPosition] = useState(DEFAULT_NEWS_COVER_POSITION);
   const [newsBodyBlocks, setNewsBodyBlocks] = useState<NewsBodyBlock[]>([]);
   const [newsSelectedTags, setNewsSelectedTags] = useState<string[]>([]);
   const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
@@ -345,7 +350,7 @@ export function NewsAdminWorkspace({
     setNewsDate(new Date().toISOString().slice(0, 10));
     setNewsCoverPreview("");
     setNewsCoverFile(null);
-    setCoverObjectPosition("50% 50%");
+    setCoverObjectPosition(DEFAULT_NEWS_COVER_POSITION);
     setNewsBodyBlocks([]);
     setNewsSelectedTags([]);
     setPrimaryCategory("");
@@ -545,7 +550,11 @@ export function NewsAdminWorkspace({
       const editing = news.find((row) => row.id === editingNewsId) ?? null;
       const titleEn = newsTitleEn.trim() || (await englishFromChinese(newsTitleZh, ""));
       const excerptEn = newsExcerptEn.trim() || (await englishFromChinese(newsExcerptZh, ""));
-      const payload = {
+      const serializedBlocks = serializeNewsBodyBlocks(newsBodyBlocks);
+      const coverWithFocal = coverUrl ? withCoverFocalParam(coverUrl, coverObjectPosition) : "";
+      // Focal is always durable on cover_url (?fp=X-Y). The DB column is optional
+      // until supabase/migrations/20260924160000_news_cover_object_position.sql is applied.
+      const basePayload: NewsWritePayload = {
         slug: newsSlug.trim(),
         date: newsDate,
         title_en: titleEn,
@@ -554,9 +563,8 @@ export function NewsAdminWorkspace({
         excerpt_zh: newsExcerptZh.trim(),
         body_en: bodyEnParts,
         body_zh: bodyZh,
-        body_blocks: newsBodyBlocks as unknown as never,
-        cover_url: coverUrl || null,
-        cover_object_position: coverObjectPosition,
+        body_blocks: serializedBlocks as unknown as never,
+        cover_url: coverWithFocal || null,
         tags,
         status: nextStatus,
         published_at:
@@ -568,52 +576,73 @@ export function NewsAdminWorkspace({
       setSaveProgress(75);
       setSavePhase("寫入資料庫…");
 
-      let nextId = editingNewsId;
-      if (editingNewsId) {
-        const { error } = await client.from("news_posts").update(payload).eq("id", editingNewsId);
-        if (error) {
-          onMessage(error.message);
-          setBusy(false);
-          setSaveProgress(0);
-          setSavePhase("");
-          return;
+      const writePayload = async (body: NewsWritePayload) => {
+        if (editingNewsId) {
+          return client.from("news_posts").update(body).eq("id", editingNewsId);
         }
-      } else {
-        const { data, error } = await client
-          .from("news_posts")
-          .insert(payload)
-          .select("id")
-          .single();
-        if (error) {
-          onMessage(error.message);
-          setBusy(false);
-          setSaveProgress(0);
-          setSavePhase("");
-          return;
-        }
-        if (data?.id) {
-          nextId = data.id;
-          setEditingNewsId(data.id);
-        }
+        return client.from("news_posts").insert(body).select("id").single();
+      };
+
+      const withFocalColumn: NewsWritePayload = {
+        ...basePayload,
+        cover_object_position: coverObjectPosition,
+      };
+
+      let writeResult =
+        coverObjectPositionColumnOk === false
+          ? await writePayload(basePayload)
+          : await writePayload(withFocalColumn);
+
+      if (
+        writeResult.error &&
+        coverObjectPositionColumnOk !== false &&
+        isMissingCoverObjectPositionColumn(writeResult.error.message)
+      ) {
+        coverObjectPositionColumnOk = false;
+        writeResult = await writePayload(basePayload);
+      } else if (!writeResult.error && coverObjectPositionColumnOk !== false) {
+        coverObjectPositionColumnOk = true;
       }
 
+      if (writeResult.error) {
+        // Never surface the missing-column schema-cache noise; only real failures.
+        onMessage(
+          isMissingCoverObjectPositionColumn(writeResult.error.message)
+            ? "儲存失敗：焦點欄位尚未建立，且寫入封面網址時也失敗。請再試一次。"
+            : writeResult.error.message,
+        );
+        setBusy(false);
+        setSaveProgress(0);
+        setSavePhase("");
+        return;
+      }
+
+      if (!editingNewsId) {
+        const inserted = writeResult.data as { id?: string } | null;
+        if (inserted?.id) setEditingNewsId(inserted.id);
+      }
+
+      // Prevent auto-translate effects from dirtying the form right after save.
+      titleManualEnRef.current = true;
+      excerptManualEnRef.current = true;
       setNewsCoverFile(null);
-      setNewsCoverPreview(coverUrl || "");
-      setNewsTitleEn(payload.title_en);
-      setNewsExcerptEn(payload.excerpt_en);
+      setNewsCoverPreview(coverWithFocal || "");
+      setNewsTitleEn(basePayload.title_en);
+      setNewsExcerptEn(basePayload.excerpt_en ?? "");
+      setNewsBodyBlocks(serializedBlocks);
       setSavedStatus(nextStatus);
       setSavedSnapshot(
         buildFormSnapshot({
-          titleZh: payload.title_zh,
-          titleEn: payload.title_en,
-          excerptZh: payload.excerpt_zh,
-          excerptEn: payload.excerpt_en,
-          slug: payload.slug,
-          date: payload.date,
-          coverUrl: coverUrl || "",
+          titleZh: basePayload.title_zh,
+          titleEn: basePayload.title_en,
+          excerptZh: basePayload.excerpt_zh ?? "",
+          excerptEn: basePayload.excerpt_en ?? "",
+          slug: basePayload.slug,
+          date: basePayload.date ?? newsDate,
+          coverUrl: coverWithFocal || "",
           coverFileKey: "",
           coverObjectPosition,
-          blocks: newsBodyBlocks,
+          blocks: serializedBlocks,
           tags,
           category: primaryCategory,
         }),
@@ -622,7 +651,8 @@ export function NewsAdminWorkspace({
       setSaveProgress(100);
       setSavePhase("完成");
       const enMissing =
-        !payload.title_en.trim() || (payload.excerpt_zh.trim() && !payload.excerpt_en.trim());
+        !basePayload.title_en.trim() ||
+        Boolean((basePayload.excerpt_zh ?? "").trim() && !(basePayload.excerpt_en ?? "").trim());
       if (enMissing) {
         onMessage("已儲存，但英文未產出，請按「產生英文」或手動填 Title/Excerpt 後再存一次。");
       } else {
@@ -637,7 +667,6 @@ export function NewsAdminWorkspace({
 
       await invalidateNewsQueries(queryClient);
       await load();
-      void nextId;
     } finally {
       setBusy(false);
       window.setTimeout(() => {
@@ -1005,7 +1034,7 @@ export function NewsAdminWorkspace({
                 setNewsCoverFile(file);
                 if (file) {
                   setNewsCoverPreview("");
-                  setCoverObjectPosition("50% 50%");
+                  setCoverObjectPosition(DEFAULT_NEWS_COVER_POSITION);
                 }
                 e.target.value = "";
               }}
@@ -1014,6 +1043,7 @@ export function NewsAdminWorkspace({
         </div>
 
         <NewsBlockEditor
+          key={editingNewsId ?? "new-article"}
           blocks={newsBodyBlocks}
           onChange={setNewsBodyBlocks}
           onUploadImage={uploadNewsImage}

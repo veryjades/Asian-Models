@@ -1,9 +1,26 @@
-import { useRef, useState, type ClipboardEvent, type DragEvent } from "react";
+import { useEffect, useRef, useState, type ClipboardEvent, type DragEvent } from "react";
 import type { NewsBodyBlock } from "@/lib/content/types";
 
 export type { NewsBodyBlock };
 
 type BlockKind = NewsBodyBlock["type"];
+
+type BlockRow = {
+  id: string;
+  block: NewsBodyBlock;
+};
+
+function newRowId() {
+  return `blk-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function toRows(blocks: NewsBodyBlock[]): BlockRow[] {
+  return blocks.map((block) => ({ id: newRowId(), block }));
+}
+
+function fromRows(rows: BlockRow[]): NewsBodyBlock[] {
+  return rows.map((row) => row.block);
+}
 
 export function splitPastedText(raw: string): string[] {
   return raw
@@ -28,6 +45,19 @@ function convertBlock(block: NewsBodyBlock, nextType: BlockKind): NewsBodyBlock 
     content: block.type === "image" ? block.content : "",
     caption: block.type === "image" ? (block.caption ?? "") : "",
   };
+}
+
+/** Strip any client-only fields before persisting (defensive). */
+export function serializeNewsBodyBlocks(blocks: NewsBodyBlock[]): NewsBodyBlock[] {
+  return blocks.map((block) => {
+    if (block.type === "heading") {
+      return { type: "heading", content: block.content, level: block.level ?? 2 };
+    }
+    if (block.type === "image") {
+      return { type: "image", content: block.content, caption: block.caption ?? "" };
+    }
+    return { type: "text", content: block.content };
+  });
 }
 
 export function NewsBlockPreview({ blocks }: { blocks: NewsBodyBlock[] }) {
@@ -96,42 +126,67 @@ export function NewsBlockEditor({
   const [addKind, setAddKind] = useState<BlockKind>("text");
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
+  const [rows, setRows] = useState<BlockRow[]>(() => toRows(blocks));
+  const rowsRef = useRef(rows);
+  rowsRef.current = rows;
   const addImageInputRef = useRef<HTMLInputElement>(null);
   const replaceImageInputRef = useRef<HTMLInputElement>(null);
   const replaceImageIndexRef = useRef<number | null>(null);
+  const skipNextExternalSync = useRef(false);
 
-  const updateBlock = (index: number, patch: Partial<NewsBodyBlock>) => {
-    const next = blocks.map((b, i) => (i === index ? ({ ...b, ...patch } as NewsBodyBlock) : b));
-    onChange(next);
+  useEffect(() => {
+    if (skipNextExternalSync.current) {
+      skipNextExternalSync.current = false;
+      return;
+    }
+    const nextRows = toRows(blocks);
+    setRows(nextRows);
+    rowsRef.current = nextRows;
+  }, [blocks]);
+
+  const commit = (nextRows: BlockRow[]) => {
+    skipNextExternalSync.current = true;
+    setRows(nextRows);
+    rowsRef.current = nextRows;
+    onChange(fromRows(nextRows));
   };
 
-  const removeBlock = (index: number) => onChange(blocks.filter((_, i) => i !== index));
+  const updateBlock = (index: number, patch: Partial<NewsBodyBlock>) => {
+    const next = rows.map((row, i) =>
+      i === index ? { ...row, block: { ...row.block, ...patch } as NewsBodyBlock } : row,
+    );
+    commit(next);
+  };
+
+  const removeBlock = (index: number) => {
+    commit(rows.filter((_, i) => i !== index));
+  };
 
   const moveBlock = (index: number, dir: -1 | 1) => {
     const target = index + dir;
-    if (target < 0 || target >= blocks.length) return;
-    const next = [...blocks];
+    if (target < 0 || target >= rows.length) return;
+    const next = [...rows];
     const tmp = next[index]!;
     next[index] = next[target]!;
     next[target] = tmp;
-    onChange(next);
+    commit(next);
   };
 
   const reorderBlocks = (from: number, to: number) => {
-    if (from === to || from < 0 || to < 0 || from >= blocks.length || to >= blocks.length) return;
-    const next = [...blocks];
+    if (from === to || from < 0 || to < 0 || from >= rows.length || to >= rows.length) return;
+    const next = [...rows];
     const [item] = next.splice(from, 1);
     if (!item) return;
     next.splice(to, 0, item);
-    onChange(next);
+    commit(next);
   };
 
   const changeBlockType = (index: number, nextType: BlockKind) => {
-    const current = blocks[index];
+    const current = rows[index];
     if (!current) return;
-    const converted = convertBlock(current, nextType);
-    const next = blocks.map((b, i) => (i === index ? converted : b));
-    onChange(next);
+    const converted = convertBlock(current.block, nextType);
+    const next = rows.map((row, i) => (i === index ? { ...row, block: converted } : row));
+    commit(next);
     if (nextType === "image" && !converted.content) {
       replaceImageIndexRef.current = index;
       window.setTimeout(() => replaceImageInputRef.current?.click(), 0);
@@ -143,11 +198,11 @@ export function NewsBlockEditor({
       addImageInputRef.current?.click();
       return;
     }
-    if (addKind === "heading") {
-      onChange([...blocks, { type: "heading", content: "", level: 2 }]);
-      return;
-    }
-    onChange([...blocks, { type: "text", content: "" }]);
+    const block: NewsBodyBlock =
+      addKind === "heading"
+        ? { type: "heading", content: "", level: 2 }
+        : { type: "text", content: "" };
+    commit([{ id: newRowId(), block }, ...rowsRef.current]);
   };
 
   const handlePasteSplit = (
@@ -159,16 +214,19 @@ export function NewsBlockEditor({
     const parts = splitPastedText(pasted);
     if (parts.length <= 1) return;
     event.preventDefault();
-    const current = blocks[index];
-    if (!current || (current.type !== "text" && current.type !== "heading")) return;
-    const prefix = current.content.trim();
+    const current = rows[index];
+    if (!current || (current.block.type !== "text" && current.block.type !== "heading")) return;
+    const prefix = current.block.content.trim();
     const firstContent = prefix ? `${prefix}\n${parts[0]}` : parts[0]!;
-    const inserted: NewsBodyBlock[] = parts.slice(1).map((content) => ({ type: "text", content }));
-    onChange([
-      ...blocks.slice(0, index),
-      { ...current, content: firstContent } as NewsBodyBlock,
+    const inserted: BlockRow[] = parts.slice(1).map((content) => ({
+      id: newRowId(),
+      block: { type: "text" as const, content },
+    }));
+    commit([
+      ...rows.slice(0, index),
+      { ...current, block: { ...current.block, content: firstContent } as NewsBodyBlock },
       ...inserted,
-      ...blocks.slice(index + 1),
+      ...rows.slice(index + 1),
     ]);
   };
 
@@ -204,158 +262,11 @@ export function NewsBlockEditor({
       <div>
         <p className="text-sm text-white/65">內文區塊</p>
         <p className="mt-1 text-xs text-white/40">
-          下拉選類型後新增；可用「上移／下移」或左側拖曳把手調整順序。貼上多段文字會自動拆段。
+          在最上方選擇類型後「新增到頂部」，編輯完再以上移／下移或拖曳調到合適位置。貼上多段文字會自動拆段。
         </p>
       </div>
 
-      {blocks.length === 0 ? (
-        <p className="border border-dashed border-white/15 px-3 py-6 text-center text-xs text-white/40">
-          尚無區塊 — 下方選擇類型後按「新增」
-        </p>
-      ) : null}
-
-      {blocks.map((block, index) => (
-        <div
-          key={index}
-          onDragOver={(e) => onDragOverRow(index, e)}
-          onDrop={(e) => onDropRow(index, e)}
-          className={`group relative border bg-black/20 p-3 transition ${
-            dropIndex === index && dragIndex !== null && dragIndex !== index
-              ? "border-white/50"
-              : "border-white/10"
-          } ${dragIndex === index ? "opacity-60" : ""}`}
-        >
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                draggable={!disabled}
-                disabled={disabled}
-                onDragStart={(e) => onDragStart(index, e)}
-                onDragEnd={onDragEnd}
-                aria-label={`拖曳第 ${index + 1} 列`}
-                className="cursor-grab border border-white/15 px-2 py-1 text-xs text-white/50 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-30"
-              >
-                ⋮⋮
-              </button>
-              <select
-                value={block.type}
-                disabled={disabled}
-                onChange={(e) => changeBlockType(index, e.target.value as BlockKind)}
-                className="border border-white/15 bg-slate-950 px-2 py-1 text-xs text-white"
-                aria-label={`第 ${index + 1} 列類型`}
-              >
-                <option value="heading">小標</option>
-                <option value="text">內文</option>
-                <option value="image">圖</option>
-              </select>
-              {block.type === "heading" ? (
-                <select
-                  value={block.level ?? 2}
-                  disabled={disabled}
-                  onChange={(e) =>
-                    updateBlock(index, { level: Number(e.target.value) === 3 ? 3 : 2 })
-                  }
-                  className="border border-white/15 bg-slate-950 px-2 py-1 text-xs text-white"
-                >
-                  <option value={2}>H2</option>
-                  <option value={3}>H3</option>
-                </select>
-              ) : null}
-              <span className="text-xs text-white/35">#{index + 1}</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => moveBlock(index, -1)}
-                disabled={disabled || index === 0}
-                className="border border-white/15 px-2 py-1 text-xs text-white/70 hover:bg-white/5 disabled:opacity-30"
-              >
-                上移
-              </button>
-              <button
-                type="button"
-                onClick={() => moveBlock(index, 1)}
-                disabled={disabled || index === blocks.length - 1}
-                className="border border-white/15 px-2 py-1 text-xs text-white/70 hover:bg-white/5 disabled:opacity-30"
-              >
-                下移
-              </button>
-              <button
-                type="button"
-                onClick={() => removeBlock(index)}
-                disabled={disabled}
-                className="border border-red-400/30 px-2 py-1 text-xs text-red-300/80 hover:bg-red-500/10 disabled:opacity-30"
-              >
-                刪除
-              </button>
-            </div>
-          </div>
-          {block.type === "heading" ? (
-            <input
-              value={block.content}
-              disabled={disabled}
-              onChange={(e) => updateBlock(index, { content: e.target.value })}
-              onPaste={(e) => handlePasteSplit(index, e)}
-              className="w-full border border-white/15 bg-slate-950 px-3 py-2 font-serif text-lg text-white outline-none focus:border-white/50"
-              placeholder="例如：2.黑色牛仔褲＋薄針織衫＋T恤"
-            />
-          ) : block.type === "text" ? (
-            <textarea
-              value={block.content}
-              disabled={disabled}
-              onChange={(e) => updateBlock(index, { content: e.target.value })}
-              onPaste={(e) => handlePasteSplit(index, e)}
-              rows={Math.min(12, Math.max(4, block.content.split("\n").length + 2))}
-              className="w-full resize-y border border-white/15 bg-slate-950 px-3 py-3 font-serif text-sm leading-8 text-white outline-none focus:border-white/50"
-              placeholder="內文（中文）。可貼上多段，系統會自動分段。"
-            />
-          ) : (
-            <div className="space-y-2">
-              {block.content ? (
-                <img
-                  src={block.content}
-                  alt="block"
-                  className="max-h-48 w-full rounded object-cover"
-                />
-              ) : (
-                <div className="flex h-24 items-center justify-center border border-dashed border-white/20 text-xs text-white/40">
-                  尚未選擇圖片
-                </div>
-              )}
-              <label
-                className={`inline-block border border-white/20 px-3 py-1.5 text-xs text-white/70 hover:bg-white/5 ${disabled ? "pointer-events-none opacity-40" : "cursor-pointer"}`}
-              >
-                {block.content ? "更換圖片" : "選擇圖片"}
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  disabled={disabled}
-                  className="sr-only"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    e.target.value = "";
-                    if (!file) return;
-                    void onUploadImage(file).then((url) => {
-                      if (url) updateBlock(index, { content: url });
-                    });
-                  }}
-                />
-              </label>
-              <input
-                type="text"
-                value={block.caption ?? ""}
-                disabled={disabled}
-                onChange={(e) => updateBlock(index, { caption: e.target.value })}
-                placeholder="圖片說明（選填）"
-                className="w-full border border-white/15 bg-slate-950 px-3 py-2 text-xs text-white outline-none focus:border-white/50"
-              />
-            </div>
-          )}
-        </div>
-      ))}
-
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="sticky top-0 z-20 flex flex-wrap items-center gap-3 border border-white/15 bg-slate-950/95 px-3 py-2 backdrop-blur">
         <select
           value={addKind}
           disabled={disabled}
@@ -371,10 +282,11 @@ export function NewsBlockEditor({
           type="button"
           disabled={disabled}
           onClick={addBlock}
-          className="border border-white/20 px-3 py-2 text-xs text-white/70 hover:bg-white/5 disabled:opacity-40"
+          className="border border-white/20 bg-white/10 px-3 py-2 text-xs text-white hover:bg-white/15 disabled:opacity-40"
         >
-          新增
+          新增到頂部
         </button>
+        <span className="text-[11px] text-white/40">新列會插在第 1 列，再拖到目標位置</span>
         <input
           ref={addImageInputRef}
           type="file"
@@ -386,7 +298,11 @@ export function NewsBlockEditor({
             e.target.value = "";
             if (!file) return;
             void onUploadImage(file).then((url) => {
-              if (url) onChange([...blocks, { type: "image", content: url, caption: "" }]);
+              if (!url) return;
+              commit([
+                { id: newRowId(), block: { type: "image", content: url, caption: "" } },
+                ...rowsRef.current,
+              ]);
             });
           }}
         />
@@ -409,7 +325,157 @@ export function NewsBlockEditor({
         />
       </div>
 
-      <NewsBlockPreview blocks={blocks} />
+      {rows.length === 0 ? (
+        <p className="border border-dashed border-white/15 px-3 py-6 text-center text-xs text-white/40">
+          尚無區塊 — 上方選擇類型後按「新增到頂部」
+        </p>
+      ) : null}
+
+      {rows.map((row, index) => {
+        const block = row.block;
+        return (
+          <div
+            key={row.id}
+            onDragOver={(e) => onDragOverRow(index, e)}
+            onDrop={(e) => onDropRow(index, e)}
+            className={`group relative border bg-black/20 p-3 transition ${
+              dropIndex === index && dragIndex !== null && dragIndex !== index
+                ? "border-white/50"
+                : "border-white/10"
+            } ${dragIndex === index ? "opacity-60" : ""}`}
+          >
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  draggable={!disabled}
+                  disabled={disabled}
+                  onDragStart={(e) => onDragStart(index, e)}
+                  onDragEnd={onDragEnd}
+                  aria-label={`拖曳第 ${index + 1} 列`}
+                  className="cursor-grab border border-white/15 px-2 py-1 text-xs text-white/50 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  ⋮⋮
+                </button>
+                <select
+                  value={block.type}
+                  disabled={disabled}
+                  onChange={(e) => changeBlockType(index, e.target.value as BlockKind)}
+                  className="border border-white/15 bg-slate-950 px-2 py-1 text-xs text-white"
+                  aria-label={`第 ${index + 1} 列類型`}
+                >
+                  <option value="heading">小標</option>
+                  <option value="text">內文</option>
+                  <option value="image">圖</option>
+                </select>
+                {block.type === "heading" ? (
+                  <select
+                    value={block.level ?? 2}
+                    disabled={disabled}
+                    onChange={(e) =>
+                      updateBlock(index, { level: Number(e.target.value) === 3 ? 3 : 2 })
+                    }
+                    className="border border-white/15 bg-slate-950 px-2 py-1 text-xs text-white"
+                  >
+                    <option value={2}>H2</option>
+                    <option value={3}>H3</option>
+                  </select>
+                ) : null}
+                <span className="text-xs text-white/35">#{index + 1}</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => moveBlock(index, -1)}
+                  disabled={disabled || index === 0}
+                  className="border border-white/15 px-2 py-1 text-xs text-white/70 hover:bg-white/5 disabled:opacity-30"
+                >
+                  上移
+                </button>
+                <button
+                  type="button"
+                  onClick={() => moveBlock(index, 1)}
+                  disabled={disabled || index === rows.length - 1}
+                  className="border border-white/15 px-2 py-1 text-xs text-white/70 hover:bg-white/5 disabled:opacity-30"
+                >
+                  下移
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeBlock(index)}
+                  disabled={disabled}
+                  className="border border-red-400/30 px-2 py-1 text-xs text-red-300/80 hover:bg-red-500/10 disabled:opacity-30"
+                >
+                  刪除
+                </button>
+              </div>
+            </div>
+            {block.type === "heading" ? (
+              <input
+                value={block.content}
+                disabled={disabled}
+                onChange={(e) => updateBlock(index, { content: e.target.value })}
+                onPaste={(e) => handlePasteSplit(index, e)}
+                className="w-full border border-white/15 bg-slate-950 px-3 py-2 font-serif text-lg text-white outline-none focus:border-white/50"
+                placeholder="例如：2.黑色牛仔褲＋薄針織衫＋T恤"
+              />
+            ) : block.type === "text" ? (
+              <textarea
+                value={block.content}
+                disabled={disabled}
+                onChange={(e) => updateBlock(index, { content: e.target.value })}
+                onPaste={(e) => handlePasteSplit(index, e)}
+                rows={Math.min(12, Math.max(4, block.content.split("\n").length + 2))}
+                className="w-full resize-y border border-white/15 bg-slate-950 px-3 py-3 font-serif text-sm leading-8 text-white outline-none focus:border-white/50"
+                placeholder="內文（中文）。可貼上多段，系統會自動分段。"
+              />
+            ) : (
+              <div className="space-y-2">
+                {block.content ? (
+                  <img
+                    src={block.content}
+                    alt="block"
+                    className="max-h-48 w-full rounded object-cover"
+                  />
+                ) : (
+                  <div className="flex h-24 items-center justify-center border border-dashed border-white/20 text-xs text-white/40">
+                    尚未選擇圖片
+                  </div>
+                )}
+                <label
+                  className={`inline-block border border-white/20 px-3 py-1.5 text-xs text-white/70 hover:bg-white/5 ${disabled ? "pointer-events-none opacity-40" : "cursor-pointer"}`}
+                >
+                  {block.content ? "更換圖片" : "選擇圖片"}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    disabled={disabled}
+                    className="sr-only"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      e.target.value = "";
+                      if (!file) return;
+                      void onUploadImage(file).then((url) => {
+                        if (url) updateBlock(index, { content: url });
+                      });
+                    }}
+                  />
+                </label>
+                <input
+                  type="text"
+                  value={block.caption ?? ""}
+                  disabled={disabled}
+                  onChange={(e) => updateBlock(index, { caption: e.target.value })}
+                  placeholder="圖片說明（選填）"
+                  className="w-full border border-white/15 bg-slate-950 px-3 py-2 text-xs text-white outline-none focus:border-white/50"
+                />
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      <NewsBlockPreview blocks={fromRows(rows)} />
     </div>
   );
 }
