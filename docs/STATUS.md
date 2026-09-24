@@ -3,9 +3,17 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** Owner verify News draft→publish + cover upload; optional paste Messenger/LINE deep links anytime (JAG-002).
-**Last heartbeat:** 2026-09-24 13:35 +08:00 (`feature/dev-env-news-gate` @ `d9ebfcb`+; CI green on PR #11; public `/news` timeline+category filters; admin dead News code removed.)
+**Current task:** Owner set Namecheap DNS for `jmodel.me` (DOM-001 / D-032); then verify SSL.
+**Last heartbeat:** 2026-09-24 13:55 +08:00 — `jmodel.me` + `www` on Vercel `asian-models`; awaiting Namecheap DNS (not GitHub Pages).
 **Phase 0 completion date:** 2026-08-10
+
+## Session heartbeat (2026-09-24, domain)
+
+- Owner registered **`jmodel.me`** via Namecheap for Education. Decision **D-032** recorded; task **DOM-001**.
+- Vercel: `jmodel.me` + `www.jmodel.me` added to `asian-models`. DNS not verified yet.
+- **Do not** click Namecheap “Setup your GitHub account” / GitHub Pages — host is Vercel.
+- Namecheap Advanced DNS: A `@` → `216.198.79.1` and `64.29.17.1`; CNAME `www` → `82db007ae5d7dc2e.vercel-dns-017.com.`
+- Custom domain serves Vercel **Production** (older), not feature Preview, until Phase 8 promote.
 
 ## Session heartbeat (2026-09-24)
 
@@ -14,7 +22,7 @@
 - Public `/news`: month timeline sections + category chips (時尚/流行/美容…).
 - Live `news_posts` count ≈ 5 published. If Admin cover upload fails, paste Storage policies from `supabase/migrations/20260818140000_news_media_storage_policy.sql` (body_blocks already live).
 - Preview (no Vercel login): `https://asian-models-git-feature-dev-env-news-gate-asian-models.vercel.app/`
-- Still deferred: Student Pack domain/email (Phase 8), Messenger/LINE webhooks (Phase 7). Deep-link URLs can wait.
+- Messenger/LINE webhooks stay Phase 7. Deep-link URLs can wait.
 
 ## Session heartbeat (2026-09-12)
 
