@@ -3,9 +3,17 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** Cover-select freeze fix on News Admin; DOM-001/DOM-002 complete.
-**Last heartbeat:** 2026-09-24 15:12 +08:00 — fixed News cover `createObjectURL` render freeze.
+**Current task:** News Admin block dropdown + dirty save UX shipped to Preview.
+**Last heartbeat:** 2026-09-24 15:35 +08:00 — News Admin UX: type dropdown blocks, dirty buttons, save progress.
 **Phase 0 completion date:** 2026-08-10
+
+## Session heartbeat (2026-09-24, News Admin UX)
+
+- Block editor: select 小標/內文/圖 → 新增; per-row type change, reorder, delete; new article starts with empty blocks.
+- Dirty state: after draft save → grey「草稿已存」; after publish → black「已前台發布」; editing re-enables buttons.
+- Save/publish shows progress bar; completion messages「草稿已存」/「已前台發布」.
+- Cover/block uploads use ASCII paths `news/<id>/img-{ts}.{ext}` (avoids broken covers from Chinese filenames).
+- Verify: https://pre.jmodel.me/admin — re-upload any previously broken cover.
 
 ## Session heartbeat (2026-09-24, news cover freeze)
 

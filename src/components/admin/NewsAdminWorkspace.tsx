@@ -48,6 +48,35 @@ function monthLabel(key: string) {
   return `${y} 年 ${Number(m)} 月`;
 }
 
+function extFromMime(type: string): string {
+  if (type === "image/png") return "png";
+  if (type === "image/webp") return "webp";
+  return "jpg";
+}
+
+function safeNewsImagePath(folderId: string, file: File): string {
+  const ext = extFromMime(file.type);
+  return `news/${folderId}/img-${Date.now()}.${ext}`;
+}
+
+type FormSnapshot = {
+  titleZh: string;
+  titleEn: string;
+  excerptZh: string;
+  excerptEn: string;
+  slug: string;
+  date: string;
+  coverUrl: string;
+  coverFileKey: string;
+  blocks: NewsBodyBlock[];
+  tags: string[];
+  category: string;
+};
+
+function buildFormSnapshot(input: FormSnapshot): string {
+  return JSON.stringify(input);
+}
+
 function NewsTagChips({
   selectedTags,
   onAdd,
@@ -154,7 +183,11 @@ export function NewsAdminWorkspace({
   const queryClient = useQueryClient();
   const [news, setNews] = useState<NewsRow[]>([]);
   const [busy, setBusy] = useState(false);
+  const [saveProgress, setSaveProgress] = useState(0);
+  const [savePhase, setSavePhase] = useState("");
   const [editingNewsId, setEditingNewsId] = useState<string | null>(null);
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
+  const [savedStatus, setSavedStatus] = useState<NewsStatus | null>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | NewsStatus>("all");
   const [categoryFilter, setCategoryFilter] = useState<NewsCategorySlug | "all">("all");
   const [search, setSearch] = useState("");
@@ -167,10 +200,7 @@ export function NewsAdminWorkspace({
   const [newsCoverFile, setNewsCoverFile] = useState<File | null>(null);
   const [newsCoverPreview, setNewsCoverPreview] = useState("");
   const [newsCoverBlobUrl, setNewsCoverBlobUrl] = useState("");
-  const [newsBodyBlocks, setNewsBodyBlocks] = useState<NewsBodyBlock[]>([
-    { type: "heading", content: "", level: 2 },
-    { type: "text", content: "" },
-  ]);
+  const [newsBodyBlocks, setNewsBodyBlocks] = useState<NewsBodyBlock[]>([]);
   const [newsSelectedTags, setNewsSelectedTags] = useState<string[]>([]);
   const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
   const [primaryCategory, setPrimaryCategory] = useState<NewsCategorySlug | "">("");
@@ -246,6 +276,43 @@ export function NewsAdminWorkspace({
     return () => window.clearTimeout(timer);
   }, [newsExcerptZh]);
 
+  const currentSnapshot = useMemo(
+    () =>
+      buildFormSnapshot({
+        titleZh: newsTitleZh,
+        titleEn: newsTitleEn,
+        excerptZh: newsExcerptZh,
+        excerptEn: newsExcerptEn,
+        slug: newsSlug,
+        date: newsDate,
+        coverUrl: newsCoverPreview,
+        coverFileKey: newsCoverFile
+          ? `${newsCoverFile.name}:${newsCoverFile.size}:${newsCoverFile.lastModified}`
+          : "",
+        blocks: newsBodyBlocks,
+        tags: newsSelectedTags,
+        category: primaryCategory,
+      }),
+    [
+      newsTitleZh,
+      newsTitleEn,
+      newsExcerptZh,
+      newsExcerptEn,
+      newsSlug,
+      newsDate,
+      newsCoverPreview,
+      newsCoverFile,
+      newsBodyBlocks,
+      newsSelectedTags,
+      primaryCategory,
+    ],
+  );
+
+  // New unsaved form is always dirty; after load/save, compare snapshots.
+  const isDirty = savedSnapshot === null || currentSnapshot !== savedSnapshot;
+  const draftClean = !isDirty && savedStatus === "draft";
+  const publishClean = !isDirty && savedStatus === "published";
+
   const resetForm = () => {
     setEditingNewsId(null);
     setNewsTitleZh("");
@@ -256,13 +323,14 @@ export function NewsAdminWorkspace({
     setNewsDate(new Date().toISOString().slice(0, 10));
     setNewsCoverPreview("");
     setNewsCoverFile(null);
-    setNewsBodyBlocks([
-      { type: "heading", content: "", level: 2 },
-      { type: "text", content: "" },
-    ]);
+    setNewsBodyBlocks([]);
     setNewsSelectedTags([]);
     setPrimaryCategory("");
     setSuggestedTags([]);
+    setSavedSnapshot(null);
+    setSavedStatus(null);
+    setSaveProgress(0);
+    setSavePhase("");
     titleManualEnRef.current = false;
     excerptManualEnRef.current = false;
   };
@@ -283,16 +351,36 @@ export function NewsAdminWorkspace({
       Array.isArray(rawBlocks) && rawBlocks.length > 0
         ? (rawBlocks as NewsBodyBlock[])
         : row.body_zh.map((p) => ({ type: "text" as const, content: p }));
-    setNewsBodyBlocks(blocks.length ? blocks : [{ type: "text", content: "" }]);
+    const nextBlocks = blocks.length ? blocks : [];
+    setNewsBodyBlocks(nextBlocks);
     setNewsSelectedTags(row.tags);
-    setPrimaryCategory(primaryCategoryFromTags(row.tags) ?? "");
+    const category = primaryCategoryFromTags(row.tags) ?? "";
+    setPrimaryCategory(category);
     titleManualEnRef.current = true;
     excerptManualEnRef.current = true;
+    setSavedStatus(row.status as NewsStatus);
+    setSavedSnapshot(
+      buildFormSnapshot({
+        titleZh: row.title_zh,
+        titleEn: row.title_en,
+        excerptZh: row.excerpt_zh,
+        excerptEn: row.excerpt_en,
+        slug: row.slug,
+        date: row.date,
+        coverUrl: row.cover_url ?? "",
+        coverFileKey: "",
+        blocks: nextBlocks,
+        tags: row.tags,
+        category,
+      }),
+    );
+    setSaveProgress(0);
+    setSavePhase("");
   };
 
   const uploadNewsImage = async (file: File): Promise<string | null> => {
     const id = editingNewsId ?? `draft-${Date.now()}`;
-    const path = `news/${id}/${Date.now()}-${file.name}`;
+    const path = safeNewsImagePath(id, file);
     const { error } = await client.storage.from("model-media").upload(path, file, {
       contentType: file.type,
       upsert: false,
@@ -301,7 +389,12 @@ export function NewsAdminWorkspace({
       onMessage(`圖片上傳失敗：${error.message}`);
       return null;
     }
-    return client.storage.from("model-media").getPublicUrl(path).data.publicUrl;
+    const publicUrl = client.storage.from("model-media").getPublicUrl(path).data.publicUrl;
+    if (!publicUrl || publicUrl.startsWith("blob:")) {
+      onMessage("圖片公開網址無效，請重試上傳。");
+      return null;
+    }
+    return publicUrl;
   };
 
   const applyAutoTags = () => {
@@ -332,87 +425,142 @@ export function NewsAdminWorkspace({
       return;
     }
     setBusy(true);
+    setSaveProgress(8);
+    setSavePhase("驗證欄位…");
     onMessage("");
 
-    let coverUrl = newsCoverPreview;
-    if (newsCoverFile) {
-      const uploaded = await uploadNewsImage(newsCoverFile);
-      if (!uploaded) {
+    try {
+      setSaveProgress(20);
+      setSavePhase("上傳封面…");
+      let coverUrl = newsCoverPreview;
+      if (newsCoverFile) {
+        const uploaded = await uploadNewsImage(newsCoverFile);
+        if (!uploaded) {
+          setBusy(false);
+          setSaveProgress(0);
+          setSavePhase("");
+          return;
+        }
+        coverUrl = uploaded;
+      }
+      if (coverUrl.startsWith("blob:")) {
+        onMessage("封面網址無效，請重新選擇封面後再存。");
         setBusy(false);
+        setSaveProgress(0);
+        setSavePhase("");
         return;
       }
-      coverUrl = uploaded;
-    }
 
-    const tags = [...newsSelectedTags];
-    if (primaryCategory && !tags.includes(primaryCategory)) tags.unshift(primaryCategory);
+      setSaveProgress(45);
+      setSavePhase("組裝內容與翻譯…");
+      const tags = [...newsSelectedTags];
+      if (primaryCategory && !tags.includes(primaryCategory)) tags.unshift(primaryCategory);
 
-    const bodyZh = newsBodyBlocks
-      .filter((b) => (b.type === "text" || b.type === "heading") && b.content.trim())
-      .map((b) => b.content.trim());
+      const bodyZh = newsBodyBlocks
+        .filter((b) => (b.type === "text" || b.type === "heading") && b.content.trim())
+        .map((b) => b.content.trim());
 
-    const bodyEnParts: string[] = [];
-    for (const block of newsBodyBlocks) {
-      if ((block.type === "text" || block.type === "heading") && block.content.trim()) {
-        const en = await englishFromChinese(block.content.trim(), "");
-        bodyEnParts.push(en || block.content.trim());
+      const bodyEnParts: string[] = [];
+      for (const block of newsBodyBlocks) {
+        if ((block.type === "text" || block.type === "heading") && block.content.trim()) {
+          const en = await englishFromChinese(block.content.trim(), "");
+          bodyEnParts.push(en || block.content.trim());
+        }
       }
-    }
 
-    const editing = news.find((row) => row.id === editingNewsId) ?? null;
-    const payload = {
-      slug: newsSlug.trim(),
-      date: newsDate,
-      title_en: newsTitleEn.trim() || (await englishFromChinese(newsTitleZh, "")),
-      title_zh: newsTitleZh.trim(),
-      excerpt_en: newsExcerptEn.trim() || (await englishFromChinese(newsExcerptZh, "")),
-      excerpt_zh: newsExcerptZh.trim(),
-      body_en: bodyEnParts,
-      body_zh: bodyZh,
-      body_blocks: newsBodyBlocks as unknown as never,
-      cover_url: coverUrl || null,
-      tags,
-      status: nextStatus,
-      published_at:
-        nextStatus === "published"
-          ? (editing?.published_at ?? new Date().toISOString())
-          : (editing?.published_at ?? null),
-    };
+      const editing = news.find((row) => row.id === editingNewsId) ?? null;
+      const payload = {
+        slug: newsSlug.trim(),
+        date: newsDate,
+        title_en: newsTitleEn.trim() || (await englishFromChinese(newsTitleZh, "")),
+        title_zh: newsTitleZh.trim(),
+        excerpt_en: newsExcerptEn.trim() || (await englishFromChinese(newsExcerptZh, "")),
+        excerpt_zh: newsExcerptZh.trim(),
+        body_en: bodyEnParts,
+        body_zh: bodyZh,
+        body_blocks: newsBodyBlocks as unknown as never,
+        cover_url: coverUrl || null,
+        tags,
+        status: nextStatus,
+        published_at:
+          nextStatus === "published"
+            ? (editing?.published_at ?? new Date().toISOString())
+            : (editing?.published_at ?? null),
+      };
 
-    if (editingNewsId) {
-      const { error } = await client.from("news_posts").update(payload).eq("id", editingNewsId);
-      setBusy(false);
-      if (error) {
-        onMessage(error.message);
-        return;
+      setSaveProgress(75);
+      setSavePhase("寫入資料庫…");
+
+      let nextId = editingNewsId;
+      if (editingNewsId) {
+        const { error } = await client.from("news_posts").update(payload).eq("id", editingNewsId);
+        if (error) {
+          onMessage(error.message);
+          setBusy(false);
+          setSaveProgress(0);
+          setSavePhase("");
+          return;
+        }
+      } else {
+        const { data, error } = await client
+          .from("news_posts")
+          .insert(payload)
+          .select("id")
+          .single();
+        if (error) {
+          onMessage(error.message);
+          setBusy(false);
+          setSaveProgress(0);
+          setSavePhase("");
+          return;
+        }
+        if (data?.id) {
+          nextId = data.id;
+          setEditingNewsId(data.id);
+        }
       }
+
+      setNewsCoverFile(null);
+      setNewsCoverPreview(coverUrl || "");
+      setNewsTitleEn(payload.title_en);
+      setNewsExcerptEn(payload.excerpt_en);
+      setSavedStatus(nextStatus);
+      setSavedSnapshot(
+        buildFormSnapshot({
+          titleZh: payload.title_zh,
+          titleEn: payload.title_en,
+          excerptZh: payload.excerpt_zh,
+          excerptEn: payload.excerpt_en,
+          slug: payload.slug,
+          date: payload.date,
+          coverUrl: coverUrl || "",
+          coverFileKey: "",
+          blocks: newsBodyBlocks,
+          tags,
+          category: primaryCategory,
+        }),
+      );
+
+      setSaveProgress(100);
+      setSavePhase("完成");
       onMessage(
         nextStatus === "published"
-          ? "已發布到前台。"
+          ? "已前台發布"
           : nextStatus === "archived"
             ? "已封存。"
-            : "草稿已儲存。",
+            : "草稿已存",
       );
-    } else {
-      const { data, error } = await client.from("news_posts").insert(payload).select("id").single();
-      setBusy(false);
-      if (error) {
-        onMessage(error.message);
-        return;
-      }
-      if (data?.id) setEditingNewsId(data.id);
-      onMessage(
-        nextStatus === "published"
-          ? "已新建並發布。"
-          : nextStatus === "archived"
-            ? "已新建並封存。"
-            : "草稿已建立。",
-      );
-    }
 
-    setNewsCoverFile(null);
-    await invalidateNewsQueries(queryClient);
-    await load();
+      await invalidateNewsQueries(queryClient);
+      await load();
+      void nextId;
+    } finally {
+      setBusy(false);
+      window.setTimeout(() => {
+        setSaveProgress(0);
+        setSavePhase("");
+      }, 1200);
+    }
   };
 
   const deleteNews = async (id: string) => {
@@ -742,41 +890,65 @@ export function NewsAdminWorkspace({
           onAutoSuggest={applyAutoTags}
         />
 
-        <div className="sticky bottom-0 flex flex-wrap gap-3 border-t border-white/10 bg-slate-950/95 py-4">
-          <button
-            type="button"
-            disabled={!canEdit || busy}
-            onClick={() => void saveNews("draft")}
-            className="label-xs border border-white/25 px-5 py-3 text-white disabled:opacity-50"
-          >
-            {busy ? "儲存中…" : "存成草稿"}
-          </button>
-          <button
-            type="button"
-            disabled={!canEdit || busy}
-            onClick={() => void saveNews("published")}
-            className="label-xs bg-white px-5 py-3 text-slate-950 disabled:opacity-50"
-          >
-            {busy ? "儲存中…" : "發布到前台"}
-          </button>
-          <button
-            type="button"
-            disabled={!canEdit || busy || !editingNewsId}
-            onClick={() => void saveNews("archived")}
-            className="label-xs border border-white/15 px-5 py-3 text-white/70 disabled:opacity-50"
-          >
-            封存
-          </button>
-          {editingNewsId ? (
+        <div className="sticky bottom-0 space-y-3 border-t border-white/10 bg-slate-950/95 py-4">
+          {(busy || saveProgress > 0) && (
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[11px] text-white/50">
+                <span>{savePhase || "處理中…"}</span>
+                <span>{Math.min(100, Math.round(saveProgress))}%</span>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                <div
+                  className="h-full bg-white transition-[width] duration-300 ease-out"
+                  style={{ width: `${Math.min(100, saveProgress)}%` }}
+                />
+              </div>
+            </div>
+          )}
+          <div className="flex flex-wrap gap-3">
             <button
               type="button"
-              disabled={busy}
-              onClick={resetForm}
-              className="label-xs px-5 py-3 text-white/50 underline disabled:opacity-50"
+              disabled={!canEdit || busy || draftClean}
+              onClick={() => void saveNews("draft")}
+              className={`label-xs px-5 py-3 ${
+                draftClean
+                  ? "cursor-not-allowed border border-white/10 bg-white/5 text-white/35"
+                  : "border border-white/25 text-white hover:bg-white/5 disabled:opacity-50"
+              }`}
             >
-              取消編輯
+              {busy && savePhase ? "儲存中…" : draftClean ? "草稿已存" : "存成草稿"}
             </button>
-          ) : null}
+            <button
+              type="button"
+              disabled={!canEdit || busy || publishClean}
+              onClick={() => void saveNews("published")}
+              className={`label-xs px-5 py-3 ${
+                publishClean
+                  ? "cursor-not-allowed bg-black text-white/70"
+                  : "bg-white text-slate-950 hover:bg-white/90 disabled:opacity-50"
+              }`}
+            >
+              {busy && savePhase ? "儲存中…" : publishClean ? "已前台發布" : "發布到前台"}
+            </button>
+            <button
+              type="button"
+              disabled={!canEdit || busy || !editingNewsId}
+              onClick={() => void saveNews("archived")}
+              className="label-xs border border-white/15 px-5 py-3 text-white/70 disabled:opacity-50"
+            >
+              封存
+            </button>
+            {editingNewsId ? (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={resetForm}
+                className="label-xs px-5 py-3 text-white/50 underline disabled:opacity-50"
+              >
+                取消編輯
+              </button>
+            ) : null}
+          </div>
         </div>
       </section>
     </div>
