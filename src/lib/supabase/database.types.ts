@@ -318,11 +318,13 @@ export type Database = {
           body_en: string[];
           body_zh: string[];
           cover_url: string | null;
+          cover_object_position: string;
           tags: string[];
           status: string;
           created_at: string;
           updated_at: string;
           published_at: string | null;
+          body_blocks: unknown;
         };
         Insert: {
           id?: string;
@@ -335,11 +337,13 @@ export type Database = {
           body_en?: string[];
           body_zh?: string[];
           cover_url?: string | null;
+          cover_object_position?: string;
           tags?: string[];
           status?: string;
           created_at?: string;
           updated_at?: string;
           published_at?: string | null;
+          body_blocks?: unknown;
         };
         Update: Partial<Database["public"]["Tables"]["news_posts"]["Insert"]>;
         Relationships: [];

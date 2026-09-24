@@ -255,6 +255,10 @@ const supabaseRepository: ContentRepository = {
           bodyZh: row.body_zh,
           ...(blocks ? { bodyBlocks: blocks } : {}),
           cover: row.cover_url ?? seedNews.find((post) => post.slug === row.slug)?.cover ?? "",
+          coverObjectPosition:
+            typeof raw["cover_object_position"] === "string" && raw["cover_object_position"]
+              ? (raw["cover_object_position"] as string)
+              : "50% 50%",
           tags: normalizeStoredTags(row.tags),
         };
       });
@@ -289,6 +293,10 @@ const supabaseRepository: ContentRepository = {
         bodyZh: data.body_zh,
         ...(blocks ? { bodyBlocks: blocks } : {}),
         cover: data.cover_url ?? seedNews.find((post) => post.slug === data.slug)?.cover ?? "",
+        coverObjectPosition:
+          typeof raw["cover_object_position"] === "string" && raw["cover_object_position"]
+            ? (raw["cover_object_position"] as string)
+            : "50% 50%",
         tags: normalizeStoredTags(data.tags),
       };
     } catch {

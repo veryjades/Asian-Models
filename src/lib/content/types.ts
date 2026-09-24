@@ -81,6 +81,8 @@ export type NewsPost = {
   /** Block-based body content (段落 + 圖片交替). Takes precedence over bodyEn/bodyZh when present. */
   bodyBlocks?: NewsBodyBlock[];
   cover: string;
+  /** CSS object-position for cover crop, e.g. "50% 20%". Defaults to center. */
+  coverObjectPosition?: string;
   /** Canonical keyword/tag slugs from the shared taxonomy registry. */
   tags: string[];
   /** Optional media clip attached to the story. */

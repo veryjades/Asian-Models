@@ -68,6 +68,7 @@ type FormSnapshot = {
   date: string;
   coverUrl: string;
   coverFileKey: string;
+  coverObjectPosition: string;
   blocks: NewsBodyBlock[];
   tags: string[];
   category: string;
@@ -75,6 +76,23 @@ type FormSnapshot = {
 
 function buildFormSnapshot(input: FormSnapshot): string {
   return JSON.stringify(input);
+}
+
+function parseObjectPosition(value: string): { x: number; y: number } {
+  const match = value.trim().match(/^([\d.]+)%\s+([\d.]+)%$/);
+  if (!match) return { x: 50, y: 50 };
+  return { x: Number(match[1]), y: Number(match[2]) };
+}
+
+function formatObjectPosition(x: number, y: number): string {
+  const clamp = (n: number) => Math.min(100, Math.max(0, Math.round(n)));
+  return `${clamp(x)}% ${clamp(y)}%`;
+}
+
+function readCoverObjectPosition(row: NewsRow): string {
+  const raw = row as unknown as Record<string, unknown>;
+  const value = raw["cover_object_position"];
+  return typeof value === "string" && value.trim() ? value.trim() : "50% 50%";
 }
 
 function NewsTagChips({
@@ -200,12 +218,14 @@ export function NewsAdminWorkspace({
   const [newsCoverFile, setNewsCoverFile] = useState<File | null>(null);
   const [newsCoverPreview, setNewsCoverPreview] = useState("");
   const [newsCoverBlobUrl, setNewsCoverBlobUrl] = useState("");
+  const [coverObjectPosition, setCoverObjectPosition] = useState("50% 50%");
   const [newsBodyBlocks, setNewsBodyBlocks] = useState<NewsBodyBlock[]>([]);
   const [newsSelectedTags, setNewsSelectedTags] = useState<string[]>([]);
   const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
   const [primaryCategory, setPrimaryCategory] = useState<NewsCategorySlug | "">("");
   const titleManualEnRef = useRef(false);
   const excerptManualEnRef = useRef(false);
+  const coverFrameRef = useRef<HTMLButtonElement>(null);
 
   // Never call createObjectURL during render — it recreates blobs on every
   // suggestion/translation re-render and freezes the Admin tab on large covers.
@@ -289,6 +309,7 @@ export function NewsAdminWorkspace({
         coverFileKey: newsCoverFile
           ? `${newsCoverFile.name}:${newsCoverFile.size}:${newsCoverFile.lastModified}`
           : "",
+        coverObjectPosition,
         blocks: newsBodyBlocks,
         tags: newsSelectedTags,
         category: primaryCategory,
@@ -302,6 +323,7 @@ export function NewsAdminWorkspace({
       newsDate,
       newsCoverPreview,
       newsCoverFile,
+      coverObjectPosition,
       newsBodyBlocks,
       newsSelectedTags,
       primaryCategory,
@@ -323,6 +345,7 @@ export function NewsAdminWorkspace({
     setNewsDate(new Date().toISOString().slice(0, 10));
     setNewsCoverPreview("");
     setNewsCoverFile(null);
+    setCoverObjectPosition("50% 50%");
     setNewsBodyBlocks([]);
     setNewsSelectedTags([]);
     setPrimaryCategory("");
@@ -345,6 +368,8 @@ export function NewsAdminWorkspace({
     setNewsDate(row.date);
     setNewsCoverPreview(row.cover_url ?? "");
     setNewsCoverFile(null);
+    const position = readCoverObjectPosition(row);
+    setCoverObjectPosition(position);
     const raw = row as unknown as Record<string, unknown>;
     const rawBlocks = raw["body_blocks"];
     const blocks =
@@ -369,6 +394,7 @@ export function NewsAdminWorkspace({
         date: row.date,
         coverUrl: row.cover_url ?? "",
         coverFileKey: "",
+        coverObjectPosition: position,
         blocks: nextBlocks,
         tags: row.tags,
         category,
@@ -416,6 +442,54 @@ export function NewsAdminWorkspace({
       if (cat) setPrimaryCategory(cat);
     }
     onMessage(`已自動套用 ${Math.min(next.length, 8)} 個 SEO 標籤。`);
+  };
+
+  const generateEnglish = async () => {
+    if (!canEdit || busy) return;
+    if (!newsTitleZh.trim() && !newsExcerptZh.trim()) {
+      onMessage("請先填寫中文標題或摘要。");
+      return;
+    }
+    setBusy(true);
+    setSavePhase("產生英文…");
+    setSaveProgress(15);
+    onMessage("");
+    try {
+      const titleEn = await englishFromChinese(newsTitleZh, "");
+      setSaveProgress(40);
+      const excerptEn = await englishFromChinese(newsExcerptZh, "");
+      setSaveProgress(70);
+      if (titleEn) {
+        titleManualEnRef.current = true;
+        setNewsTitleEn(titleEn);
+      }
+      if (excerptEn) {
+        excerptManualEnRef.current = true;
+        setNewsExcerptEn(excerptEn);
+      }
+      setSaveProgress(100);
+      if (!titleEn && !excerptEn) {
+        onMessage("英文未產出，請手動填 Title/Excerpt 或稍後再試。");
+      } else {
+        onMessage("已產生英文標題／摘要。內文英文會在存檔時一併翻譯。");
+      }
+    } finally {
+      setBusy(false);
+      window.setTimeout(() => {
+        setSaveProgress(0);
+        setSavePhase("");
+      }, 800);
+    }
+  };
+
+  const setCoverFocusFromClick = (clientX: number, clientY: number) => {
+    const el = coverFrameRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+    const x = ((clientX - rect.left) / rect.width) * 100;
+    const y = ((clientY - rect.top) / rect.height) * 100;
+    setCoverObjectPosition(formatObjectPosition(x, y));
   };
 
   const saveNews = async (nextStatus: NewsStatus) => {
@@ -469,17 +543,20 @@ export function NewsAdminWorkspace({
       }
 
       const editing = news.find((row) => row.id === editingNewsId) ?? null;
+      const titleEn = newsTitleEn.trim() || (await englishFromChinese(newsTitleZh, ""));
+      const excerptEn = newsExcerptEn.trim() || (await englishFromChinese(newsExcerptZh, ""));
       const payload = {
         slug: newsSlug.trim(),
         date: newsDate,
-        title_en: newsTitleEn.trim() || (await englishFromChinese(newsTitleZh, "")),
+        title_en: titleEn,
         title_zh: newsTitleZh.trim(),
-        excerpt_en: newsExcerptEn.trim() || (await englishFromChinese(newsExcerptZh, "")),
+        excerpt_en: excerptEn,
         excerpt_zh: newsExcerptZh.trim(),
         body_en: bodyEnParts,
         body_zh: bodyZh,
         body_blocks: newsBodyBlocks as unknown as never,
         cover_url: coverUrl || null,
+        cover_object_position: coverObjectPosition,
         tags,
         status: nextStatus,
         published_at:
@@ -535,6 +612,7 @@ export function NewsAdminWorkspace({
           date: payload.date,
           coverUrl: coverUrl || "",
           coverFileKey: "",
+          coverObjectPosition,
           blocks: newsBodyBlocks,
           tags,
           category: primaryCategory,
@@ -543,13 +621,19 @@ export function NewsAdminWorkspace({
 
       setSaveProgress(100);
       setSavePhase("完成");
-      onMessage(
-        nextStatus === "published"
-          ? "已前台發布"
-          : nextStatus === "archived"
-            ? "已封存。"
-            : "草稿已存",
-      );
+      const enMissing =
+        !payload.title_en.trim() || (payload.excerpt_zh.trim() && !payload.excerpt_en.trim());
+      if (enMissing) {
+        onMessage("已儲存，但英文未產出，請按「產生英文」或手動填 Title/Excerpt 後再存一次。");
+      } else {
+        onMessage(
+          nextStatus === "published"
+            ? "已前台發布"
+            : nextStatus === "archived"
+              ? "已封存。"
+              : "草稿已存",
+        );
+      }
 
       await invalidateNewsQueries(queryClient);
       await load();
@@ -819,6 +903,14 @@ export function NewsAdminWorkspace({
             placeholder="Auto-translated from Chinese"
           />
         </label>
+        <button
+          type="button"
+          disabled={!canEdit || busy}
+          onClick={() => void generateEnglish()}
+          className="border border-white/20 px-3 py-2 text-xs text-white/70 hover:bg-white/5 disabled:opacity-40"
+        >
+          產生英文
+        </button>
 
         <div>
           <p className="text-sm text-white/65">主類別（輔）</p>
@@ -847,13 +939,59 @@ export function NewsAdminWorkspace({
         </div>
 
         <div>
-          <p className="text-sm text-white/65">封面圖片</p>
+          <p className="text-sm text-white/65">封面圖片（3:2）</p>
+          <p className="mt-1 text-xs text-white/40">
+            點預覽設定焦點，避免直圖斷頭。也可拖曳垂直滑桿微調。
+          </p>
           {(newsCoverBlobUrl || newsCoverPreview) && (
-            <img
-              src={newsCoverBlobUrl || newsCoverPreview}
-              alt="cover preview"
-              className="mt-2 max-h-40 w-full rounded object-cover"
-            />
+            <div className="mt-2 space-y-2">
+              <button
+                type="button"
+                ref={coverFrameRef}
+                disabled={!canEdit}
+                onClick={(e) => setCoverFocusFromClick(e.clientX, e.clientY)}
+                className="relative block w-full overflow-hidden border border-white/15 bg-black/40 disabled:opacity-60"
+                style={{ aspectRatio: "3 / 2" }}
+                aria-label="點選封面焦點"
+              >
+                <img
+                  src={newsCoverBlobUrl || newsCoverPreview}
+                  alt="cover preview"
+                  className="h-full w-full object-cover"
+                  style={{ objectPosition: coverObjectPosition }}
+                  draggable={false}
+                />
+                <span
+                  className="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow"
+                  style={{
+                    left: `${parseObjectPosition(coverObjectPosition).x}%`,
+                    top: `${parseObjectPosition(coverObjectPosition).y}%`,
+                  }}
+                />
+              </button>
+              <label className="flex items-center gap-3 text-xs text-white/55">
+                垂直焦點
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  disabled={!canEdit}
+                  value={parseObjectPosition(coverObjectPosition).y}
+                  onChange={(e) =>
+                    setCoverObjectPosition(
+                      formatObjectPosition(
+                        parseObjectPosition(coverObjectPosition).x,
+                        Number(e.target.value),
+                      ),
+                    )
+                  }
+                  className="w-full"
+                />
+                <span className="w-16 shrink-0 text-right text-white/40">
+                  {coverObjectPosition}
+                </span>
+              </label>
+            </div>
           )}
           <label className="mt-2 inline-block cursor-pointer border border-white/20 px-3 py-2 text-xs text-white/70 hover:bg-white/5">
             {newsCoverBlobUrl || newsCoverPreview ? "更換封面" : "選擇封面"}
@@ -865,7 +1003,10 @@ export function NewsAdminWorkspace({
               onChange={(e) => {
                 const file = e.target.files?.[0] ?? null;
                 setNewsCoverFile(file);
-                if (file) setNewsCoverPreview("");
+                if (file) {
+                  setNewsCoverPreview("");
+                  setCoverObjectPosition("50% 50%");
+                }
                 e.target.value = "";
               }}
             />

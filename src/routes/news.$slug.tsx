@@ -112,6 +112,7 @@ function NewsPost() {
         src={post.cover}
         alt={pick(post.titleEn, post.titleZh)}
         {...agencySlotProps(PUBLIC_MEDIA_SLOTS.newsCover)}
+        objectPosition={post.coverObjectPosition ?? "50% 50%"}
         containerClassName="mt-8"
       />
       <div className="mt-8 space-y-8">

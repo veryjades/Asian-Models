@@ -1,4 +1,4 @@
-import { useRef, useState, type ClipboardEvent } from "react";
+import { useRef, useState, type ClipboardEvent, type DragEvent } from "react";
 import type { NewsBodyBlock } from "@/lib/content/types";
 
 export type { NewsBodyBlock };
@@ -94,6 +94,8 @@ export function NewsBlockEditor({
   disabled?: boolean;
 }) {
   const [addKind, setAddKind] = useState<BlockKind>("text");
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dropIndex, setDropIndex] = useState<number | null>(null);
   const addImageInputRef = useRef<HTMLInputElement>(null);
   const replaceImageInputRef = useRef<HTMLInputElement>(null);
   const replaceImageIndexRef = useRef<number | null>(null);
@@ -112,6 +114,15 @@ export function NewsBlockEditor({
     const tmp = next[index]!;
     next[index] = next[target]!;
     next[target] = tmp;
+    onChange(next);
+  };
+
+  const reorderBlocks = (from: number, to: number) => {
+    if (from === to || from < 0 || to < 0 || from >= blocks.length || to >= blocks.length) return;
+    const next = [...blocks];
+    const [item] = next.splice(from, 1);
+    if (!item) return;
+    next.splice(to, 0, item);
     onChange(next);
   };
 
@@ -161,12 +172,39 @@ export function NewsBlockEditor({
     ]);
   };
 
+  const onDragStart = (index: number, event: DragEvent<HTMLButtonElement>) => {
+    if (disabled) return;
+    setDragIndex(index);
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", String(index));
+  };
+
+  const onDragOverRow = (index: number, event: DragEvent<HTMLDivElement>) => {
+    if (disabled || dragIndex === null) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    if (dropIndex !== index) setDropIndex(index);
+  };
+
+  const onDropRow = (index: number, event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    if (disabled || dragIndex === null) return;
+    reorderBlocks(dragIndex, index);
+    setDragIndex(null);
+    setDropIndex(null);
+  };
+
+  const onDragEnd = () => {
+    setDragIndex(null);
+    setDropIndex(null);
+  };
+
   return (
     <div className="space-y-3">
       <div>
         <p className="text-sm text-white/65">內文區塊</p>
         <p className="mt-1 text-xs text-white/40">
-          用下拉選擇小標／內文／圖後新增一列；可改類型、排序、刪除。貼上多段文字會自動拆段。
+          下拉選類型後新增；可用「上移／下移」或左側拖曳把手調整順序。貼上多段文字會自動拆段。
         </p>
       </div>
 
@@ -177,9 +215,29 @@ export function NewsBlockEditor({
       ) : null}
 
       {blocks.map((block, index) => (
-        <div key={index} className="group relative border border-white/10 bg-black/20 p-3">
+        <div
+          key={index}
+          onDragOver={(e) => onDragOverRow(index, e)}
+          onDrop={(e) => onDropRow(index, e)}
+          className={`group relative border bg-black/20 p-3 transition ${
+            dropIndex === index && dragIndex !== null && dragIndex !== index
+              ? "border-white/50"
+              : "border-white/10"
+          } ${dragIndex === index ? "opacity-60" : ""}`}
+        >
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                draggable={!disabled}
+                disabled={disabled}
+                onDragStart={(e) => onDragStart(index, e)}
+                onDragEnd={onDragEnd}
+                aria-label={`拖曳第 ${index + 1} 列`}
+                className="cursor-grab border border-white/15 px-2 py-1 text-xs text-white/50 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                ⋮⋮
+              </button>
               <select
                 value={block.type}
                 disabled={disabled}
@@ -211,23 +269,23 @@ export function NewsBlockEditor({
                 type="button"
                 onClick={() => moveBlock(index, -1)}
                 disabled={disabled || index === 0}
-                className="text-xs text-white/50 hover:text-white disabled:opacity-30"
+                className="border border-white/15 px-2 py-1 text-xs text-white/70 hover:bg-white/5 disabled:opacity-30"
               >
-                ↑
+                上移
               </button>
               <button
                 type="button"
                 onClick={() => moveBlock(index, 1)}
                 disabled={disabled || index === blocks.length - 1}
-                className="text-xs text-white/50 hover:text-white disabled:opacity-30"
+                className="border border-white/15 px-2 py-1 text-xs text-white/70 hover:bg-white/5 disabled:opacity-30"
               >
-                ↓
+                下移
               </button>
               <button
                 type="button"
                 onClick={() => removeBlock(index)}
                 disabled={disabled}
-                className="text-xs text-red-300/70 hover:text-red-200 disabled:opacity-30"
+                className="border border-red-400/30 px-2 py-1 text-xs text-red-300/80 hover:bg-red-500/10 disabled:opacity-30"
               >
                 刪除
               </button>

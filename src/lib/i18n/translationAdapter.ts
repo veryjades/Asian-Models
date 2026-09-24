@@ -15,15 +15,19 @@ export interface TranslationAdapter {
   translate(request: TranslationRequest): Promise<string>;
 }
 
-/** Default: no paid provider. Empty English lets public EN fall back to Chinese. */
+/** Empty adapter — public EN falls back to Chinese via `pick()`. */
 export const emptyTranslationAdapter: TranslationAdapter = {
   async translate() {
     return "";
   },
 };
 
-/** Dev-only HTTP adapter (replaceable; no vendor SDK). */
-const devHttpTranslationAdapter: TranslationAdapter = {
+/**
+ * HTTP adapter (replaceable; no vendor SDK).
+ * Used by default so Preview/Production Admin can fill English on save.
+ * Set VITE_DISABLE_HTTP_TRANSLATION=1 to force the empty adapter.
+ */
+const httpTranslationAdapter: TranslationAdapter = {
   async translate({ text }) {
     if (!text.trim()) return "";
     try {
@@ -42,7 +46,10 @@ const devHttpTranslationAdapter: TranslationAdapter = {
 };
 
 export function getTranslationAdapter(): TranslationAdapter {
-  return import.meta.env.DEV ? devHttpTranslationAdapter : emptyTranslationAdapter;
+  if (import.meta.env["VITE_DISABLE_HTTP_TRANSLATION"] === "1") {
+    return emptyTranslationAdapter;
+  }
+  return httpTranslationAdapter;
 }
 
 export async function englishFromChinese(zh: string, existingEn = ""): Promise<string> {

@@ -38,7 +38,7 @@
 | D-027 | Approved | Landing PR #4 / PR #5 onto `main`, plus production DNS/SSL, Sentry/monitoring, and backup/recovery, are **Phase 8 / Phase 9**. Not now. | These are production-cutover gates, not current development-slice work. | Do not retarget PR #5 to `main` until PR #4 is reviewed/merged. Do not promote production, buy Sentry, or configure live DNS/SSL in this environment. See detailed record below. |
 | D-029 | Approved | Admin authors **Chinese as the source of truth**. Public EN uses stored English when present, otherwise falls back to Chinese. A **replaceable translation adapter** may fill English later; the default adapter does not call a vendor SDK. | Owner required Chinese-only Admin plus EN as Admin completeness now, without locking a translation vendor. | Dual fields remain. No Azure/OpenAI/translation SDK. Phase 6 may swap the adapter for a cached provider. D-021 is not rewritten; only the “do not start the adapter now” timing is superseded for this no-SDK adapter. |
 | D-030 | Approved | Model profiles allow **unlimited** gallery photos and uploaded videos (no count cap). Photos max **10 MiB**; videos max **50 MiB**. YouTube URLs are a separate link/embed field. | Owner required unlimited media with file-size limits. 50 MiB videos stay within typical Storage defaults. | Enforce in Admin UI and Storage adapter. Do not generate images. Hover extra poses remain D-025. |
-| D-031 | Approved | Public media slots are a single spec: hero 16:9 1920×1080; model card/hover/profile/gallery 2:3 800×1200; news cover 3:2 1600×1067; video 16:9 1280×720. Display uses **object-fit: cover** and **object-position: center**. | Owner required neat layout and center-crop of mismatched uploads. | Constants live in `src/lib/content/mediaSlots.ts`. Do not add ad-hoc aspect ratios on pages. About has no image slot. |
+| D-031 | Approved | Public media slots are a single spec: hero 16:9 1920×1080; model card/hover/profile/gallery 2:3 800×1200; news cover 3:2 1600×1067; video 16:9 1280×720. Display uses **object-fit: cover** and default **object-position: center**. News covers may override position per post via `cover_object_position`. | Owner required neat layout and center-crop of mismatched uploads; later required focal adjust for portrait news covers. | Constants in `src/lib/content/mediaSlots.ts`. Do not add ad-hoc aspect ratios on pages. About has no image slot. See detailed record below. |
 | D-032 | Approved | Public brand domain is **`jmodel.me`** (Namecheap for Education / GitHub Student Pack). Attach apex + `www` to Vercel project `asian-models` as **Production**. Attach **`pre.jmodel.me`** to the current development Preview branch (`feature/dev-env-news-gate`). **Do not** use Namecheap’s GitHub Pages auto-setup. Full production promote remains Phase 8/9 (D-027). | Owner registered `jmodel.me` and later directed Preview onto subdomain `pre.jmodel.me`. Student Pack domain path (D-018/D-024); app hosts on Vercel, not GitHub Pages. | Owner adds Namecheap CNAME for `pre`. SSL after DNS verifies. Apex/`www` stay Production; `pre` tracks the feature Preview branch. See detailed record below. |
 
 ## Decision lifecycle
@@ -240,8 +240,8 @@ Add an ID, date, status, owner, context, options considered, final decision, rat
   - News cover: 3:2, 1600×1067, cover, center
   - Video / YouTube frame: 16:9, 1280×720, cover, center
   - About: no image slot
-- **Display:** `object-fit: cover` and `object-position: 50% 50%`. Admin shows the slot hint next to uploads.
-- **Related tasks:** CMS-000, UX-002.
+- **Display:** `object-fit: cover` and default `object-position: 50% 50%`. Admin shows the slot hint next to uploads. **News covers** may store a per-post `cover_object_position` (e.g. `50% 20%`) so portrait uploads are not beheaded in the 3:2 crop; slot aspect ratio stays 3:2.
+- **Related tasks:** CMS-000, CMS-003, UX-002.
 
 ## D-032 — Brand domain `jmodel.me` via Student Pack / Namecheap EDU
 

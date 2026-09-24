@@ -3,9 +3,17 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** News Admin block dropdown + dirty save UX shipped to Preview.
-**Last heartbeat:** 2026-09-24 15:35 +08:00 — News Admin UX: type dropdown blocks, dirty buttons, save progress.
+**Current task:** News EN adapter + cover focal + block drag reorder — Owner apply SQL then re-save Vogue post.
+**Last heartbeat:** 2026-09-24 15:55 +08:00 — translation default HTTP; cover_object_position; block drag.
 **Phase 0 completion date:** 2026-08-10
+
+## Session heartbeat (2026-09-24, News EN / focal / reorder)
+
+- Root cause of Chinese-on-EN cards: Preview used empty translation adapter; HTTP MyMemory adapter is now default (D-029, no vendor SDK). Disable with `VITE_DISABLE_HTTP_TRANSLATION=1`.
+- Admin「產生英文」fills title/excerpt EN; save still translates body on write.
+- News cover focal: click 3:2 preview + vertical slider → `cover_object_position`. Migration `20260924160000_news_cover_object_position.sql` — **Owner must paste in Supabase SQL Editor**.
+- Block rows:「上移／下移」+ drag handle ⋮⋮.
+- Verify on https://pre.jmodel.me/admin after deploy + SQL: open Vogue post → 產生英文 → set focal → save/publish.
 
 ## Session heartbeat (2026-09-24, News Admin UX)
 

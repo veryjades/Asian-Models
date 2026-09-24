@@ -164,6 +164,7 @@ function NewsIndex() {
                       alt={pick(post.titleEn, post.titleZh)}
                       loading="lazy"
                       {...agencySlotProps(PUBLIC_MEDIA_SLOTS.newsCover)}
+                      objectPosition={post.coverObjectPosition ?? "50% 50%"}
                     />
                     <p className="label-xs mt-4 text-muted-foreground">
                       {new Date(post.date).toLocaleDateString(lang === "zh" ? "zh-TW" : "en-GB", {
