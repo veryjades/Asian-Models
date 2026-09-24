@@ -1,7 +1,7 @@
 # Asian Stars Agency — Task Board
 
 **Current phase:** Phase 2 — Application Foundation
-**Last updated:** 2026-09-12
+**Last updated:** 2026-09-24
 
 ## Master acceptance checklist
 
@@ -115,6 +115,7 @@ Phase 1 architecture foundation is complete. No existing UI route is connected t
 | OPS-001 | Persist client enquiries and model applications in an Admin inbox. | Codex | Complete | Contact, Quick Booking, and scouting forms write Supabase rows; `/admin` lists and status-updates both queues. |
 | OPS-002 | Enqueue and dispatch administrator email notifications. | Codex | In progress | D-026: real-delivery evidence is Phase 4; Student Pack SMTP as production sender is Phase 8. Outbox + `notify-admin` exist; B-005 remains Open. |
 | REL-001 | Complete the master checklist QA, Preview verification, and PR #5 readiness review. | Codex | In progress | D-027: PR #4/#5 onto `main` is Phase 8/9, not now. Do not retarget PR #5 to `main` until PR #4 is reviewed/merged. |
+| DOM-001 | Attach Student Pack domain `jmodel.me` to Vercel and complete Namecheap DNS. | Owner + Codex | In progress | **D-032.** Vercel: `jmodel.me` + `www.jmodel.me` added to `asian-models` (2026-09-24). **Do not** use Namecheap GitHub Pages button. Owner must set Namecheap DNS then agent re-runs `vercel domains verify`. Apex A `@` → `216.198.79.1` and `64.29.17.1`; `www` CNAME → `82db007ae5d7dc2e.vercel-dns-017.com.` Domain serves Vercel **Production** (not feature Preview) until promote gate. |
 
 ## Experience-validation iteration — Mock assets
 

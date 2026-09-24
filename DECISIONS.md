@@ -39,6 +39,7 @@
 | D-029 | Approved | Admin authors **Chinese as the source of truth**. Public EN uses stored English when present, otherwise falls back to Chinese. A **replaceable translation adapter** may fill English later; the default adapter does not call a vendor SDK. | Owner required Chinese-only Admin plus EN as Admin completeness now, without locking a translation vendor. | Dual fields remain. No Azure/OpenAI/translation SDK. Phase 6 may swap the adapter for a cached provider. D-021 is not rewritten; only the “do not start the adapter now” timing is superseded for this no-SDK adapter. |
 | D-030 | Approved | Model profiles allow **unlimited** gallery photos and uploaded videos (no count cap). Photos max **10 MiB**; videos max **50 MiB**. YouTube URLs are a separate link/embed field. | Owner required unlimited media with file-size limits. 50 MiB videos stay within typical Storage defaults. | Enforce in Admin UI and Storage adapter. Do not generate images. Hover extra poses remain D-025. |
 | D-031 | Approved | Public media slots are a single spec: hero 16:9 1920×1080; model card/hover/profile/gallery 2:3 800×1200; news cover 3:2 1600×1067; video 16:9 1280×720. Display uses **object-fit: cover** and **object-position: center**. | Owner required neat layout and center-crop of mismatched uploads. | Constants live in `src/lib/content/mediaSlots.ts`. Do not add ad-hoc aspect ratios on pages. About has no image slot. |
+| D-032 | Approved | Public brand domain is **`jmodel.me`** (Namecheap for Education / GitHub Student Pack). Attach apex + `www` to the existing Vercel project `asian-models`. **Do not** use Namecheap’s GitHub Pages auto-setup. DNS may be configured now; full production promote (merge to `main`, monitoring, backup) remains Phase 8/9 (D-027). | Owner registered `jmodel.me` and directed the agent to take over. Student Pack domain is the approved go-live resource path (D-018/D-024). This app deploys on Vercel, not GitHub Pages. | Owner sets Namecheap DNS to Vercel records. SSL follows after DNS verifies. Do not treat domain attachment alone as production launch. See detailed record below. |
 
 ## Decision lifecycle
 
@@ -241,3 +242,17 @@ Add an ID, date, status, owner, context, options considered, final decision, rat
   - About: no image slot
 - **Display:** `object-fit: cover` and `object-position: 50% 50%`. Admin shows the slot hint next to uploads.
 - **Related tasks:** CMS-000, UX-002.
+
+## D-032 — Brand domain `jmodel.me` via Student Pack / Namecheap EDU
+
+- **Date:** 2026-09-24
+- **Status:** Approved
+- **Owner:** Project owner (Joseph Chang), recorded by Cursor agent
+- **Context:** Owner completed Namecheap for Education registration for `jmodel.me` and asked the agent to take over. Namecheap thank-you page pushes “Setup your GitHub account” / GitHub Pages. The application deploys on Vercel (`asian-models`). D-018/D-024 require Student Pack first for domain extras; D-027 keeps full production promote in Phase 8/9.
+- **Options considered:** (1) Click Namecheap GitHub Pages auto-setup. (2) Leave domain idle until Phase 8. (3) Attach apex + `www` to the existing Vercel project now and set Namecheap DNS to Vercel records, without treating that as full production launch.
+- **Decision:** Option 3. Brand domain is `jmodel.me`. Attach `jmodel.me` and `www.jmodel.me` to Vercel project `asian-models`. Do **not** use GitHub Pages auto-setup. Owner configures DNS at Namecheap. Full production promote (reviewed merge onto `main`, monitoring, backup) remains Phase 8/9.
+- **Rationale:** Uses Student Pack domain correctly; matches the real host (Vercel); starts Phase 8 domain work without rewriting D-027’s promote gate.
+- **Affected phase:** Phase 8 domain provisioning may start now. Phase 2 application work continues. Production launch still Phase 8/9.
+- **Supersedes:** Only the “do not configure live DNS” implication in D-027 for this Student Pack domain attachment. PR merge / Sentry / backup gates in D-027 are not rewritten.
+- **Migration / reversal:** Remove domains from the Vercel project and clear Namecheap A/CNAME records.
+- **Related tasks:** DOM-001, REL-001, D-018/D-024/D-027.
