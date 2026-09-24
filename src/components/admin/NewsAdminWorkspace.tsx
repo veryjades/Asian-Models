@@ -166,6 +166,7 @@ export function NewsAdminWorkspace({
   const [newsDate, setNewsDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [newsCoverFile, setNewsCoverFile] = useState<File | null>(null);
   const [newsCoverPreview, setNewsCoverPreview] = useState("");
+  const [newsCoverBlobUrl, setNewsCoverBlobUrl] = useState("");
   const [newsBodyBlocks, setNewsBodyBlocks] = useState<NewsBodyBlock[]>([
     { type: "heading", content: "", level: 2 },
     { type: "text", content: "" },
@@ -175,6 +176,18 @@ export function NewsAdminWorkspace({
   const [primaryCategory, setPrimaryCategory] = useState<NewsCategorySlug | "">("");
   const titleManualEnRef = useRef(false);
   const excerptManualEnRef = useRef(false);
+
+  // Never call createObjectURL during render — it recreates blobs on every
+  // suggestion/translation re-render and freezes the Admin tab on large covers.
+  useEffect(() => {
+    if (!newsCoverFile) {
+      setNewsCoverBlobUrl("");
+      return;
+    }
+    const url = URL.createObjectURL(newsCoverFile);
+    setNewsCoverBlobUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [newsCoverFile]);
 
   const load = useCallback(async () => {
     const { data, error } = await client
@@ -687,15 +700,15 @@ export function NewsAdminWorkspace({
 
         <div>
           <p className="text-sm text-white/65">封面圖片</p>
-          {(newsCoverPreview || newsCoverFile) && (
+          {(newsCoverBlobUrl || newsCoverPreview) && (
             <img
-              src={newsCoverFile ? URL.createObjectURL(newsCoverFile) : newsCoverPreview}
+              src={newsCoverBlobUrl || newsCoverPreview}
               alt="cover preview"
               className="mt-2 max-h-40 w-full rounded object-cover"
             />
           )}
           <label className="mt-2 inline-block cursor-pointer border border-white/20 px-3 py-2 text-xs text-white/70 hover:bg-white/5">
-            {newsCoverPreview || newsCoverFile ? "更換封面" : "選擇封面"}
+            {newsCoverBlobUrl || newsCoverPreview ? "更換封面" : "選擇封面"}
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"

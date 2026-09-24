@@ -3,17 +3,38 @@
 **Phase:** Phase 2 — Application Foundation (with authorised mock-asset experience iteration)
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
-**Current task:** Owner set Namecheap DNS for `jmodel.me` (DOM-001 / D-032); then verify SSL.
-**Last heartbeat:** 2026-09-24 13:55 +08:00 — `jmodel.me` + `www` on Vercel `asian-models`; awaiting Namecheap DNS (not GitHub Pages).
+**Current task:** Cover-select freeze fix on News Admin; DOM-001/DOM-002 complete.
+**Last heartbeat:** 2026-09-24 15:12 +08:00 — fixed News cover `createObjectURL` render freeze.
 **Phase 0 completion date:** 2026-08-10
 
-## Session heartbeat (2026-09-24, domain)
+## Session heartbeat (2026-09-24, news cover freeze)
 
-- Owner registered **`jmodel.me`** via Namecheap for Education. Decision **D-032** recorded; task **DOM-001**.
-- Vercel: `jmodel.me` + `www.jmodel.me` added to `asian-models`. DNS not verified yet.
-- **Do not** click Namecheap “Setup your GitHub account” / GitHub Pages — host is Vercel.
-- Namecheap Advanced DNS: A `@` → `216.198.79.1` and `64.29.17.1`; CNAME `www` → `82db007ae5d7dc2e.vercel-dns-017.com.`
-- Custom domain serves Vercel **Production** (older), not feature Preview, until Phase 8 promote.
+- Bug: Admin「選擇封面」freeze — `URL.createObjectURL` ran on every render in `NewsAdminWorkspace`.
+- Fix: blob URL via `useEffect` + `revokeObjectURL` (same pattern as model media in `admin.tsx`).
+- Verify on https://pre.jmodel.me/admin after deploy.
+
+## Session heartbeat (2026-09-24, preview subdomain verified)
+
+- **DOM-002 Complete.** `pre.jmodel.me` CNAME live; Vercel `configured_correctly`; HTTPS 200.
+- Maps to git branch `feature/dev-env-news-gate` (latest Preview).
+- Live Preview URL: https://pre.jmodel.me/
+- Production remains https://jmodel.me/ (older until Phase 8 promote).
+
+## Session heartbeat (2026-09-24, preview subdomain)
+
+- **DOM-002 In progress.** Vercel project domain `pre.jmodel.me` → git branch `feature/dev-env-news-gate` (Preview).
+- Removed unused `preview.jmodel.me`. Apex + `www` remain Production.
+- **Owner Namecheap:** CNAME Host `pre` → `82db007ae5d7dc2e.vercel-dns-017.com.` (TTL Automatic).
+- After DNS: agent verifies HTTPS on https://pre.jmodel.me/
+
+## Session heartbeat (2026-09-24, domain verified)
+
+- **DOM-001 Complete.** Owner fixed Namecheap (removed GitHub Pages A + wrong Host `0`).
+- `nslookup`: apex → `216.198.79.1` / `64.29.17.1`; `www` → `82db007ae5d7dc2e.vercel-dns-017.com`.
+- `vercel domains verify`: both hosts `configured_correctly` / project verified.
+- Certificate issued for `jmodel.me` + `www.jmodel.me`; HTTPS 200 + HSTS.
+- Live: https://jmodel.me/ and https://www.jmodel.me/ (Vercel **Production**, not feature Preview).
+- Latest News Admin work remains on Preview until Phase 8 promote.
 
 ## Session heartbeat (2026-09-24)
 
