@@ -4,8 +4,15 @@
 **Status:** IN_PROGRESS
 **Current phase:** Phase 2 — Application Foundation
 **Current task:** News cover focal — URL `?fp=` fallback so save works without DB column; owner re-publish covers.
-**Last heartbeat:** 2026-09-24 16:40 +08:00 — schema-cache error explained; save no longer depends on missing column.
+**Last heartbeat:** 2026-09-24 18:45 +08:00 — Miss-S&M EN empty/Chinese body_en; translation save hardened.
 **Phase 0 completion date:** 2026-08-10
+
+## Session heartbeat (2026-09-24, news EN not switching)
+
+- **Symptom:** `Miss-S&M` on EN locale still shows Chinese title/body.
+- **Live data:** `title_en`/`excerpt_en` empty; `body_en` stored Chinese (old save used `en || zh` fallback when translate failed).
+- **Fix:** `usableEnglish` / reject Chinese-as-EN; never write Chinese into `body_en`; chunk MyMemory; Admin「產生英文」+ re-save rewrites English.
+- **Owner:** https://pre.jmodel.me/admin → open Miss-S&M → 產生英文 → 發布到前台 → confirm EN article.
 
 ## Session heartbeat (2026-09-24, cover_object_position schema error)
 

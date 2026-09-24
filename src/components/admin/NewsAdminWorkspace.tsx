@@ -13,7 +13,11 @@ import {
   type NewsCategorySlug,
   type NewsTag,
 } from "@/lib/content/newsTags";
-import { englishFromChinese } from "@/lib/i18n/translationAdapter";
+import {
+  englishFromChinese,
+  isPrimarilyChinese,
+  usableEnglish,
+} from "@/lib/i18n/translationAdapter";
 import {
   DEFAULT_NEWS_COVER_POSITION,
   formatObjectPosition,
@@ -451,19 +455,26 @@ export function NewsAdminWorkspace({
 
   const generateEnglish = async () => {
     if (!canEdit || busy) return;
-    if (!newsTitleZh.trim() && !newsExcerptZh.trim()) {
-      onMessage("請先填寫中文標題或摘要。");
+    if (!newsTitleZh.trim() && !newsExcerptZh.trim() && newsBodyBlocks.length === 0) {
+      onMessage("請先填寫中文標題、摘要或內文。");
       return;
     }
     setBusy(true);
     setSavePhase("產生英文…");
-    setSaveProgress(15);
+    setSaveProgress(10);
     onMessage("");
     try {
-      const titleEn = await englishFromChinese(newsTitleZh, "");
-      setSaveProgress(40);
-      const excerptEn = await englishFromChinese(newsExcerptZh, "");
-      setSaveProgress(70);
+      // Force re-translate even if the EN fields currently hold Chinese leftovers.
+      const titleEn = await englishFromChinese(
+        newsTitleZh,
+        isPrimarilyChinese(newsTitleEn) ? "" : newsTitleEn,
+      );
+      setSaveProgress(35);
+      const excerptEn = await englishFromChinese(
+        newsExcerptZh,
+        isPrimarilyChinese(newsExcerptEn) ? "" : newsExcerptEn,
+      );
+      setSaveProgress(55);
       if (titleEn) {
         titleManualEnRef.current = true;
         setNewsTitleEn(titleEn);
@@ -472,11 +483,23 @@ export function NewsAdminWorkspace({
         excerptManualEnRef.current = true;
         setNewsExcerptEn(excerptEn);
       }
+      // Body English is persisted on save as body_en[]; preview tells the operator to save.
+      const textBlocks = newsBodyBlocks.filter(
+        (b) => (b.type === "text" || b.type === "heading") && b.content.trim(),
+      );
+      let bodyOk = 0;
+      for (const [i, block] of textBlocks.entries()) {
+        const en = await englishFromChinese(block.content.trim(), "");
+        if (en) bodyOk += 1;
+        setSaveProgress(55 + Math.round(((i + 1) / Math.max(textBlocks.length, 1)) * 40));
+      }
       setSaveProgress(100);
-      if (!titleEn && !excerptEn) {
+      if (!titleEn && !excerptEn && bodyOk === 0) {
         onMessage("英文未產出，請手動填 Title/Excerpt 或稍後再試。");
       } else {
-        onMessage("已產生英文標題／摘要。內文英文會在存檔時一併翻譯。");
+        onMessage(
+          `已產生英文（標題／摘要${textBlocks.length ? `；內文可譯 ${bodyOk}/${textBlocks.length}` : ""}）。請再按「存成草稿」或「發布到前台」寫入。`,
+        );
       }
     } finally {
       setBusy(false);
@@ -539,17 +562,20 @@ export function NewsAdminWorkspace({
         .filter((b) => (b.type === "text" || b.type === "heading") && b.content.trim())
         .map((b) => b.content.trim());
 
+      const editing = news.find((row) => row.id === editingNewsId) ?? null;
+      const priorBodyEn = editing?.body_en ?? [];
       const bodyEnParts: string[] = [];
       for (const block of newsBodyBlocks) {
         if ((block.type === "text" || block.type === "heading") && block.content.trim()) {
-          const en = await englishFromChinese(block.content.trim(), "");
-          bodyEnParts.push(en || block.content.trim());
+          const prior = priorBodyEn[bodyEnParts.length] ?? "";
+          // Never store Chinese into body_en — empty means public EN falls back via pick().
+          const en = await englishFromChinese(block.content.trim(), prior);
+          bodyEnParts.push(en);
         }
       }
 
-      const editing = news.find((row) => row.id === editingNewsId) ?? null;
-      const titleEn = newsTitleEn.trim() || (await englishFromChinese(newsTitleZh, ""));
-      const excerptEn = newsExcerptEn.trim() || (await englishFromChinese(newsExcerptZh, ""));
+      const titleEn = await englishFromChinese(newsTitleZh, newsTitleEn);
+      const excerptEn = await englishFromChinese(newsExcerptZh, newsExcerptEn);
       const serializedBlocks = serializeNewsBodyBlocks(newsBodyBlocks);
       const coverWithFocal = coverUrl ? withCoverFocalParam(coverUrl, coverObjectPosition) : "";
       // Focal is always durable on cover_url (?fp=X-Y). The DB column is optional
@@ -650,11 +676,20 @@ export function NewsAdminWorkspace({
 
       setSaveProgress(100);
       setSavePhase("完成");
+      const textBlockCount = serializedBlocks.filter(
+        (b) => (b.type === "text" || b.type === "heading") && b.content.trim(),
+      ).length;
+      const bodyEnReady =
+        textBlockCount === 0 ||
+        (bodyEnParts.length >= textBlockCount && bodyEnParts.every((p) => p.trim()));
       const enMissing =
-        !basePayload.title_en.trim() ||
-        Boolean((basePayload.excerpt_zh ?? "").trim() && !(basePayload.excerpt_en ?? "").trim());
+        !usableEnglish(basePayload.title_en) ||
+        Boolean((basePayload.excerpt_zh ?? "").trim() && !usableEnglish(basePayload.excerpt_en)) ||
+        !bodyEnReady;
       if (enMissing) {
-        onMessage("已儲存，但英文未產出，請按「產生英文」或手動填 Title/Excerpt 後再存一次。");
+        onMessage(
+          "已儲存，但英文未齊全（標題／摘要／內文）。請按「產生英文」後再存一次，或手動填英文。",
+        );
       } else {
         onMessage(
           nextStatus === "published"

@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { contentRepository } from "@/lib/content/repository";
 import { useI18n } from "@/lib/i18n";
+import { usableEnglish } from "@/lib/i18n/translationAdapter";
 import { AgencyImage } from "@/components/site/AgencyImage";
 import { VideoGallery } from "@/components/site/VideoGallery";
 import { agencySlotProps, PUBLIC_MEDIA_SLOTS } from "@/lib/content/mediaSlots";
@@ -107,10 +108,12 @@ function NewsPost() {
           day: "numeric",
         })}
       </p>
-      <h1 className="mt-3 text-3xl font-light md:text-4xl">{pick(post.titleEn, post.titleZh)}</h1>
+      <h1 className="mt-3 text-3xl font-light md:text-4xl">
+        {pick(usableEnglish(post.titleEn, post.titleZh), post.titleZh)}
+      </h1>
       <AgencyImage
         src={post.cover}
-        alt={pick(post.titleEn, post.titleZh)}
+        alt={pick(usableEnglish(post.titleEn, post.titleZh), post.titleZh)}
         {...agencySlotProps(PUBLIC_MEDIA_SLOTS.newsCover)}
         objectPosition={post.coverObjectPosition ?? "50% 50%"}
         containerClassName="mt-8"
@@ -129,7 +132,10 @@ function NewsPost() {
                     <figure key={i}>
                       <img
                         src={block.content}
-                        alt={block.caption || pick(post.titleEn, post.titleZh)}
+                        alt={
+                          block.caption ||
+                          pick(usableEnglish(post.titleEn, post.titleZh), post.titleZh)
+                        }
                         className="w-full rounded object-cover"
                         loading="lazy"
                       />
@@ -143,7 +149,7 @@ function NewsPost() {
                 }
                 if (block.type === "heading") {
                   const zhText = block.content;
-                  const enText = enParagraphs[textIndex] ?? zhText;
+                  const enText = usableEnglish(enParagraphs[textIndex], zhText) || zhText;
                   textIndex++;
                   const Tag = block.level === 3 ? "h3" : "h2";
                   return (
@@ -156,7 +162,7 @@ function NewsPost() {
                   );
                 }
                 const zhText = block.content;
-                const enText = enParagraphs[textIndex] ?? zhText;
+                const enText = usableEnglish(enParagraphs[textIndex], zhText) || zhText;
                 textIndex++;
                 return (
                   <p
@@ -168,7 +174,12 @@ function NewsPost() {
                 );
               });
             })()
-          : (lang === "zh" ? post.bodyZh : post.bodyEn).map((para, i) => (
+          : (lang === "zh"
+              ? post.bodyZh
+              : post.bodyEn.map(
+                  (para, i) => usableEnglish(para, post.bodyZh[i]) || post.bodyZh[i] || para,
+                )
+            ).map((para, i) => (
               <p
                 key={i}
                 className="font-serif text-sm leading-8 text-muted-foreground md:text-base md:leading-8"

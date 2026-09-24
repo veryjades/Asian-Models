@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { usableEnglish } from "@/lib/i18n/translationAdapter";
 
 export type Lang = "en" | "zh";
 
@@ -251,7 +252,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       t: (key) => dict[key]?.[lang] ?? key,
       pick: (en, zh) => {
         if (lang === "zh") return zh || en;
-        return en || zh || "";
+        // Treat Chinese leftovers in EN fields as missing (D-021 fallback to ZH).
+        return usableEnglish(en, zh ?? "") || zh || "";
       },
     }),
     [lang, setLang],
